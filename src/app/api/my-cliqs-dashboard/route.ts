@@ -1,8 +1,22 @@
-// src/app/api/my-cliqs/route.ts
+// 🔐 APA-HARDENED by Aiden — Do not remove without security review.
+// This route fetches all cliqs for the authenticated user via membership links.
+// Prisma client is loaded via custom `@/lib/prisma` import.
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
+import { Membership } from '@prisma/client';
+
+type MembershipWithCliq = Membership & {
+  cliq: {
+    id: string;
+    name: string;
+    description: string | null;
+    privacy: string;
+    createdAt: Date;
+    ownerId: string;
+  };
+};
 
 export async function GET() {
   try {
@@ -29,7 +43,7 @@ export async function GET() {
       },
     });
 
-    const cliqs = memberships.map((m) => m.cliq);
+    const cliqs = memberships.map((m: MembershipWithCliq) => m.cliq);
 
     return NextResponse.json({ cliqs });
   } catch (err) {
