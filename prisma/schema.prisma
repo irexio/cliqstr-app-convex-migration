@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Invite {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  createdAt     DateTime  @default(now())
+  used          Boolean   @default(false)
+  status        String    @default("pending")
+  expiresAt     DateTime?
+  invitedRole   String
+  isApproved    Boolean   @default(false)
+  cliqId        String?
+  maxUses       Int       @default(1)
+
+  inviteeEmail  String?   // ✅ Now tracked
+
+  inviter       User      @relation("UserToInvites", fields: [inviterId], references: [id])
+  inviterId     String
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+
+  profile Profile?
+  invites Invite[] @relation("UserToInvites")
+
+  cliqs       Cliq[]       @relation("UserToCliqs")
+  memberships Membership[]
+  posts       Post[]
+  replies     Reply[]
+
+  inviteRequests InviteRequest[] @relation("UserInviteRequests")
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  username     String   @unique
+  birthdate    DateTime
+  password     String
+  isApproved   Boolean  @default(false)
+  stripeStatus String   @default("unpaid")
+  role         String   @default("child")
+  ageGroup     String   @default("unknown")
+  createdAt    DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
+
+  parentLinks ParentLink[]
+}
+
+model ParentLink {
+  id        String   @id @default(cuid())
+  childId   String
+  email     String
+  createdAt DateTime @default(now())
+
+  child Profile @relation(fields: [childId], references: [id])
+}
+
+model Cliq {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  privacy     String   @default("private") // private, semi, public
+  coverImage  String?
+  createdAt   DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation("UserToCliqs", fields: [ownerId], references: [id])
+
+  members Membership[]
+  posts   Post[]
+
+  inviteRequests InviteRequest[]
+}
+
+model Membership {
+  id       String   @id @default(cuid())
+  userId   String
+  cliqId   String
+  role     String   @default("Member") // Member, Moderator, Cliq Master
+  joinedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  cliq Cliq @relation(fields: [cliqId], references: [id])
+
+  @@unique([userId, cliqId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  authorId String
+  cliqId   String
+
+  author  User    @relation(fields: [authorId], references: [id])
+  cliq    Cliq    @relation(fields: [cliqId], references: [id])
+  replies Reply[]
+}
+
+model Reply {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  postId   String
+  authorId String
+
+  post   Post @relation(fields: [postId], references: [id])
+  author User @relation(fields: [authorId], references: [id])
+}
+
+model InviteRequest {
+  id             String   @id @default(cuid())
+  cliqId         String
+  inviterId      String
+  invitedRole    String
+  inviteeEmail   String
+  message        String?
+  status         String   // 'pending' | 'approved' | 'rejected'
+  createdAt      DateTime @default(now())
+
+  cliq           Cliq     @relation(fields: [cliqId], references: [id])
+  inviter        User     @relation("UserInviteRequests", fields: [inviterId], references: [id])
+}

@@ -1,0 +1,73 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/Button';
+import { Label } from '@/components/ui/label';
+
+export default function ForgotPasswordPage() {
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    setStatus('sending');
+    setError('');
+
+    try {
+      const res = await fetch('/api/send-reset-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        setStatus('sent');
+      } else {
+        const data = await res.json();
+        setError(data.error || 'Could not send reset email');
+        setStatus('error');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong.');
+      setStatus('error');
+    }
+  };
+
+  return (
+    <main className="max-w-md mx-auto py-12 px-4 space-y-6">
+      <h1 className="text-2xl font-bold text-indigo-700 text-center">Forgot Password</h1>
+
+      <p className="text-sm text-gray-600 text-center">
+        Enter your email and we’ll send you a secure link to reset your password.
+      </p>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+        </div>
+
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {status === 'sent' && (
+          <p className="text-sm text-green-600">
+            If your email is on file, a reset link has been sent.
+          </p>
+        )}
+
+        <Button onClick={handleSubmit} disabled={status === 'sending'} className="w-full">
+          {status === 'sending' ? 'Sending...' : 'Send Reset Link'}
+        </Button>
+      </div>
+    </main>
+  );
+}
