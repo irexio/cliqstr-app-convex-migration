@@ -1,7 +1,7 @@
 'use client';
 
-// 🔐 APA-HARDENED by Aiden — Validates all fields, handles Firefox quirks with <input type="date">,
-// and ensures role logic is respected for child vs. adult sign-up.
+// 🔐 APA-HARDENED by Aiden — Replaces custom Input with native date field.
+// Fixes browser inconsistencies (Chrome, Firefox, Safari) with <input type="date">
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -106,10 +106,11 @@ export default function SignUpForm() {
       />
 
       <Label className="mt-4">Birthdate</Label>
-      <Input
+      <input
         type="date"
         value={birthdate}
         onChange={e => setBirthdate(e.target.value)}
+        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
       />
 
       {error && <p className="text-red-500 mt-3">{error}</p>}
