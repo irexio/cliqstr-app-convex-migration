@@ -122,7 +122,7 @@ export default function ParentsHQPage() {
               {req.message && (
                 <p className="text-sm text-gray-600 italic">“{req.message}”</p>
               )}
-              <Button size="sm" onClick={() => handleApprove(req.id)}>
+              <Button onClick={() => handleApprove(req.id)}>
                 Approve
               </Button>
             </div>

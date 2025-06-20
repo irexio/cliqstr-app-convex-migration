@@ -1,9 +1,16 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil', // ✅ Fixed version
-});
+// Check if Stripe secret key is available
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn('STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
+}
+
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-04-30.basil', // ✅ Fixed version
+    })
+  : null;
 
 const PRICE_MAP: Record<string, string> = {
   basic: 'price_1RMN9TEa19eiTLnA506gOh6S',
@@ -13,6 +20,11 @@ const PRICE_MAP: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
+    // Check if Stripe is properly initialized
+    if (!stripe) {
+      return NextResponse.json({ error: 'Payment processing is not configured' }, { status: 503 });
+    }
+
     const { planKey, inviteCode, cliqId, promo } = await req.json();
 
     if (!planKey || !PRICE_MAP[planKey]) {

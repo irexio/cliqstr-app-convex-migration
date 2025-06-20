@@ -19,7 +19,7 @@ model Invite {
   cliqId        String?
   maxUses       Int       @default(1)
 
-  inviteeEmail  String?   // ✅ Now tracked
+  inviteeEmail  String?
 
   inviter       User      @relation("UserToInvites", fields: [inviterId], references: [id])
   inviterId     String

@@ -7,7 +7,6 @@ import useEmblaCarousel, {
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/Button"
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
@@ -196,20 +195,26 @@ CarouselItem.displayName = "CarouselItem"
 
 const CarouselPrevious = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentProps<typeof Button>
->(({ className, variant = "outline", size = "icon", ...props }, ref) => {
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: "outline" | "solid"
+  }
+>(({ className, variant = "outline", ...props }, ref) => {
   const { orientation, scrollPrev, canScrollPrev } = useCarousel()
 
   return (
-    <Button
+    <button
       ref={ref}
-      variant={variant}
-      size={size}
       className={cn(
-        "absolute  h-8 w-8 rounded-full",
+        "absolute h-8 w-8 rounded-full",
+        "inline-flex items-center justify-center",
+        "text-sm font-semibold focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2",
+        variant === "outline"
+          ? "ring-1 ring-slate-200 text-slate-700 hover:text-slate-900 hover:ring-slate-300 active:bg-slate-100 active:text-slate-600 focus-visible:outline-blue-600 focus-visible:ring-slate-300"
+          : "bg-slate-900 text-white hover:bg-slate-700 hover:text-slate-100 active:bg-slate-800 active:text-slate-300 focus-visible:outline-slate-900",
         orientation === "horizontal"
           ? "-left-12 top-1/2 -translate-y-1/2"
           : "-top-12 left-1/2 -translate-x-1/2 rotate-90",
+        "disabled:pointer-events-none disabled:opacity-50",
         className
       )}
       disabled={!canScrollPrev}
@@ -218,27 +223,33 @@ const CarouselPrevious = React.forwardRef<
     >
       <ArrowLeft className="h-4 w-4" />
       <span className="sr-only">Previous slide</span>
-    </Button>
+    </button>
   )
 })
 CarouselPrevious.displayName = "CarouselPrevious"
 
 const CarouselNext = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentProps<typeof Button>
->(({ className, variant = "outline", size = "icon", ...props }, ref) => {
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    variant?: "outline" | "solid"
+  }
+>(({ className, variant = "outline", ...props }, ref) => {
   const { orientation, scrollNext, canScrollNext } = useCarousel()
 
   return (
-    <Button
+    <button
       ref={ref}
-      variant={variant}
-      size={size}
       className={cn(
         "absolute h-8 w-8 rounded-full",
+        "inline-flex items-center justify-center",
+        "text-sm font-semibold focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2",
+        variant === "outline"
+          ? "ring-1 ring-slate-200 text-slate-700 hover:text-slate-900 hover:ring-slate-300 active:bg-slate-100 active:text-slate-600 focus-visible:outline-blue-600 focus-visible:ring-slate-300"
+          : "bg-slate-900 text-white hover:bg-slate-700 hover:text-slate-100 active:bg-slate-800 active:text-slate-300 focus-visible:outline-slate-900",
         orientation === "horizontal"
           ? "-right-12 top-1/2 -translate-y-1/2"
           : "-bottom-12 left-1/2 -translate-x-1/2 rotate-90",
+        "disabled:pointer-events-none disabled:opacity-50",
         className
       )}
       disabled={!canScrollNext}
@@ -247,7 +258,7 @@ const CarouselNext = React.forwardRef<
     >
       <ArrowRight className="h-4 w-4" />
       <span className="sr-only">Next slide</span>
-    </Button>
+    </button>
   )
 })
 CarouselNext.displayName = "CarouselNext"

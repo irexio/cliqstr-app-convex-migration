@@ -2,12 +2,24 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-04-30.basil', // ✅ Updated to fix type error
-});
+// Check if Stripe secret key is available
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn('STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
+}
+
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-04-30.basil', // ✅ Updated to fix type error
+    })
+  : null;
 
 export async function POST(req: Request) {
   try {
+    // Check if Stripe is properly initialized
+    if (!stripe) {
+      return NextResponse.json({ error: 'Payment processing is not configured' }, { status: 503 });
+    }
+
     const { inviteCode, cliqId, role } = await req.json();
 
     if (!inviteCode || !cliqId || !role) {
