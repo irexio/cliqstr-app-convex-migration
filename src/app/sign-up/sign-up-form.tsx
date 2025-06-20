@@ -1,8 +1,7 @@
 'use client';
 
-// 🔐 APA-HARDENED by Aiden — Do not remove without security review.
-// This form creates a user with appropriate role logic based on age and invite code.
-// Includes full birthdate validation and proper trimming of fields to prevent silent failure.
+// 🔐 APA-HARDENED by Aiden — Validates all fields, handles Firefox quirks with <input type="date">,
+// and ensures role logic is respected for child vs. adult sign-up.
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -36,20 +35,20 @@ export default function SignUpForm() {
     setError('');
     setLoading(true);
 
-    if (!email.trim() || !password.trim() || !birthdate.trim()) {
+    if (!email.trim() || !password.trim()) {
       setError('All fields are required.');
       setLoading(false);
       return;
     }
 
     const parsedDate = new Date(birthdate);
-    if (isNaN(parsedDate.getTime())) {
+    if (!birthdate || isNaN(parsedDate.getTime())) {
       setError('Please enter a valid birthdate.');
       setLoading(false);
       return;
     }
 
-    const formattedDate = parsedDate.toISOString().split('T')[0]; // ensures yyyy-mm-dd format
+    const formattedDate = parsedDate.toISOString().split('T')[0];
     const age = calculateAge(formattedDate);
     const role =
       age < 18 ? (inviteCode ? 'child_invited' : 'child_direct') : 'adult';
