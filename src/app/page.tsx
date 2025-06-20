@@ -14,19 +14,16 @@ export default function HomePage() {
 
       {/* HERO */}
       <section>
-        <div className="p-4 text-xs text-neutral-500">Rendering: Hero</div>
         <Hero />
       </section>
 
       {/* WHY CHOOSE CLIQSTR */}
       <section>
-        <div className="p-4 text-xs text-neutral-500">Rendering: WhyChooseCliqstr</div>
         <WhyChooseCliqstr />
       </section>
 
       {/* INNER CIRCLE CTA */}
       <section>
-        <div className="p-4 text-xs text-neutral-500">Rendering: InnerCircleCTA</div>
         <InnerCircleCTA />
       </section>
 

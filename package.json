@@ -62,7 +62,6 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4.1.7",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/react": "^18.2.0",
@@ -72,8 +71,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
     "kill-port": "^2.0.1",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.7",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5"
   }
 }

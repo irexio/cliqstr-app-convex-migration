@@ -1,3 +1,19 @@
+/* 🔐 APA-HARDENED GLOBAL STYLES FOR CLIQSTR */
+/* Applies Tailwind’s reset, layout, and utility layers */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 🧤 Base font styling — aligned with layout.tsx and Tailwind config */
+@layer base {
+  html {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  body {
+    @apply bg-neutral-100 text-neutral-900 antialiased;
+  }
+}
+
+/* 🌟 Future-safe — add utility or theme overrides here */

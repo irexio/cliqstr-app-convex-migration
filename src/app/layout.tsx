@@ -1,4 +1,10 @@
-import '@/styles/tailwind.css';
+// 🔐 APA-HARDENED by Aiden — Do not remove without layout review.
+// This is the root layout for Cliqstr — imports Tailwind, font, global rules,
+// and safely applies header/footer framing for every route.
+
+
+import './globals.css'; // Required for font + resets
+
 import { Poppins } from 'next/font/google';
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
@@ -23,9 +29,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className="bg-white text-[#202020] font-poppins">
+      <body className="bg-white text-[#202020] font-poppins antialiased min-h-screen">
         <Header />
-        <main className="min-h-screen">{children}</main>
+        <main>{children}</main>
         <Footer />
       </body>
     </html>

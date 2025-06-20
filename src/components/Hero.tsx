@@ -1,33 +1,35 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
+// 🔐 APA-HARDENED by Aiden — Do not remove without explicit security review.
+// Hero section for Cliqstr homepage. Uses official Kara color gradient.
+
+import Link from 'next/link'
 
 export function Hero() {
   return (
-    <section className="w-full bg-gradient-to-r from-[#2a2356] via-[#5f3dc4] to-[#8148bb] text-white min-h-[500px] flex items-center">
-      <div className="max-w-7xl mx-auto px-4 text-center w-full">
-        <h1 className="text-4xl md:text-5xl font-semibold leading-tight tracking-tight font-poppins">
-          Social Media With<br />
-          <span className="text-[#c5bfff] font-semibold">Privacy</span> at Its Core
+    <section className="bg-gradient-to-br from-blue-900 via-purple-600 to-pink-600 text-white py-20 px-4">
+      <div className="container mx-auto max-w-4xl text-center space-y-6">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight">
+          Finally, a Private Space Just for Your Cliqs
         </h1>
-        <p className="mt-4 max-w-2xl mx-auto text-lg font-normal font-poppins text-white/90">
-          No stalkers. No hawkers. Just your cliqs. Connect privately with the people who matter most to you, without the noise.
+        <p className="text-lg sm:text-xl md:text-2xl max-w-2xl mx-auto">
+          Cliqstr is invite-only, ad-free, and safe for families, kids, and friends to connect.
         </p>
-        <div className="mt-8 flex justify-center gap-4 flex-wrap font-poppins">
+        <div className="flex justify-center gap-4 flex-wrap pt-4">
           <Link
             href="/sign-up"
-            className="inline-flex items-center justify-center px-6 py-3 border border-white text-white text-sm font-semibold rounded-md hover:bg-white/10 transition min-w-[180px]"
+            className="rounded-full bg-white text-purple-700 font-semibold px-6 py-3 text-lg shadow-md hover:bg-gray-100 transition"
           >
-            Sign Up Now
+            Try Cliqstr Free
           </Link>
           <Link
             href="/how-it-works"
-            className="inline-flex items-center justify-center px-6 py-3 bg-white text-[#202020] text-sm font-semibold rounded-md hover:bg-white/90 transition min-w-[180px]"
+            className="rounded-full border border-white text-white font-medium px-6 py-3 text-lg hover:bg-white hover:text-purple-700 transition"
           >
-            Learn About Cliqs
+            Learn More
           </Link>
         </div>
       </div>
     </section>
-  );
+  )
 }

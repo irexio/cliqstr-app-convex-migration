@@ -1,6 +1,6 @@
-import type { Config } from 'tailwindcss';
-
-const config: Config = {
+// 🔐 APA-HARDENED Tailwind Config — v3 Stable
+/** @type {import('tailwindcss').Config} */
+module.exports = {
   content: ['./src/**/*.{ts,tsx,js,jsx,mdx}'],
   theme: {
     extend: {
@@ -20,5 +20,3 @@ const config: Config = {
   },
   plugins: [],
 };
-
-export default config;
