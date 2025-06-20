@@ -1,113 +1,70 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+// 🔐 APA-HARDENED by Aiden — Sends parent approval email using /api/send-parent-email.
+// Uses Resend and confirms success/failure with user-friendly feedback.
+
 import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/Button';
 
-export default function ParentApprovalForm({
-  childId,
-  inviteCode,
-  username,
-  parentEmail,
-  password,
-  cliqName,
-}: {
-  childId: string;
-  inviteCode: string;
-  username: string;
-  parentEmail: string;
-  password: string;
-  cliqName: string;
-}) {
-  const router = useRouter();
-
+export default function ParentApprovalForm() {
+  const [parentEmail, setParentEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleApprove = async (plan: 'free' | 'paid' | 'ebt') => {
-    setSubmitting(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
     setError('');
-    setMessage('');
 
     try {
-      const res = await fetch('/api/complete-approval', {
+      const res = await fetch('/api/send-parent-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          inviteCode,
-          childId,
-          username,
-          password,
           parentEmail,
-          plan,
+          childName: 'Test Child', // 🔧 Replace with dynamic name when connected to user session
+          isInvited: false,
         }),
       });
 
-      const data = await res.json();
+      const result = await res.json();
 
-      if (!res.ok) throw new Error(data.error || 'Approval failed');
+      if (!res.ok) {
+        throw new Error(result.error || 'Failed to send email');
+      }
 
-      setMessage(
-        plan === 'ebt'
-          ? 'Request received! We’ll review it within 24 hours.'
-          : 'Access granted! Redirecting...'
-      );
-
-      setTimeout(() => {
-        router.push('/my-cliqs');
-      }, plan === 'ebt' ? 4000 : 1500);
+      setSubmitted(true);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong.');
-    } finally {
-      setSubmitting(false);
+      console.error('❌ Email failed:', err.message);
+      setError(err.message || 'An unexpected error occurred.');
     }
+
+    setLoading(false);
   };
 
-  return (
-    <div className="max-w-lg mx-auto p-6 bg-white border shadow rounded space-y-6">
-      <h1 className="text-2xl font-bold text-indigo-700 text-center">Parental Approval</h1>
+  return submitted ? (
+    <p className="text-green-600 font-semibold mt-6">
+      ✅ Thanks! Your parent will get an email shortly with the next steps.
+    </p>
+  ) : (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <Label>Parent’s Email</Label>
+      <Input
+        type="email"
+        value={parentEmail}
+        onChange={(e) => setParentEmail(e.target.value)}
+        placeholder="parent@example.com"
+        required
+      />
 
-      <p className="text-sm text-gray-700">
-        Your child <strong>{username}</strong> has been invited to join{' '}
-        <strong>{cliqName}</strong> on Cliqstr — a safe, private space for families.
-      </p>
+      {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <p className="text-sm text-gray-700">
-        All children under 18 require parent approval. Please choose your preferred access option:
-      </p>
-
-      <div className="space-y-4">
-        <button
-          onClick={() => handleApprove('free')}
-          disabled={submitting}
-          className="w-full bg-indigo-600 text-white py-2 rounded text-sm hover:bg-indigo-700"
-        >
-          Approve Free Plan
-        </button>
-
-        <button
-          onClick={() => handleApprove('paid')}
-          disabled={submitting}
-          className="w-full bg-purple-600 text-white py-2 rounded text-sm hover:bg-purple-700"
-        >
-          Approve & Upgrade Plan
-        </button>
-
-        <button
-          onClick={() => handleApprove('ebt')}
-          disabled={submitting}
-          className="w-full bg-gray-100 text-gray-800 py-2 rounded text-sm hover:bg-gray-200"
-        >
-          I have EBT/SNAP – Request Free Access
-        </button>
-      </div>
-
-      {message && <p className="text-sm text-green-700 text-center">{message}</p>}
-      {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-
-      <p className="text-xs text-gray-400 text-center mt-4">
-        EBT/SNAP requests will be reviewed within 24 hours. Your card will not be charged.
-      </p>
-    </div>
+      <Button type="submit" className="w-full mt-4" disabled={loading}>
+        {loading ? 'Sending Email...' : 'Send Parent Email'}
+      </Button>
+    </form>
   );
 }

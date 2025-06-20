@@ -1,23 +1,20 @@
-// src/app/parent-approval/page.tsx
+'use client';
 
-import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { redirect } from 'next/navigation';
-import ParentApprovalPage from '@/components/ParentApprovalPage';
+// 🔐 APA-HARDENED by Aiden — Page shell for child user approval.
+// This renders the full parent message and imports the form component.
 
-export default async function ParentApprovalWrapper() {
-  const user = await getCurrentUser();
+import ParentApprovalForm from './parent-approval-form';
 
-  if (!user) {
-    redirect('/sign-in');
-  }
+export default function ParentApprovalPage() {
+  return (
+    <div className="max-w-md mx-auto py-16 px-4 text-center">
+      <h1 className="text-2xl font-bold mb-4">We need your parent’s OK 👋</h1>
+      <p className="text-sm text-gray-600 mb-6">
+        Since you're under 18, we need to verify that a parent or guardian approves your account.
+        Please enter their email below — we'll send them a message right away.
+      </p>
 
-  if (user.profile?.role !== 'parent') {
-    return (
-      <div className="p-10 text-red-600 text-center">
-        Access denied. Only parents can approve accounts.
-      </div>
-    );
-  }
-
-  return <ParentApprovalPage parentId={user.id} />;
+      <ParentApprovalForm />
+    </div>
+  );
 }
