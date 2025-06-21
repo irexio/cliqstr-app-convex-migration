@@ -46,14 +46,14 @@ export default function SignUpForm() {
       setError('Please enter a valid birthdate.');
       setLoading(false);
       return;
-    }
-
-    // SECURITY: Password strength check
+    }    // SECURITY: Password strength check
     if (password.length < 8) {
       setError('Password must be at least 8 characters long.');
       setLoading(false);
       return;
-    }    const formattedDate = parsedDate.toISOString().split('T')[0];
+    }
+
+    const formattedDate = parsedDate.toISOString().split('T')[0];
     
     // SECURITY: Let server determine age and role - don't trust client calculation
     const age = calculateAge(formattedDate); // Only for UI routing decision

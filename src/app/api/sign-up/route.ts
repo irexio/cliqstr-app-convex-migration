@@ -28,7 +28,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid birthdate' }, { status: 400 });
     }
 
-    const today = new Date();    let age = today.getFullYear() - parsedDate.getFullYear();
+    const today = new Date();
+    let age = today.getFullYear() - parsedDate.getFullYear();
     const monthDiff = today.getMonth() - parsedDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsedDate.getDate())) {
       age--;
@@ -64,11 +65,11 @@ export async function POST(req: Request) {
       // SECURITY: Check invite expiration
       if (invite.expiresAt && invite.expiresAt < new Date()) {
         return NextResponse.json({ error: 'Invite code has expired' }, { status: 400 });
-      }
-
-      // Store invite data for transaction
+      }      // Store invite data for transaction
       inviteData = invite;
-    }    // SECURITY: Email validation with enhanced debugging
+    }
+
+    // SECURITY: Email validation with enhanced debugging
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       console.log(`Email validation failed for: ${email.length > 0 ? 'provided email' : 'empty email'}, pattern: ${emailRegex.toString()}`);
@@ -102,17 +103,34 @@ export async function POST(req: Request) {
           email,
           password: hashedPassword,
         },
-      });
-
-      // SECURITY: Generate unique username to prevent conflicts
+      });      // SECURITY: Generate unique username to prevent conflicts
       let baseUsername = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+      
+      // Ensure baseUsername is not empty
+      if (baseUsername.length === 0) {
+        baseUsername = 'user';
+      }
+      
       let username = baseUsername;
       let counter = 1;
 
-      // Ensure username uniqueness
-      while (await tx.profile.findUnique({ where: { username } })) {
+      // Ensure username uniqueness with safety limit
+      let attempts = 0;
+      const maxAttempts = 100;
+      
+      while (await tx.profile.findUnique({ where: { username } }) && attempts < maxAttempts) {
         username = `${baseUsername}${counter}`;
         counter++;
+        attempts++;
+      }
+
+      if (attempts >= maxAttempts) {
+        throw new Error('Unable to generate unique username');
+      }      console.log(`Generated username for email domain ${email.split('@')[1]}: ${username}`);
+
+      // Validate all required fields before creating profile
+      if (!username || !hashedPassword || !parsedDate || !role) {
+        throw new Error('Missing required profile data');
       }
 
       const profile = await tx.profile.create({
@@ -120,10 +138,10 @@ export async function POST(req: Request) {
           username,
           password: hashedPassword,
           birthdate: parsedDate,
-          role,
-          // CHILD SAFETY: Children NEVER auto-approved, adults are
+          role,          // CHILD SAFETY: Children NEVER auto-approved, adults are
           isApproved: age >= 18,
-          stripeStatus: 'free',          ageGroup: age >= 18 ? 'adult' : 'child',
+          stripeStatus: 'free',
+          ageGroup: age >= 18 ? 'adult' : 'child',
           userId: user.id,
         },
       });
@@ -141,22 +159,56 @@ export async function POST(req: Request) {
       }
 
       return { user, profile };
-    });
+    });    // SECURITY: Log successful signup for audit trail (without sensitive data)
+    console.log(`Successful signup: ${age >= 18 ? 'Adult' : 'Child'} account created for email domain: ${email.split('@')[1]}`);
 
-    // SECURITY: Log successful signup for audit trail (without sensitive data)
-    console.log(`Successful signup: ${age >= 18 ? 'Adult' : 'Child'} account created for email domain: ${email.split('@')[1]}`);    return NextResponse.json({ 
+    return NextResponse.json({
       success: true, 
       userId: result.user.id,
       requiresApproval: age < 18 
     });
 
-  } catch (error) {
-    // SECURITY: Enhanced error logging for debugging while protecting sensitive data
-    console.error('Sign-up error details:', {
+  } catch (error) {    // SECURITY: Enhanced error logging for debugging while protecting sensitive data
+    const errorInfo: any = {
       error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    // Add Prisma-specific error info safely
+    if (error && typeof error === 'object' && 'code' in error) {
+      errorInfo.prismaCode = (error as any).code;
+      errorInfo.prismaTarget = (error as any).meta?.target;
+    }
+
+    console.error('Sign-up error details:', errorInfo);
+    
+    // Handle specific Prisma constraint errors
+    if (error && typeof error === 'object' && 'code' in error) {
+      const prismaError = error as any;
+      
+      // Unique constraint violation (P2002)
+      if (prismaError.code === 'P2002') {
+        const target = prismaError.meta?.target;
+        if (target?.includes('email')) {
+          return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
+        }
+        if (target?.includes('username')) {
+          return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
+        }
+        return NextResponse.json({ error: 'Account with this information already exists' }, { status: 400 });
+      }
+      
+      // Required field missing (P2012)
+      if (prismaError.code === 'P2012') {
+        return NextResponse.json({ error: 'Missing required information' }, { status: 400 });
+      }
+      
+      // Invalid data type (P2007)
+      if (prismaError.code === 'P2007') {
+        return NextResponse.json({ error: 'Invalid data format provided' }, { status: 400 });
+      }
+    }
     
     return NextResponse.json({ error: 'Account creation failed' }, { status: 500 });
   }
