@@ -30,13 +30,13 @@ export default function SignUpForm() {
     }
     return age;
   };
-
   const handleSubmit = async () => {
     setError('');
     setLoading(true);
 
+    // SECURITY: Basic client validation only - server does the real work
     if (!email.trim() || !password.trim()) {
-      setError('All fields are required.');
+      setError('Email and password are required.');
       setLoading(false);
       return;
     }
@@ -48,12 +48,18 @@ export default function SignUpForm() {
       return;
     }
 
-    const formattedDate = parsedDate.toISOString().split('T')[0];
-    const age = calculateAge(formattedDate);
-    const role =
-      age < 18 ? (inviteCode ? 'child_invited' : 'child_direct') : 'adult';
+    // SECURITY: Password strength check
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      setLoading(false);
+      return;
+    }    const formattedDate = parsedDate.toISOString().split('T')[0];
+    
+    // SECURITY: Let server determine age and role - don't trust client calculation
+    const age = calculateAge(formattedDate); // Only for UI routing decision
 
     try {
+      // SECURITY: Only send necessary data - let server determine role
       const res = await fetch('/api/sign-up', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -61,24 +67,25 @@ export default function SignUpForm() {
           email: email.trim(),
           password: password.trim(),
           birthdate: formattedDate,
-          role,
-          inviteCode,
+          inviteCode, // May be null for adults
         }),
       });
 
       const data = await res.json();
+      console.log('Sign-up response:', { status: res.status, data }); // Debug log
 
       if (!res.ok) {
         throw new Error(data.error || 'Sign-up failed');
       }
 
-      if (role.startsWith('child')) {
+      // SECURITY: Use server response to determine routing
+      if (data.requiresApproval) {
         router.push('/parent-approval');
       } else {
         router.push('/choose-plan');
       }
     } catch (err: any) {
-      console.error(err);
+      console.error('Sign-up error:', err);
       setError(err.message || 'Something went wrong.');
     }
 
