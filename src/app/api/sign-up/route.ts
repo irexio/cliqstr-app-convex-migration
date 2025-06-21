@@ -14,6 +14,9 @@ export async function POST(req: Request) {
       email,
     } = body;
 
+    // SECURITY: Debug logging (safe - no sensitive data)
+    console.log(`Sign-up attempt for email domain: ${email ? email.split('@')[1] : 'undefined'}, has invite: ${!!inviteCode}`);
+
     // Basic validation
     if (!password || !birthdate || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -25,8 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid birthdate' }, { status: 400 });
     }
 
-    const today = new Date();
-    let age = today.getFullYear() - parsedDate.getFullYear();
+    const today = new Date();    let age = today.getFullYear() - parsedDate.getFullYear();
     const monthDiff = today.getMonth() - parsedDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < parsedDate.getDate())) {
       age--;
@@ -34,6 +36,9 @@ export async function POST(req: Request) {
 
     // SECURITY: Determine role server-side based on actual age calculation
     const role = age < 18 ? (inviteCode ? 'child_invited' : 'child_direct') : 'adult';
+
+    // Store invite data for later use in transaction
+    let inviteData = null;
 
     // CHILD SAFETY: All minors require invite codes - NO EXCEPTIONS
     if (age < 18) {
@@ -60,23 +65,31 @@ export async function POST(req: Request) {
       if (invite.expiresAt && invite.expiresAt < new Date()) {
         return NextResponse.json({ error: 'Invite code has expired' }, { status: 400 });
       }
-    }
 
-    // SECURITY: Email validation
+      // Store invite data for transaction
+      inviteData = invite;
+    }    // SECURITY: Email validation with enhanced debugging
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
+      console.log(`Email validation failed for: ${email.length > 0 ? 'provided email' : 'empty email'}, pattern: ${emailRegex.toString()}`);
       return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
     }
 
-    // SECURITY: Password strength validation
+    console.log(`Email validation passed for domain: ${email.split('@')[1]}`);
+
+    // SECURITY: Password strength validation with enhanced debugging
     if (password.length < 8) {
+      console.log(`Password validation failed: length ${password.length}, required 8+`);
       return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
-    }    // SECURITY: Check if email already exists
+    }
+
+    // SECURITY: Check if email already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
+      console.log(`Duplicate email attempt for domain: ${email.split('@')[1]}`);
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 });
     }
 
@@ -110,36 +123,41 @@ export async function POST(req: Request) {
           role,
           // CHILD SAFETY: Children NEVER auto-approved, adults are
           isApproved: age >= 18,
-          stripeStatus: 'free',
-          ageGroup: age >= 18 ? 'adult' : 'child',
+          stripeStatus: 'free',          ageGroup: age >= 18 ? 'adult' : 'child',
           userId: user.id,
         },
       });
 
       // SECURITY: Update invite status atomically for child signups
-      if (age < 18 && inviteCode) {
+      if (age < 18 && inviteCode && inviteData) {
         await tx.invite.update({
           where: { code: inviteCode },
           data: { 
             status: 'used',
-            // Decrement usage count if tracking multiple uses
-            maxUses: { decrement: 1 }
+            // Only decrement if maxUses > 1 to prevent negative values
+            ...(inviteData.maxUses > 1 && { maxUses: { decrement: 1 } })
           },
         });
       }
 
       return { user, profile };
-    });    // SECURITY: Log successful signup for audit trail (without sensitive data)
-    console.log(`Successful signup: ${age >= 18 ? 'Adult' : 'Child'} account created for email domain: ${email.split('@')[1]}`);
+    });
 
-    return NextResponse.json({ 
+    // SECURITY: Log successful signup for audit trail (without sensitive data)
+    console.log(`Successful signup: ${age >= 18 ? 'Adult' : 'Child'} account created for email domain: ${email.split('@')[1]}`);    return NextResponse.json({ 
       success: true, 
       userId: result.user.id,
       requiresApproval: age < 18 
     });
+
   } catch (error) {
-    // SECURITY: Log errors for monitoring but don't expose details to client
-    console.error('Sign-up error:', error);
+    // SECURITY: Enhanced error logging for debugging while protecting sensitive data
+    console.error('Sign-up error details:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
+    
     return NextResponse.json({ error: 'Account creation failed' }, { status: 500 });
   }
 }
