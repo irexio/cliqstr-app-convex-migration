@@ -1,3 +1,8 @@
+// 🔐 APA-HARDENED by Aiden — Reset Password Form Component
+// This form handles secure password resets from email-confirmed users.
+// No client-side role logic is enforced. Token is passed to server for validation.
+// Submitted data includes email, new password, and a short-lived signed token.
+
 'use client';
 
 import { useState } from 'react';

@@ -1,3 +1,8 @@
+// 🔐 APA-HARDENED by Aiden — Password Reset Email Endpoint
+// This API route handles sending secure reset links to verified users.
+// No role assumptions or session creation occurs. Sends signed JWT token via Resend.
+// Fully server-side and safe for untrusted clients.
+
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';

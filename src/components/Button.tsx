@@ -1,63 +1,33 @@
-import Link from 'next/link'
+// 🔘 APA-HARDENED BUTTON COMPONENT — supports solid/outline variants
+// Matches Cliqstr nav styling (black + white default), used in modals, forms, and plan selection
+// Verified: 2025-06-21
+
+import * as React from 'react'
 import clsx from 'clsx'
 
-const baseStyles = {
-  solid:
-    'group inline-flex items-center justify-center rounded-full py-2 px-4 text-sm font-semibold focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2',
-  outline:
-    'group inline-flex ring-1 items-center justify-center rounded-full py-2 px-4 text-sm focus:outline-hidden',
+type ButtonVariant = 'solid' | 'outline'
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant
 }
 
-const variantStyles = {
-  solid: {
-    slate:
-      'bg-slate-900 text-white hover:bg-slate-700 hover:text-slate-100 active:bg-slate-800 active:text-slate-300 focus-visible:outline-slate-900',
-    blue: 'bg-blue-600 text-white hover:text-slate-100 hover:bg-blue-500 active:bg-blue-800 active:text-blue-100 focus-visible:outline-blue-600',
-    white:
-      'bg-white text-slate-900 hover:bg-blue-50 active:bg-blue-200 active:text-slate-600 focus-visible:outline-white',
-  },
-  outline: {
-    slate:
-      'ring-slate-200 text-slate-700 hover:text-slate-900 hover:ring-slate-300 active:bg-slate-100 active:text-slate-600 focus-visible:outline-blue-600 focus-visible:ring-slate-300',
-    white:
-      'ring-slate-700 text-white hover:ring-slate-500 active:ring-slate-700 active:text-slate-400 focus-visible:outline-white',
-  },
-}
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant = 'solid', ...props }, ref) => {
+    const baseStyles = 'px-4 py-2 rounded-md font-semibold transition'
 
-type ButtonProps = (
-  | {
-      variant?: 'solid'
-      color?: keyof typeof variantStyles.solid
+    const variantStyles = {
+      solid: 'bg-[#202020] text-white hover:bg-[#5939d4]',
+      outline: 'border border-[#202020] text-[#202020] bg-white hover:border-[#5939d4] hover:text-[#5939d4]',
     }
-  | {
-      variant: 'outline'
-      color?: keyof typeof variantStyles.outline
-    }
-) &
-  (
-    | Omit<React.ComponentPropsWithoutRef<typeof Link>, 'color'>
-    | (Omit<React.ComponentPropsWithoutRef<'button'>, 'color'> & {
-        href?: undefined
-      })
-  )
 
-export function Button({ className, ...props }: ButtonProps) {
-  props.variant ??= 'solid'
-  props.color ??= 'slate'
+    return (
+      <button
+        ref={ref}
+        className={clsx(baseStyles, variantStyles[variant], className)}
+        {...props}
+      />
+    )
+  }
+)
 
-  className = clsx(
-    baseStyles[props.variant],
-    props.variant === 'outline'
-      ? variantStyles.outline[props.color]
-      : props.variant === 'solid'
-        ? variantStyles.solid[props.color]
-        : undefined,
-    className,
-  )
-
-  return typeof props.href === 'undefined' ? (
-    <button className={className} {...props} />
-  ) : (
-    <Link className={className} {...props} />
-  )
-}
+Button.displayName = 'Button'

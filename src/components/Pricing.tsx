@@ -1,4 +1,5 @@
 import clsx from 'clsx'
+import Link from 'next/link'
 
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
@@ -96,17 +97,17 @@ function Plan({
             <CheckIcon className={featured ? 'text-white' : 'text-slate-400'} />
             <span className="ml-4">{feature}</span>
           </li>
-        ))}
-      </ul>
-      <Button
-        href={href}
-        variant={featured ? 'solid' : 'outline'}
-        color="white"
-        className="mt-8"
-        aria-label={`Get started with the ${name} plan for ${price}`}
-      >
-        Get started
-      </Button>
+        ))}      </ul>
+      <Link href={href}>
+        <Button
+          variant={featured ? 'solid' : 'outline'}
+          color="white"
+          className="mt-8"
+          aria-label={`Get started with the ${name} plan for ${price}`}
+        >
+          Get started
+        </Button>
+      </Link>
     </section>
   )
 }
