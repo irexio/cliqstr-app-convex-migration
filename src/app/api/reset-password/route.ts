@@ -48,10 +48,11 @@ export async function POST(req: Request) {
       }
       
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
-    }
+    }    const hashed = await bcrypt.hash(newPassword, 10)
 
-    const hashed = await bcrypt.hash(newPassword, 10)
+    console.log('🔄 Updating password for user:', user.email);
 
+    // Update password in both User and Profile models to ensure consistency
     await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -60,6 +61,16 @@ export async function POST(req: Request) {
         resetTokenExpires: null,
       },
     })
+
+    // Also update the profile password (this is what sign-in checks)
+    await prisma.profile.update({
+      where: { userId: user.id },
+      data: {
+        password: hashed,
+      },
+    })
+
+    console.log('✅ Password updated successfully in both User and Profile models');
 
     return NextResponse.json({ success: true })
   } catch (error) {
