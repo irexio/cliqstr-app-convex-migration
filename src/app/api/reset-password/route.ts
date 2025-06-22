@@ -3,43 +3,45 @@
 // - Token is verified using APA-auth safe `verifyToken` method
 // - Password is hashed with bcryptjs
 // - No role manipulation or session creation
-// Verified: 2025-06-21
+// Verified: 2025-06-22 - Testing Session 1
 
-export const dynamic = 'force-dynamic';
-
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth/jwt';
-import { hash } from 'bcryptjs';
-
-type ResetPayload = {
-  userId: string;
-};
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
 export async function POST(req: Request) {
   try {
-    const { token, newPassword } = await req.json();
+    const { token, newPassword } = await req.json()
 
     if (!token || !newPassword) {
-      return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing token or password' }, { status: 400 })
     }
 
-    const payload = verifyToken(token) as ResetPayload | null;
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpires: { gte: new Date() },
+      },
+    })
 
-    if (!payload?.userId) {
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
     }
 
-    const hashedPassword = await hash(newPassword, 10);
+    const hashed = await bcrypt.hash(newPassword, 10)
 
     await prisma.user.update({
-      where: { id: payload.userId },
-      data: { password: hashedPassword },
-    });
+      where: { id: user.id },
+      data: {
+        password: hashed,
+        resetToken: null,
+        resetTokenExpires: null,
+      },
+    })
 
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error('Reset password error:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('❌ Reset password error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

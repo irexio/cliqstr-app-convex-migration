@@ -15,19 +15,16 @@ export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-
-  const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-
   const handleSubmit = async () => {
     setError('');
     setLoading(true);
 
-    if (!email || !newPassword || !token) {
-      setError('All fields are required.');
+    if (!newPassword || !token) {
+      setError('Password and token are required.');
       setLoading(false);
       return;
     }
@@ -36,7 +33,7 @@ export default function ResetPasswordForm() {
       const res = await fetch('/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, newPassword, token }),
+        body: JSON.stringify({ token, newPassword }),
       });
 
       const data = await res.json();
@@ -55,17 +52,8 @@ export default function ResetPasswordForm() {
     setLoading(false);
   };
 
-  return (
-    <div className="max-w-md mx-auto py-10 px-4">
+  return (    <div className="max-w-md mx-auto py-10 px-4">
       <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Reset Your Password</h1>
-
-      <Label>Email</Label>
-      <Input
-        type="email"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-        placeholder="you@example.com"
-      />
 
       <Label className="mt-4">New Password</Label>
       <Input

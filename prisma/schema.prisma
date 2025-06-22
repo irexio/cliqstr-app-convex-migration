@@ -31,6 +31,10 @@ model User {
   password  String
   createdAt DateTime @default(now())
 
+  // Password reset fields
+  resetToken        String?
+  resetTokenExpires DateTime?
+
   profile Profile?
   invites Invite[] @relation("UserToInvites")
 
