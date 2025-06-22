@@ -11,7 +11,7 @@ export default function PricingPage() {
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-16 space-y-12">
-      <h1 className="text-4xl font-bold text-indigo-700 mb-4">Pricing</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Pricing</h1>
       <p className="text-gray-700">
         Cliqstr offers simple, affordable plans with no hidden fees, no ads, and no tracking. Your space, your rules — always.
       </p>

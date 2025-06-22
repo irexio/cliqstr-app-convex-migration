@@ -1,7 +1,7 @@
 export default function PrivacyPage() {
     return (
       <main className="max-w-4xl mx-auto px-4 py-16 space-y-10">
-        <h1 className="text-4xl font-bold text-indigo-700 mb-4">Privacy Policy</h1>
+        <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Privacy Policy</h1>
         <p className="text-gray-700">
           Your privacy is not a feature — it’s a foundation. Cliqstr is designed from the ground up to protect your personal data, respect your boundaries, and give you full control.
         </p>

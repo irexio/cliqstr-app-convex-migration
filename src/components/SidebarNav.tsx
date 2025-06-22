@@ -21,8 +21,7 @@ const navLinks = [
 export default function SidebarNav() {
   const pathname = usePathname()
 
-  return (
-    <nav className="space-y-2 text-sm font-medium">
+  return (    <nav className="space-y-2 text-sm font-medium">
       {navLinks.map(({ href, label, icon: Icon }) => {
         const isActive = pathname === href
 
@@ -32,19 +31,20 @@ export default function SidebarNav() {
             href={href}
             className={cn(
               'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-              'bg-[#F4F4F5]',
-              isActive
-                ? 'bg-accent/10'
-                : 'hover:bg-white'
+              'bg-gray-100 hover:bg-gray-200',
+              isActive && 'bg-gray-200 shadow-sm'
             )}
           >
             <Icon
               className={cn(
                 'h-5 w-5 flex-shrink-0 transition-colors',
-                'text-accent'
+                isActive ? 'text-primary' : 'text-[#6f4eff]'
               )}
             />
-            <span className="text-[#040316]">{label}</span>
+            <span className={cn(
+              'transition-colors',
+              isActive ? 'text-primary font-semibold' : 'text-[#6f4eff]'
+            )}>{label}</span>
           </Link>
         )
       })}

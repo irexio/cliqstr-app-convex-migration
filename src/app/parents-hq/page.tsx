@@ -58,7 +58,7 @@ export default function ParentsHQPage() {
 
   return (
     <div className="max-w-2xl mx-auto py-12 px-4 space-y-6">
-      <h1 className="text-2xl font-bold text-indigo-700">Welcome to Parents HQ</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Welcome to Parents HQ</h1>
 
       <p className="text-gray-700 text-sm">
         Your child’s account is now active. As their parent, you have full control over what they can access and who they can connect with on Cliqstr.

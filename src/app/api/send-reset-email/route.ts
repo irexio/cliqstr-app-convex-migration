@@ -11,40 +11,58 @@ import { signToken } from '@/lib/auth/jwt';
 import { resend } from '@/lib/resend';
 
 export async function POST(req: Request) {
+  console.log('🔍 Password reset request received');
+  
   try {
     const { email } = await req.json();
+    console.log('📧 Email received:', email ? 'provided' : 'missing');
 
     if (!email) {
+      console.log('❌ No email provided');
       return NextResponse.json({ error: 'Missing email' }, { status: 400 });
     }
+
+    // Check if RESEND_API_KEY exists
+    console.log('🔑 RESEND_API_KEY exists:', !!process.env.RESEND_API_KEY);
+    console.log('🔑 API Key length:', process.env.RESEND_API_KEY?.length || 0);
 
     const user = await prisma.user.findUnique({
       where: { email },
       include: { profile: true },
     });
 
+    console.log('👤 User found:', !!user);
+
     if (!user || !user.profile) {
+      console.log('❌ No user/profile found for email');
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
 
+    console.log('🎫 Generating token...');
     const token = signToken({
       userId: user.profile.id,
       role: user.profile.role,
       isApproved: user.profile.isApproved,
-    }); // ✅ Fully matches TokenPayload
+    });
 
     const resetLink = `https://cliqstr.com/reset-password?token=${token}`;
-
-    await resend.emails.send({
+    console.log('🔗 Reset link generated');    console.log('📬 Attempting to send email via Resend...');
+      const emailResult = await resend.emails.send({
       to: email,
-      from: 'support@cliqstr.com',
+      from: 'noreply@email.cliqstr.com',
       subject: 'Reset Your Cliqstr Password',
       html: `<p>Click <a href="${resetLink}">here</a> to reset your password. Link expires in 15 minutes.</p>`,
     });
 
+    console.log('✅ Resend response:', emailResult);
+
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error('Send reset email error:', err);
+    console.error('💥 Send reset email error:', err);
+    console.error('Error details:', {
+      message: err instanceof Error ? err.message : 'Unknown error',
+      stack: err instanceof Error ? err.stack : undefined
+    });
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }

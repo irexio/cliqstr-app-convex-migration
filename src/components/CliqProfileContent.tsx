@@ -39,7 +39,7 @@ export default function CliqProfileContent({ cliqId }: { cliqId: string }) {
 
   return (
     <div className="space-y-2">
-      <h1 className="text-2xl font-bold">{cliq.name}</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">{cliq.name}</h1>
       <p className="text-gray-700">{cliq.description}</p>
       <p className="text-sm text-gray-500">Privacy: {cliq.privacy}</p>
     </div>

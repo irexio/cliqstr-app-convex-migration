@@ -59,7 +59,7 @@ export default function ProfileClient({
         </div>
 
         <div className="text-center mt-4">
-          <h1 className="text-2xl font-bold text-gray-900">{data.name}</h1>
+          <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">{data.name}</h1>
           <p className="text-sm text-gray-600">@{data.username}</p>
           <p className="text-sm text-gray-500 mt-1">Birthday: {data.birthday}</p>
         </div>

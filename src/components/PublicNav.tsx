@@ -10,8 +10,7 @@ export default function PublicNav() {
   return (
     <header className="w-full border-b bg-background px-4 py-3 shadow-sm font-sans">
       <div className="mx-auto max-w-7xl flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="text-xl font-bold text-[#040316]">
+        {/* Logo */}        <Link href="/" className="text-xl font-bold text-[#202020] font-poppins">
           cliqstr
         </Link>
 
@@ -68,7 +67,7 @@ export default function PublicNav() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden ml-2 text-[#040316]"
+            className="md:hidden ml-2 text-[#202020]"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle Menu"
           >

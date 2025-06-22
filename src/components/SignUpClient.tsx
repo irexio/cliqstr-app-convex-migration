@@ -15,7 +15,7 @@ export default function SignUpClient() {
 
   return (
     <div className="p-8 max-w-xl mx-auto text-center">
-      <h1 className="text-2xl font-semibold mb-4">Create Your Cliqstr Account</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Create Your Cliqstr Account</h1>
       {referral ? (
         <p className="text-green-700">
           Referred by: <strong>{referral}</strong>

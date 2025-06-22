@@ -51,8 +51,7 @@ function InnerCardForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">
-      <h1 className="text-2xl font-bold text-center text-indigo-700">
+    <form onSubmit={handleSubmit} className="max-w-md w-full space-y-4">      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins text-center">
         Verify Your Card
       </h1>
       <p className="text-sm text-gray-600 text-center">

@@ -10,7 +10,7 @@ export default async function VerifyCardPage() {
 
   return (
     <main className="max-w-xl mx-auto p-10">
-      <h1 className="text-2xl font-bold mb-4">Verify Your Card</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Verify Your Card</h1>
       <p className="text-gray-700 text-sm">
         For security, please confirm your card to approve your child’s access.
       </p>

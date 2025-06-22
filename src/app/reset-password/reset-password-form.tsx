@@ -57,7 +57,7 @@ export default function ResetPasswordForm() {
 
   return (
     <div className="max-w-md mx-auto py-10 px-4">
-      <h1 className="text-2xl font-bold mb-6">Reset Your Password</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Reset Your Password</h1>
 
       <Label>Email</Label>
       <Input

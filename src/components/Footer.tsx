@@ -9,7 +9,7 @@ export default function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand / Intro */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-bold lowercase text-white">cliqstr</h2>
+            <h2 className="text-2xl font-bold lowercase text-white font-poppins">cliqstr</h2>
             <p className="text-sm text-neutral-300">
               Cliqstr is a private social platform for families, friends, and safe online circles.
             </p>
@@ -17,22 +17,20 @@ export default function Footer() {
 
           {/* Pages */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4">Pages</h3>
-            <ul className="space-y-2 text-sm text-neutral-300">
-              <li><Link href="/explore" className="hover:text-accent transition">Explore Public Cliqs</Link></li>
-              <li><Link href="/how-it-works" className="hover:text-accent transition">How It Works</Link></li>
-              <li><Link href="/about" className="hover:text-accent transition">About</Link></li>
-              <li><Link href="/faq" className="hover:text-accent transition">FAQs</Link></li>
+            <h3 className="text-sm font-semibold text-white mb-4">Pages</h3>            <ul className="space-y-2 text-sm text-neutral-300">
+              <li><Link href="/explore" className="hover:text-primary transition">Explore Public Cliqs</Link></li>
+              <li><Link href="/how-it-works" className="hover:text-primary transition">How It Works</Link></li>
+              <li><Link href="/about" className="hover:text-primary transition">About</Link></li>
+              <li><Link href="/faqs" className="hover:text-primary transition">FAQs</Link></li>
             </ul>
           </div>
 
           {/* Legal */}
           <div>
-            <h3 className="text-sm font-semibold text-white mb-4">Legal</h3>
-            <ul className="space-y-2 text-sm text-neutral-300">
-              <li><Link href="/privacy" className="hover:text-accent transition">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-accent transition">Terms of Service</Link></li>
-              <li><Link href="/safety" className="hover:text-accent transition">Cliqstr Safety</Link></li>
+            <h3 className="text-sm font-semibold text-white mb-4">Legal</h3>            <ul className="space-y-2 text-sm text-neutral-300">
+              <li><Link href="/privacy" className="hover:text-primary transition">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-primary transition">Terms of Service</Link></li>
+              <li><Link href="/safety" className="hover:text-primary transition">Cliqstr Safety</Link></li>
             </ul>
           </div>
 

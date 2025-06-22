@@ -5,7 +5,7 @@ import Link from 'next/link';
 export default function ParentApprovalCompletePage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-white text-center px-4">
-      <h1 className="text-3xl font-semibold text-indigo-800 mb-4">Approval Complete</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Approval Complete</h1>
       <p className="text-lg text-gray-700 mb-6">
         Thanks for confirming your child’s account. They can now start using Cliqstr!
       </p>

@@ -8,11 +8,9 @@ export default function FeaturesPage() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-[240px_1fr] gap-10 px-6 py-16">
         <aside className="hidden md:block">
           <SidebarNav />
-        </aside>
-
-        <section className="space-y-10">
+        </aside>        <section className="space-y-10">
           <div>
-            <h1 className="text-3xl font-bold text-[#040316] mb-6 font-sans">Platform Features</h1>
+            <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Platform Features</h1>
             <ul className="list-disc list-inside space-y-4 text-gray-700">
               <li><strong>No ads, ever:</strong> We don't monetize your attention or sell your data.</li>
               <li><strong>Private Cliqs:</strong> Create invite-only groups for your family, friends, or community.</li>

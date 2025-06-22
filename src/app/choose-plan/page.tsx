@@ -21,7 +21,7 @@ export default async function ChoosePlanPage() {
 
   return (
     <main className="max-w-2xl mx-auto p-10">
-      <h1 className="text-2xl font-semibold mb-6">Choose Your Plan</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Choose Your Plan</h1>
       <ChoosePlanForm />
     </main>
   );

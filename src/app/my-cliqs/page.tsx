@@ -46,7 +46,7 @@ export default function MyCliqsPage() {
 
   return (
     <main className="max-w-3xl mx-auto py-10 space-y-6">
-      <h1 className="text-2xl font-bold text-center">My Cliqs</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins text-center">My Cliqs</h1>
       {cliqs.length === 0 ? (
         <p className="text-center text-gray-500">You're not in any cliqs yet.</p>
       ) : (

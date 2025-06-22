@@ -12,7 +12,7 @@ export default function AboutPage() {
 
         <section className="space-y-10">
           <div>
-            <h1 className="text-3xl font-bold text-[#040316] mb-4 font-sans">About Cliqstr</h1>
+            <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">About Cliqstr</h1>
             <p className="text-lg text-gray-700">
               Cliqstr is a private, ad-free platform built for families, friends, and trusted groups.
               We believe in safe spaces where people can connect without being tracked, targeted,
@@ -21,7 +21,7 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold text-[#040316] mb-2 font-sans">Why We Exist</h2>
+            <h2 className="text-xl font-semibold text-[#202020] mb-2 font-poppins">Why We Exist</h2>
             <p className="text-gray-700">
               Existing social media platforms prioritize engagement at any cost.
               Cliqstr is different — we prioritize trust, intention, and community.
@@ -29,7 +29,7 @@ export default function AboutPage() {
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold text-[#040316] mb-2 font-sans">What Makes Us Different</h2>
+            <h2 className="text-xl font-semibold text-[#202020] mb-2 font-poppins">What Makes Us Different</h2>
             <ul className="list-disc list-inside space-y-1 text-gray-700">
               <li>No ads, ever</li>
               <li>No tracking or third-party data sharing</li>
