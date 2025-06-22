@@ -17,24 +17,29 @@ type ResetPayload = {
 };
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { token, password } = body;
+  try {
+    const { token, newPassword } = await req.json();
 
-  // SECURITY: Validate token authenticity and payload shape
-  const payload = verifyToken(token) as ResetPayload | null;
+    if (!token || !newPassword) {
+      return NextResponse.json({ error: 'Missing data' }, { status: 400 });
+    }
 
-  if (!payload || !payload.userId) {
-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    const payload = verifyToken(token) as ResetPayload | null;
+
+    if (!payload?.userId) {
+      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 });
+    }
+
+    const hashedPassword = await hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: payload.userId },
+      data: { password: hashedPassword },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-
-  // SECURITY: Rehash the password with bcrypt (10 rounds)
-  const hashedPassword = await hash(password, 10);
-
-  // SECURITY: Update user password in Prisma (userId provided via JWT only)
-  await prisma.user.update({
-    where: { id: payload.userId },
-    data: { password: hashedPassword },
-  });
-
-  return NextResponse.json({ success: true });
 }
