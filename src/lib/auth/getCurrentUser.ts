@@ -3,22 +3,27 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken } from './jwt';
 
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
+  const cookieStore = await cookies(); // ✅ Forced async to resolve build error
+
   const token = cookieStore.get('auth_token')?.value;
 
   if (!token) return null;
 
   const payload = verifyToken(token);
-
   if (!payload?.userId) return null;
 
-  // The JWT token contains the User ID, so we need to find the user directly
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
-    include: {
-      profile: true, // Add this to include the profile relation
-    },
+    include: { profile: true },
   });
 
-  return user;
+  if (!user || !user.profile) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.profile.role,
+    isApproved: user.profile.isApproved,
+    profile: user.profile,
+  };
 }
