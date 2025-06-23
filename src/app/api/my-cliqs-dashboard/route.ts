@@ -1,6 +1,8 @@
 // 🔐 APA-HARDENED by Aiden — Do not remove without security review.
 // This route fetches all cliqs for the authenticated user via membership links.
 // Prisma client is loaded via custom `@/lib/prisma` import.
+// 🧼 APA note: force redeploy to confirm 'adult' role access
+
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
