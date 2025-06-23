@@ -5,6 +5,7 @@
 // API data is fetched client-side from `/api/my-cliqs-dashboard`.
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 interface Cliq {
   id: string;
@@ -43,12 +44,29 @@ export default function MyCliqsPage() {
   if (loading) return <p className="text-center mt-10">Loading your cliqs...</p>;
 
   if (error) return <p className="text-red-600 text-center mt-10">{error}</p>;
-
   return (
     <main className="max-w-3xl mx-auto py-10 space-y-6">
       <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins text-center">My Cliqs</h1>
+      
+      {/* Action buttons */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <Link href="/cliqs/build">
+          <button className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-secondary transition">
+            Create a Cliq
+          </button>
+        </Link>
+        <Link href="/set-up-profile">
+          <button className="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition">
+            Create Your Profile
+          </button>
+        </Link>
+      </div>
+
       {cliqs.length === 0 ? (
-        <p className="text-center text-gray-500">You're not in any cliqs yet.</p>
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Create your first cliq!</p>
+          <p className="text-sm text-gray-400">Start building your private community.</p>
+        </div>
       ) : (
         <ul className="space-y-4">
           {cliqs.map((cliq) => (
@@ -64,7 +82,6 @@ export default function MyCliqsPage() {
             </li>
           ))}
         </ul>
-      )}
-    </main>
+      )}    </main>
   );
 }

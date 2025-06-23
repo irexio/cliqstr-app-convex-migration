@@ -1,33 +1,31 @@
+// 🔐 APA-HARDENED — Server-side cliq page with styled feed, sidebar, avatars, and post form
+
 import { prisma } from '@/lib/prisma';
 import CliqProfileContent from '@/components/CliqProfileContent';
 import PostForm from '@/components/PostForm';
 import CliqFeed from '@/components/CliqFeed';
-import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { getServerSession } from '@/lib/auth/getServerSession';
+import { notFound } from 'next/navigation';
 
-export default async function CliqPageServer({ cliqId }: { cliqId: string }) {
-  const user = await getCurrentUser();
-  if (!user) return null;
+interface CliqPageServerProps {
+  cliqId: string;
+}
 
-  const posts = await prisma.post.findMany({
-    where: { cliqId },
-    orderBy: { createdAt: 'desc' },
+export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
+  const session = await getServerSession();
+  if (!session || !session.user?.id) return notFound();
+
+  const cliq = await prisma.cliq.findUnique({
+    where: { id: cliqId },
     include: {
-      author: {
-        select: {
-          profile: {
-            select: {
-              username: true, // ✅ Only select what's real
-            },
-          },
-        },
-      },
-      replies: {
-        orderBy: { createdAt: 'asc' },
+      members: {
         include: {
-          author: {
+          user: {
             select: {
+              id: true,
               profile: {
                 select: {
+                  image: true,
                   username: true,
                 },
               },
@@ -38,11 +36,67 @@ export default async function CliqPageServer({ cliqId }: { cliqId: string }) {
     },
   });
 
+  if (!cliq) return notFound();
+
+  const posts = await prisma.post.findMany({
+    where: { cliqId },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      author: {
+        select: {
+          profile: {
+            select: { username: true, image: true },
+          },
+        },
+      },
+      replies: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          author: {
+            select: {
+              profile: {
+                select: { username: true, image: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
   return (
-    <main className="max-w-4xl mx-auto px-4 py-12 space-y-8">
-      <CliqProfileContent cliqId={cliqId} />
-      <PostForm cliqId={cliqId} />
-      <CliqFeed posts={posts} />
+    <main className="flex flex-col md:flex-row h-screen bg-white text-neutral-800">
+      {/* SIDEBAR */}
+      <aside className="w-full md:w-64 p-4 border-r border-neutral-200">
+        <div className="font-semibold text-lg mb-2">{cliq.name}</div>
+        <p className="text-sm text-neutral-600">{cliq.description}</p>
+
+        <div className="mt-4 text-xs text-neutral-400">
+          {cliq.members.length} member{cliq.members.length !== 1 && 's'}
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-2">
+          {cliq.members.map((m) => (
+            <img
+              key={m.user.id}
+              src={m.user.profile?.image || '/default-avatar.png'}
+              alt="Cliq member"
+              title={m.user.profile?.username || 'Cliq member'}
+              className="w-8 h-8 rounded-full border"
+            />
+          ))}
+        </div>
+      </aside>
+
+      {/* FEED WRAP */}
+      <section className="flex-1 p-4 overflow-y-auto">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <h1 className="text-2xl font-bold text-gray-800">{cliq.name}</h1>
+          <CliqProfileContent cliqId={cliq.id} />
+          <PostForm cliqId={cliq.id} />
+          <CliqFeed posts={posts} />
+        </div>
+      </section>
     </main>
   );
 }

@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { UploadDropzone } from '@uploadthing/react';
+import type { OurFileRouter } from '@/lib/uploadthing';
 
 export default function SetupProfileClient({ userId }: { userId: string }) {
   const router = useRouter();
@@ -11,10 +13,11 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
   const [inviteCode, setInviteCode] = useState('');
   const [invitedRole, setInvitedRole] = useState('');
   const [cliqId, setCliqId] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [bannerUrl, setBannerUrl] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Load invite data from sessionStorage on mount
   useEffect(() => {
     const code = sessionStorage.getItem('inviteCode');
     const role = sessionStorage.getItem('invitedRole');
@@ -37,6 +40,11 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
       return;
     }
 
+    if (!/^[a-zA-Z0-9_]{3,15}$/.test(username)) {
+      setError('Username must be 3–15 characters, letters, numbers, or underscores only.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
@@ -51,6 +59,8 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
           inviteCode,
           cliqId,
           invitedRole,
+          image: avatarUrl,
+          bannerImage: bannerUrl,
         }),
       });
 
@@ -74,7 +84,8 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
     <main className="max-w-md mx-auto px-4 py-16 space-y-6">
       <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Finish Setting Up</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow border">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow border">
+        {/* Username */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Username</label>
           <input
@@ -86,6 +97,7 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
           />
         </div>
 
+        {/* Birthdate */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Birthdate</label>
           <input
@@ -96,19 +108,59 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
           />
         </div>
 
+        {/* Avatar Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Upload Avatar</label>
+          <UploadDropzone<OurFileRouter, "avatar">
+            endpoint="avatar"
+            onClientUploadComplete={(res) => {
+              if (res && res[0]?.url) setAvatarUrl(res[0].url);
+            }}
+            onUploadError={(err) => alert(`Avatar upload error: ${err.message}`)}
+          />
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt="Avatar Preview"
+              className="mt-2 w-20 h-20 object-cover rounded-full border"
+            />
+          )}
+        </div>
+
+        {/* Banner Upload */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Upload Banner</label>
+          <UploadDropzone<OurFileRouter, "banner">
+            endpoint="banner"
+            onClientUploadComplete={(res) => {
+              if (res && res[0]?.url) setBannerUrl(res[0].url);
+            }}
+            onUploadError={(err) => alert(`Banner upload error: ${err.message}`)}
+          />
+          {bannerUrl && (
+            <img
+              src={bannerUrl}
+              alt="Banner Preview"
+              className="mt-2 w-full h-32 object-cover rounded border"
+            />
+          )}
+        </div>
+
+        {/* Invite Info */}
         {inviteCode && (
           <div className="text-sm text-gray-600">
-            Joining <strong>{cliqId}</strong> as <strong>{invitedRole}</strong> via code{' '}
-            <code>{inviteCode}</code>
+            You’re joining a cliq as a <strong>{invitedRole}</strong> using an invite code.
           </div>
         )}
 
+        {/* Error */}
         {error && <p className="text-sm text-red-600">{error}</p>}
 
+        {/* Submit */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 text-sm"
+          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 text-sm transition"
         >
           {loading ? 'Finishing...' : 'Create My Profile'}
         </button>

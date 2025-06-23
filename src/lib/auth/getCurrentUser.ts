@@ -12,9 +12,12 @@ export async function getCurrentUser() {
 
   if (!payload?.userId) return null;
 
+  // The JWT token contains the User ID, so we need to find the user directly
   const user = await prisma.user.findUnique({
     where: { id: payload.userId },
-    include: { profile: true },
+    include: {
+      profile: true, // Add this to include the profile relation
+    },
   });
 
   return user;

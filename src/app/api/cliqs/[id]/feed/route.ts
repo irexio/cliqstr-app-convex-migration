@@ -1,20 +1,23 @@
+// 🔐 APA-HARDENED — Fetch cliq feed by ID
 export const dynamic = 'force-dynamic';
 
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: Request) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    const url = new URL(req.url);
-    const pathSegments = url.pathname.split('/');
-    const cliqId = pathSegments[pathSegments.indexOf('cliqs') + 1];
+    // Await the params in Next.js 15
+    const { id } = await params;
 
-    if (!cliqId) {
+    if (!id) {
       return NextResponse.json({ error: 'Missing cliq ID' }, { status: 400 });
     }
 
     const cliq = await prisma.cliq.findUnique({
-      where: { id: cliqId },
+      where: { id },
       include: {
         posts: {
           orderBy: { createdAt: 'desc' },
@@ -35,9 +38,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ cliqName: cliq.name, posts: cliq.posts });
-  } catch (err) {
-    console.error('Error fetching cliq feed:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({
+      cliqName: cliq.name,
+      posts: cliq.posts,
+    });
+  } catch (error) {
+    console.error('Error in cliq feed route:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch feed' },
+      { status: 500 }
+    );
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Switch } from '@headlessui/react';
 import { Button } from '@/components/Button';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface InviteRequest {
   id: string;
@@ -66,6 +67,20 @@ export default function ParentsHQPage() {
 
       <div className="p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded-md text-sm text-gray-800">
         <p><strong>Reminder:</strong> Be sure to make a note of your child’s username and password. If needed, you can help them log in for the first time.</p>
+      </div>
+
+      {/* Account Management Section */}
+      <div className="bg-white p-4 rounded-lg border space-y-3">
+        <h2 className="text-lg font-semibold text-gray-800">Account Management</h2>
+        <p className="text-sm text-gray-600">
+          Manage your child's account information, email, and basic settings.
+        </p>
+        <Link 
+          href="/account"
+          className="inline-block bg-[#6f4eff] text-white px-4 py-2 rounded-lg hover:bg-[#5a3acc] transition text-sm"
+        >
+          Manage Account Settings
+        </Link>
       </div>
 
       <div className="space-y-6">
