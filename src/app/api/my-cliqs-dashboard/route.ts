@@ -21,7 +21,15 @@ type MembershipWithCliq = Membership & {
 export async function GET() {
   try {
     const user = await getCurrentUser();
-    if (!user) {
+
+    const allowedRoles = ['admin', 'parent', 'child', 'adult'];
+
+    if (
+      !user ||
+      !user.profile ||
+      !user.profile.role ||
+      !allowedRoles.includes(user.profile.role)
+    ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
