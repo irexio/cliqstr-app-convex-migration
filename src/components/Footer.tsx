@@ -13,12 +13,23 @@ export default function Footer() {
             <p className="text-sm text-neutral-300">
               Cliqstr is a private social platform for families, friends, and safe online circles.
             </p>
-            <p className="text-sm text-neutral-400 pt-4">
-              🚧 Currently in beta. Interested in what we’re building? Email us:
+
+            <p className="text-sm font-semibold text-[#c032d1] mt-6">
+              🚧 <span className="text-base font-bold">Currently in Beta</span>
             </p>
+
             <p className="text-sm text-neutral-300">
-              💌 <a href="mailto:inquiry@cliqstr.com" className="underline hover:text-white">inquiry@cliqstr.com</a><br />
-              🧙‍♀️ <a href="mailto:wizards@cliqstr.com" className="underline hover:text-white">wizards@cliqstr.com</a>
+              Interested in what we’re building?{' '}
+              <a href="mailto:inquiry@cliqstr.com" className="underline hover:text-white">
+                inquiry@cliqstr.com
+              </a>
+            </p>
+
+            <p className="text-sm text-neutral-300">
+              Want to join our team?{' '}
+              <a href="mailto:wizards@cliqstr.com" className="underline hover:text-white">
+                wizards@cliqstr.com
+              </a>
             </p>
           </div>
 
@@ -49,7 +60,7 @@ export default function Footer() {
             <p className="text-sm text-neutral-300 mb-4">Create a private space for the people you trust most.</p>
             <Link
               href="/sign-up"
-              className="inline-block bg-black text-white px-4 py-2 rounded-md font-medium hover:bg-gray-800 transition"
+              className="inline-block bg-[#c032d1] text-white px-4 py-2 rounded-md font-medium hover:bg-[#b155c9] transition"
             >
               Start Free Trial
             </Link>
