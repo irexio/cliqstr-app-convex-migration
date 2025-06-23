@@ -3,7 +3,6 @@
 // Prisma client is loaded via custom `@/lib/prisma` import.
 // 🧼 APA note: force redeploy to confirm 'adult' role access
 
-
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
@@ -24,6 +23,9 @@ export async function GET() {
   try {
     const user = await getCurrentUser();
 
+    // 🧪 DEBUG — log full user object
+    console.log("🧠 DEBUG — getCurrentUser():", user);
+
     const allowedRoles = ['admin', 'parent', 'child', 'adult'];
 
     if (
@@ -32,6 +34,10 @@ export async function GET() {
       !user.profile.role ||
       !allowedRoles.includes(user.profile.role)
     ) {
+      console.log("❌ BLOCKED — Reason: Unauthorized role or missing profile", {
+        role: user?.profile?.role,
+        approved: user?.profile?.isApproved,
+      });
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -57,7 +63,7 @@ export async function GET() {
 
     return NextResponse.json({ cliqs });
   } catch (err) {
-    console.error('Error fetching cliqs:', err);
+    console.error('💥 Server error fetching cliqs:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
