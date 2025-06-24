@@ -37,6 +37,15 @@ export async function POST(req: Request) {
       },
     })
 
+    // ✅ Add owner as a member (so it appears in /my-cliqs)
+    await prisma.membership.create({
+      data: {
+        userId: session.user.id,
+        cliqId: newCliq.id,
+        role: 'Owner',
+      },
+    })
+
     return NextResponse.json({ cliq: newCliq })
   } catch (error) {
     console.error('❌ Error creating cliq:', error)

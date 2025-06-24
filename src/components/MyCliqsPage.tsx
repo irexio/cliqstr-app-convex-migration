@@ -43,8 +43,15 @@ export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
       {/* First-Time Tip */}
       {cliqs.length === 0 && (
         <p className="text-sm text-neutral-500 mb-6">
-          New here? You can <span className="font-medium">create your first cliq</span> or{' '}
-          <span className="font-medium">set up your profile</span> to get started!
+          New here? You can{' '}
+          <Link href="/cliqs/build" className="text-[#c03194] underline font-medium">
+            create your first cliq
+          </Link>{' '}
+          or{' '}
+          <Link href="/profile/setup" className="text-[#c03194] underline font-medium">
+            set up your profile
+          </Link>{' '}
+          to get started!
         </p>
       )}
 
