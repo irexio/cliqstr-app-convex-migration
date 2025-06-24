@@ -1,56 +1,43 @@
-// 🔐 APA-HARDENED — Create a post in a cliq
-export const dynamic = 'force-dynamic'
+// 🔐 APA-HARDENED — Create new post in specified cliq
+export const dynamic = 'force-dynamic';
 
-import { NextResponse } from 'next/server'
-import { getServerSession } from '@/lib/auth/getServerSession'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@/lib/auth/getServerSession';
+import { z } from 'zod';
 
-const schema = z.object({
+const postSchema = z.object({
   content: z.string().min(1),
   cliqId: z.string().min(1),
-})
+});
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession()
-    console.log('👤 SESSION:', session)
-
+    const session = await getServerSession();
     if (!session || !session.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await req.json()
-    console.log('📥 BODY:', body)
+    const body = await req.json();
+    const parsed = postSchema.safeParse(body);
 
-    const parsed = schema.safeParse(body)
     if (!parsed.success) {
-      console.log('❌ Invalid input:', parsed.error)
-      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
-    const { content, cliqId } = parsed.data
-    console.log('📤 Creating post for cliqId:', cliqId)
+    const { content, cliqId } = parsed.data;
 
-    const post = await prisma.post.create({
+    const newPost = await prisma.post.create({
       data: {
         content,
         cliqId,
         authorId: session.user.id,
       },
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        cliqId: true,
-        authorId: true,
-      },
-    })
+    });
 
-    console.log('✅ Post created:', post)
-    return NextResponse.json({ success: true, post }, { status: 201 })
-  } catch (err) {
-    console.error('🔥 Internal server error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ post: newPost });
+  } catch (error) {
+    console.error('❌ Error creating post:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
 }
