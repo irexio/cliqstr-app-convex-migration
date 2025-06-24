@@ -1,65 +1,56 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Textarea } from '@/components/ui/textarea'
-import { Button } from '@/components/Button'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/Button';
 
 interface PostFormProps {
-  cliqId: string
+  cliqId: string;
 }
 
 export default function PostForm({ cliqId }: PostFormProps) {
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(false)
-  const router = useRouter()
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!content.trim()) return
+    e.preventDefault();
+    if (!content.trim()) return;
 
-    setLoading(true)
+    setLoading(true);
 
     try {
       const res = await fetch('/api/posts/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, cliqId }),
-      })
-
-      const contentType = res.headers.get('content-type')
-      const raw = await res.text()
-
-      console.log('📡 Response content-type:', contentType)
-      console.log('📦 Raw response:', raw)
+      });
 
       if (!res.ok) {
-        console.error('❌ Post failed:', raw)
-        return
+        const error = await res.text();
+        console.error('❌ Post failed:', error);
+        return;
       }
 
-      if (contentType?.includes('application/json')) {
-        const result = JSON.parse(raw)
-        console.log('✅ Post created:', result)
-      } else {
-        console.warn('⚠️ Unexpected content-type — skipping parse')
-      }
+      const result = await res.json();
+      console.log('✅ Post created:', result);
 
-      setContent('')
-      router.refresh()
+      setContent('');
+      router.refresh();
     } catch (err) {
-      console.error('⚠️ Network or parse error:', err)
+      console.error('⚠️ Network or parse error:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 mb-6">
       <Textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        placeholder="Write your post..."
+        placeholder="Write your post... 🐧💬✨"
         rows={4}
         disabled={loading}
       />
@@ -69,5 +60,5 @@ export default function PostForm({ cliqId }: PostFormProps) {
         </Button>
       </div>
     </form>
-  )
+  );
 }

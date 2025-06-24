@@ -38,10 +38,17 @@ export async function POST(req: Request) {
         cliqId,
         authorId: session.user.id,
       },
+      select: {
+        id: true,
+        content: true,
+        createdAt: true,
+        cliqId: true,
+        authorId: true,
+      },
     })
 
     console.log('✅ Post created:', post)
-    return NextResponse.json({ post }, { status: 201 })
+    return NextResponse.json({ success: true, post }, { status: 201 })
   } catch (err) {
     console.error('🔥 Internal server error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

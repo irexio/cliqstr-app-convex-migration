@@ -43,7 +43,7 @@ export async function GET(
       posts: cliq.posts,
     });
   } catch (error) {
-    console.error('Error in cliq feed route:', error);
+    console.error('❌ Error in cliq feed route:', error);
     return NextResponse.json(
       { error: 'Failed to fetch feed' },
       { status: 500 }
