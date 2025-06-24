@@ -1,5 +1,3 @@
-// 🔐 APA-HARDENED — Server-side cliq page with styled feed, sidebar, avatars, and post form
-
 import { prisma } from '@/lib/prisma';
 import CliqProfileContent from '@/components/CliqProfileContent';
 import PostForm from '@/components/PostForm';
@@ -13,6 +11,8 @@ interface CliqPageServerProps {
 
 export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
   const session = await getServerSession();
+
+  console.log('🧪 SESSION:', session);
   if (!session || !session.user?.id) return notFound();
 
   const cliq = await prisma.cliq.findUnique({
@@ -36,7 +36,21 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
     },
   });
 
-  if (!cliq) return notFound();
+  if (!cliq) {
+    console.warn(`❌ Cliq not found for ID: ${cliqId}`);
+    return notFound();
+  }
+
+  const isMember = cliq.members.some((m) => m.user.id === session.user.id);
+
+  if (!isMember) {
+    console.warn(`⚠️ User ${session.user.id} is not a member of cliq ${cliqId}`);
+    return (
+      <main className="p-6 max-w-xl mx-auto text-center text-red-500 font-medium">
+        You do not have access to this cliq. Please ask the owner to invite you.
+      </main>
+    );
+  }
 
   const posts = await prisma.post.findMany({
     where: { cliqId },
@@ -63,6 +77,8 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
       },
     },
   });
+
+  console.log(`✅ Cliq loaded: ${cliq.name}, Members: ${cliq.members.length}, Posts: ${posts.length}`);
 
   return (
     <main className="flex flex-col md:flex-row h-screen bg-white text-neutral-800">
