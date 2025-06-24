@@ -1,5 +1,3 @@
-// src/app/cliqs/[id]/page.tsx
-
 import CliqPageServer from '@/components/server/CliqPageServer';
 
 export default async function CliqPage({ 
