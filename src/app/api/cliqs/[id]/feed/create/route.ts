@@ -1,33 +1,35 @@
-// 🔐 APA-HARDENED — Create post with optional image, locked to real session
-
+// 🔐 APA-HARDENED — Create post in specific cliq
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth/getServerSession';
+import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
 const schema = z.object({
   content: z.string().optional(),
   image: z.string().url().optional(),
-  cliqId: z.string().min(1),
 });
 
-export async function POST(req: Request) {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   const session = await getServerSession();
   if (!session || !session.user?.id) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
+  const cliqId = params.id;
   const body = await req.json();
-  const result = schema.safeParse(body);
+  const parsed = schema.safeParse(body);
 
-  if (!result.success) {
-    return new NextResponse('Invalid input', { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
   }
 
-  const { content, image, cliqId } = result.data;
+  const { content, image } = parsed.data;
 
   if (!content && !image) {
-    return new NextResponse('Post must include content or an image.', { status: 400 });
+    return NextResponse.json({ error: 'Post must include content or image.' }, { status: 400 });
   }
 
   try {
@@ -42,7 +44,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(post);
   } catch (err) {
-    console.error('❌ Post creation error:', err);
-    return new NextResponse('Server error', { status: 500 });
+    console.error('❌ Error creating post:', err);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

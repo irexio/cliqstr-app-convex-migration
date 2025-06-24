@@ -12,6 +12,7 @@ interface PostFormProps {
 export default function PostForm({ cliqId }: PostFormProps) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,27 +20,30 @@ export default function PostForm({ cliqId }: PostFormProps) {
     if (!content.trim()) return;
 
     setLoading(true);
+    setError('');
 
     try {
-      const res = await fetch('/api/posts/create', {
+      const res = await fetch(`/api/cliqs/${cliqId}/feed/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, cliqId }),
+        body: JSON.stringify({ content }),
       });
 
+      const isJson = res.headers.get('content-type')?.includes('application/json');
+      const result = isJson ? await res.json() : await res.text();
+
       if (!res.ok) {
-        const error = await res.text();
-        console.error('❌ Post failed:', error);
+        console.error('❌ Post failed:', result);
+        setError(typeof result === 'string' ? result : result?.error || 'Unknown error');
         return;
       }
 
-      const result = await res.json();
       console.log('✅ Post created:', result);
-
       setContent('');
       router.refresh();
-    } catch (err) {
-      console.error('⚠️ Network or parse error:', err);
+    } catch (err: any) {
+      console.error('⚠️ Network error:', err);
+      setError('Network error — please try again.');
     } finally {
       setLoading(false);
     }
@@ -53,7 +57,9 @@ export default function PostForm({ cliqId }: PostFormProps) {
         placeholder="Write your post... 🐧💬✨"
         rows={4}
         disabled={loading}
+        className="resize-none"
       />
+      {error && <p className="text-sm text-red-500">{error}</p>}
       <div className="text-right">
         <Button type="submit" disabled={loading || !content.trim()}>
           {loading ? 'Posting...' : 'Post'}

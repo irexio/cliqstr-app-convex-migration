@@ -105,7 +105,7 @@ model Membership {
 model Post {
   id        String   @id @default(cuid())
   content   String
-  imageUrl  String?
+  image     String?  // ✅ unified and consistent field name
   createdAt DateTime @default(now())
 
   authorId String
