@@ -16,8 +16,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'px-4 py-2 rounded-md font-semibold transition'
 
     const variantStyles = {
-      solid: 'bg-[#202020] text-white hover:bg-[#5939d4]',
-      outline: 'border border-[#202020] text-[#202020] bg-white hover:border-[#5939d4] hover:text-[#5939d4]',
+      solid: 'bg-[#202020] text-white hover:bg-[#c032d1]',
+      outline: 'border border-[#202020] text-[#202020] bg-white hover:border-[#c032d1] hover:text-[#c032d1]',
     }
 
     return (

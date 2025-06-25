@@ -4,6 +4,7 @@ import PostForm from '@/components/PostForm';
 import CliqFeed from '@/components/CliqFeed';
 import { getServerSession } from '@/lib/auth/getServerSession';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
 
 interface CliqPageServerProps {
   cliqId: string;
@@ -80,6 +81,8 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
 
   console.log(`✅ Cliq loaded: ${cliq.name}, Members: ${cliq.members.length}, Posts: ${posts.length}`);
 
+  const bannerImage = cliq.coverImage || '/placeholder-banner.jpg';
+
   return (
     <main className="flex flex-col md:flex-row h-screen bg-white text-neutral-800">
       {/* SIDEBAR */}
@@ -107,6 +110,19 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
       {/* FEED WRAP */}
       <section className="flex-1 p-4 overflow-y-auto">
         <div className="max-w-2xl mx-auto space-y-6">
+          {/* COVER IMAGE */}
+          <div className="w-full h-48 relative rounded-md overflow-hidden">
+            <Image
+              src={bannerImage}
+              alt="Cliq cover"
+              fill
+              className="object-cover"
+              sizes="100vw"
+              priority
+            />
+          </div>
+
+          {/* FEED CONTENT */}
           <h1 className="text-2xl font-bold text-gray-800">{cliq.name}</h1>
           <CliqProfileContent cliqId={cliq.id} />
           <PostForm cliqId={cliq.id} />

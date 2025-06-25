@@ -67,19 +67,19 @@ export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
               <div className="flex gap-2 mt-auto">
                 <Link
                   href={`/cliqs/${cliq.id}`}
-                  className="px-4 py-2 bg-black text-white text-sm rounded hover:bg-gray-800"
+                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] hover:bg-black"
                 >
                   View
                 </Link>
                 <Link
                   href={`/cliqs/${cliq.id}/members`}
-                  className="px-4 py-2 bg-black text-white text-sm rounded hover:bg-gray-800"
+                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] hover:bg-black"
                 >
                   Members
                 </Link>
                 <Link
                   href={`/cliqs/${cliq.id}/invite-request`}
-                  className="px-4 py-2 bg-black text-white text-sm rounded hover:bg-gray-800"
+                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] hover:bg-black"
                 >
                   Invite
                 </Link>

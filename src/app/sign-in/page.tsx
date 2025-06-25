@@ -24,7 +24,7 @@ export default function SignInPage() {
           <Button
             variant="outline"
             type="button"
-            className="text-sm text-gray-500 hover:text-[#5939d4]"
+            className="text-sm text-gray-500 hover:text-[#c032d1]"
             onClick={() => setForgotOpen(true)}
           >
             Forgot your password?

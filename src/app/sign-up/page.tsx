@@ -20,17 +20,17 @@ export default function SignUpPage() {
           <SignUpForm />
         </Suspense>
 
-        {/* Forgot Password trigger */}
-        <div className="flex justify-end pt-1">
-          <Button
-            variant="outline"
-            type="button"
-            className="text-sm text-gray-500 hover:text-[#5939d4]"
-            onClick={() => setForgotOpen(true)}
-          >
-            Forgot your password?
-          </Button>
-        </div>
+{/* Forgot Password trigger */}
+<div className="flex justify-end pt-1">
+  <Button
+    type="button"
+    className="text-sm text-gray-500 hover:text-[#c032d1] hover:bg-transparent"
+    onClick={() => setForgotOpen(true)}
+  >
+    Forgot your password?
+  </Button>
+</div>
+
 
         {/* Modal */}
         <ForgotPasswordModal open={forgotOpen} setOpen={setForgotOpen} />

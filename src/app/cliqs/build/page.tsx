@@ -1,4 +1,3 @@
-// 🔐 APA-HARDENED — Cliq creation page
 'use client'
 
 import { useRouter } from 'next/navigation'
@@ -6,12 +5,15 @@ import { useState } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/Button'
 import { Label } from '@/components/ui/label'
+import { UploadButton } from '@/lib/uploadthing'
+import Image from 'next/image'
 
 export default function BuildCliqPage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [privacy, setPrivacy] = useState<'private' | 'semi' | 'public'>('private')
+  const [bannerImage, setBannerImage] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -23,7 +25,7 @@ export default function BuildCliqPage() {
       const res = await fetch('/api/cliqs/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, privacy }),
+        body: JSON.stringify({ name, description, privacy, coverImage: bannerImage }),
       })
 
       const data = await res.json()
@@ -31,7 +33,7 @@ export default function BuildCliqPage() {
 
       router.push(`/cliqs/${data.cliq.id}`)
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'Failed to create cliq.')
     } finally {
       setLoading(false)
     }
@@ -55,7 +57,7 @@ export default function BuildCliqPage() {
           <Label>Privacy</Label>
           <select
             value={privacy}
-            onChange={(e) => setPrivacy(e.target.value as any)}
+            onChange={(e) => setPrivacy(e.target.value as 'private' | 'semi' | 'public')}
             className="w-full p-2 border rounded-md"
           >
             <option value="private">Private</option>
@@ -63,6 +65,34 @@ export default function BuildCliqPage() {
             <option value="public">Public</option>
           </select>
         </div>
+
+        <div>
+          <Label>Banner Image</Label>
+          <UploadButton
+            endpoint="banner"
+            onClientUploadComplete={(res: { url: string }[] | undefined) => {
+              if (res && res[0]?.url) {
+                setBannerImage(res[0].url)
+              }
+            }}
+            onUploadError={(err: Error) => {
+              console.error('Upload error:', err)
+              setError('Image upload failed. Try again.')
+            }}
+          />
+        </div>
+
+        {bannerImage && (
+          <div className="w-full max-w-md mt-4">
+            <Image
+              src={bannerImage}
+              alt="Preview"
+              width={600}
+              height={200}
+              className="rounded border object-cover"
+            />
+          </div>
+        )}
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
