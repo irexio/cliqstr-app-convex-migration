@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface MyCliqsPageProps {
   userId: string;
@@ -15,6 +16,7 @@ interface Cliq {
   privacy: string;
   createdAt: string;
   ownerId: string;
+  bannerImage?: string; // Optional support for future
 }
 
 export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
@@ -44,11 +46,11 @@ export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
       {cliqs.length === 0 && (
         <p className="text-sm text-neutral-500 mb-6">
           New here? You can{' '}
-          <Link href="/cliqs/build" className="text-[#c03194] underline font-medium">
+          <Link href="/cliqs/build" className="text-[#c032d1] underline font-medium">
             create your first cliq
           </Link>{' '}
           or{' '}
-          <Link href="/profile/setup" className="text-[#c03194] underline font-medium">
+          <Link href="/profile/setup" className="text-[#c032d1] underline font-medium">
             set up your profile
           </Link>{' '}
           to get started!
@@ -57,29 +59,45 @@ export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {cliqs.map((cliq) => (
-          <Card key={cliq.id} className="flex flex-col justify-between">
+          <Card key={cliq.id} className="flex flex-col justify-between overflow-hidden border border-gray-200">
+            {/* Optional Banner */}
+            {cliq.bannerImage && (
+              <div className="relative w-full h-28">
+                <Image
+                  src={cliq.bannerImage}
+                  alt={`${cliq.name} banner`}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+
             <CardHeader>
               <CardTitle className="text-lg">{cliq.name}</CardTitle>
-              <p className="text-sm text-gray-500">{cliq.privacy} Cliq</p>
+              <p className="text-sm text-gray-500 capitalize">{cliq.privacy} Cliq</p>
             </CardHeader>
+
             <CardContent>
-              <p className="text-sm text-neutral-700 mb-4">{cliq.description}</p>
-              <div className="flex gap-2 mt-auto">
+              <p className="text-sm text-neutral-700 mb-4">
+                {cliq.description || 'No description yet.'}
+              </p>
+
+              <div className="flex flex-wrap gap-2 mt-auto">
                 <Link
                   href={`/cliqs/${cliq.id}`}
-                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] hover:bg-black"
+                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] transition"
                 >
                   View
                 </Link>
                 <Link
                   href={`/cliqs/${cliq.id}/members`}
-                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] hover:bg-black"
+                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] transition"
                 >
                   Members
                 </Link>
                 <Link
                   href={`/cliqs/${cliq.id}/invite-request`}
-                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] hover:bg-black"
+                  className="px-4 py-2 bg-black text-white text-sm rounded hover:text-[#c032d1] transition"
                 >
                   Invite
                 </Link>

@@ -105,8 +105,9 @@ model Membership {
 model Post {
   id        String   @id @default(cuid())
   content   String
-  image     String?  // ✅ unified and consistent field name
+  image     String?
   createdAt DateTime @default(now())
+  expiresAt DateTime?  // ✅ New field for expiration
 
   authorId String
   cliqId   String

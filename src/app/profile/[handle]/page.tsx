@@ -1,23 +1,24 @@
-// 🔐 APA-HARDENED — Public Profile Page by username
-export const dynamic = 'force-dynamic';
+// 🔐 APA-SAFE — Public Profile Page by username
+export const dynamic = 'force-dynamic'
 
-import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
-import Image from 'next/image';
+import { prisma } from '@/lib/prisma'
+import { getCurrentUser } from '@/lib/auth/getCurrentUser'
+import { notFound } from 'next/navigation'
+import Image from 'next/image'
 
 interface Props {
-  params: { handle: string };
+  params: { handle: string }
 }
 
-export default async function ProfilePage({ 
-  params 
-}: { 
-  params: Promise<{ handle: string }> 
-}) {
-  const { handle } = await params;
+export default async function ProfilePage({ params }: Props) {
+  const user = await getCurrentUser()
+
+  if (!user?.id) {
+    notFound()
+  }
 
   const profile = await prisma.profile.findUnique({
-    where: { username: handle },
+    where: { username: params.handle },
     select: {
       username: true,
       about: true,
@@ -27,10 +28,28 @@ export default async function ProfilePage({
         select: { id: true },
       },
     },
-  });
+  })
 
   if (!profile) {
-    notFound();
+    notFound()
+  }
+
+  // ✅ APA check — do user and profile share a cliq?
+  const sharedCliq = await prisma.membership.findFirst({
+    where: {
+      userId: user.id,
+      cliq: {
+        members: {
+          some: {
+            userId: profile.user.id,
+          },
+        },
+      },
+    },
+  })
+
+  if (!sharedCliq) {
+    notFound()
   }
 
   return (
@@ -69,9 +88,7 @@ export default async function ProfilePage({
             {profile.about}
           </p>
         )}
-
-        {/* Future: Show age or birthday if toggled */}
       </section>
     </main>
-  );
+  )
 }

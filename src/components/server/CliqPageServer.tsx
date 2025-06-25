@@ -126,7 +126,7 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
           <h1 className="text-2xl font-bold text-gray-800">{cliq.name}</h1>
           <CliqProfileContent cliqId={cliq.id} />
           <PostForm cliqId={cliq.id} />
-          <CliqFeed posts={posts} />
+          <CliqFeed cliqId={cliq.id} />
         </div>
       </section>
     </main>

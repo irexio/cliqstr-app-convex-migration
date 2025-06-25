@@ -111,8 +111,13 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
         {/* Avatar Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Upload Avatar</label>
-          <UploadDropzone<OurFileRouter, "avatar">
+          <p className="text-xs text-neutral-500 italic mb-2">Recommended: square image, 400×400px</p>
+          <UploadDropzone<OurFileRouter, 'avatar'>
             endpoint="avatar"
+            appearance={{
+              button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
+              container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
+            }}
             onClientUploadComplete={(res) => {
               if (res && res[0]?.url) setAvatarUrl(res[0].url);
             }}
@@ -130,8 +135,13 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
         {/* Banner Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Upload Banner</label>
-          <UploadDropzone<OurFileRouter, "banner">
+          <p className="text-xs text-neutral-500 italic mb-2">Recommended: wide landscape, 1200×400px</p>
+          <UploadDropzone<OurFileRouter, 'banner'>
             endpoint="banner"
+            appearance={{
+              button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
+              container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
+            }}
             onClientUploadComplete={(res) => {
               if (res && res[0]?.url) setBannerUrl(res[0].url);
             }}
@@ -160,7 +170,7 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 text-sm transition"
+          className="w-full bg-black text-white py-2 rounded hover:text-[#c032d1] text-sm transition"
         >
           {loading ? 'Finishing...' : 'Create My Profile'}
         </button>

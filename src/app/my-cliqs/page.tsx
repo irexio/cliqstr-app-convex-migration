@@ -53,12 +53,12 @@ export default function MyCliqsPage() {
       {/* Action buttons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
         <Link href="/cliqs/build">
-          <button className="bg-primary text-white px-6 py-3 rounded-lg font-medium hover:bg-secondary transition">
+          <button className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:text-[#c032d1] transition">
             Create a Cliq
           </button>
         </Link>
         <Link href="/profile/setup">
-          <button className="bg-gray-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 transition">
+          <button className="bg-black text-white px-6 py-3 rounded-lg font-medium hover:text-[#c032d1] transition">
             Create Your Profile
           </button>
         </Link>
