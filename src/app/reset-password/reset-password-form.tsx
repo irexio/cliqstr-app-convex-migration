@@ -1,24 +1,26 @@
-// 🔐 APA-HARDENED by Aiden — Reset Password Form Component
-// This form handles secure password resets from email-confirmed users.
-// No client-side role logic is enforced. Token is passed to server for validation.
-// Submitted data includes email, new password, and a short-lived signed token.
-
 'use client';
+
+// 🔐 APA-HARDENED by Aiden — Reset Password Form Component
+// Secure reset logic using token from email. No client-side role logic.
+// All validation and persistence are handled server-side.
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
+import { fetchJson } from '@/lib/fetchJson';
 
 export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
   const handleSubmit = async () => {
     setError('');
     setLoading(true);
@@ -30,36 +32,33 @@ export default function ResetPasswordForm() {
     }
 
     try {
-      const res = await fetch('/api/reset-password', {
+      const res = await fetchJson('/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token, newPassword }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Reset failed');
-      }
-
       setSuccess(true);
       setTimeout(() => router.push('/sign-in'), 2000);
     } catch (err: any) {
-      console.error(err);
+      console.error('❌ Reset error:', err);
       setError(err.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
-  return (    <div className="max-w-md mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Reset Your Password</h1>
+  return (
+    <div className="max-w-md mx-auto py-10 px-4">
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">
+        Reset Your Password
+      </h1>
 
       <Label className="mt-4">New Password</Label>
       <Input
         type="password"
         value={newPassword}
-        onChange={e => setNewPassword(e.target.value)}
+        onChange={(e) => setNewPassword(e.target.value)}
         placeholder="••••••••"
       />
 

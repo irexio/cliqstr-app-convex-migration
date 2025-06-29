@@ -1,43 +1,54 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/Button'
-import { Label } from '@/components/ui/label'
-import { UploadButton } from '@/lib/uploadthing'
-import Image from 'next/image'
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/Button';
+import { Label } from '@/components/ui/label';
+import { UploadDropzone } from '@uploadthing/react';
+import type { OurFileRouter } from '@/lib/uploadthing';
+import { fetchJson } from '@/lib/fetchJson';
+import Image from 'next/image';
 
 export default function BuildCliqPage() {
-  const router = useRouter()
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [privacy, setPrivacy] = useState<'private' | 'semi' | 'public'>('private')
-  const [bannerImage, setBannerImage] = useState<string | null>(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [privacy, setPrivacy] = useState<'private' | 'semi' | 'public'>('private');
+  const [bannerImage, setBannerImage] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const stripTags = (input: string) =>
+    input.replace(/<[^>]*>?/gm, '').trim(); // 🧽 Strip HTML + trim
 
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    const cleanedName = stripTags(name);
+    const cleanedDescription = stripTags(description);
 
     try {
-      const res = await fetch('/api/cliqs/create', {
+      const data = await fetchJson('/api/cliqs/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, privacy, coverImage: bannerImage }),
-      })
+        body: JSON.stringify({
+          name: cleanedName,
+          description: cleanedDescription,
+          privacy,
+          coverImage: bannerImage,
+        }),
+      });
 
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-
-      router.push(`/cliqs/${data.cliq.id}`)
+      router.push(`/cliqs/${data.cliq.id}`);
     } catch (err: any) {
-      setError(err.message || 'Failed to create cliq.')
+      setError(err.message || 'Failed to create cliq.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto py-10">
@@ -45,12 +56,22 @@ export default function BuildCliqPage() {
       <form onSubmit={handleCreate} className="space-y-6">
         <div>
           <Label>Cliq Name</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} required />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            minLength={2}
+            maxLength={100}
+          />
         </div>
 
         <div>
           <Label>Description</Label>
-          <Input value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Input
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={280}
+          />
         </div>
 
         <div>
@@ -68,16 +89,24 @@ export default function BuildCliqPage() {
 
         <div>
           <Label>Banner Image</Label>
-          <UploadButton
+          <p className="text-xs text-neutral-500 italic mb-2">
+            Recommended size: 1200×400px (landscape). Max file size: 4MB.
+          </p>
+          <UploadDropzone<OurFileRouter, 'banner'>
             endpoint="banner"
-            onClientUploadComplete={(res: { url: string }[] | undefined) => {
+            appearance={{
+              container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
+              button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
+              label: 'text-sm text-neutral-700',
+            }}
+            onClientUploadComplete={(res) => {
               if (res && res[0]?.url) {
-                setBannerImage(res[0].url)
+                setBannerImage(res[0].url);
               }
             }}
-            onUploadError={(err: Error) => {
-              console.error('Upload error:', err)
-              setError('Image upload failed. Try again.')
+            onUploadError={(err) => {
+              console.error('Upload error:', err);
+              setError('Image upload failed. Try again.');
             }}
           />
         </div>
@@ -101,5 +130,5 @@ export default function BuildCliqPage() {
         </Button>
       </form>
     </div>
-  )
+  );
 }

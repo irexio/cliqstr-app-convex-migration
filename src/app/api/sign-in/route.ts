@@ -1,15 +1,14 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { cookies as getCookies } from 'next/headers';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { signToken } from '@/lib/auth/jwt';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
+    const { email, password } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
@@ -17,7 +16,9 @@ export async function POST(req: Request) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { profile: true },
+      include: {
+        profile: true,
+      },
     });
 
     if (!user || !user.profile || !user.profile.password) {
@@ -29,16 +30,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // ✅ Create token using actual User ID
+    // 🔒 Check if child account is approved
+    if (user.profile.role === 'child' && !user.profile.isApproved) {
+      return NextResponse.json(
+        { error: 'Awaiting parent approval' },
+        { status: 403 }
+      );
+    }
+
     const token = signToken({
       userId: user.id,
       role: user.profile.role,
       isApproved: user.profile.isApproved,
     });
 
-    // ✅ Set cookie (TypeScript-safe workaround)
-    const cookieStore = getCookies();
-    (cookieStore as any).set('auth_token', token, {
+    cookies().set('auth_token', token, {
       httpOnly: true,
       path: '/',
       secure: true,

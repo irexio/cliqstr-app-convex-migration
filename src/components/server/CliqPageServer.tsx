@@ -12,8 +12,6 @@ interface CliqPageServerProps {
 
 export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
   const session = await getServerSession();
-
-  console.log('🧪 SESSION:', session);
   if (!session || !session.user?.id) return notFound();
 
   const cliq = await prisma.cliq.findUnique({
@@ -79,56 +77,32 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
     },
   });
 
-  console.log(`✅ Cliq loaded: ${cliq.name}, Members: ${cliq.members.length}, Posts: ${posts.length}`);
-
   const bannerImage = cliq.coverImage || '/placeholder-banner.jpg';
 
   return (
-    <main className="flex flex-col md:flex-row h-screen bg-white text-neutral-800">
-      {/* SIDEBAR */}
-      <aside className="w-full md:w-64 p-4 border-r border-neutral-200">
-        <div className="font-semibold text-lg mb-2">{cliq.name}</div>
-        <p className="text-sm text-neutral-600">{cliq.description}</p>
-
-        <div className="mt-4 text-xs text-neutral-400">
-          {cliq.members.length} member{cliq.members.length !== 1 && 's'}
+    <div className="min-h-screen flex flex-col bg-white text-neutral-900">
+      <main className="flex-grow px-4 py-8 max-w-4xl mx-auto space-y-6">
+        {/* COVER IMAGE */}
+        <div className="w-full h-48 relative rounded-md overflow-hidden">
+          <Image
+            src={bannerImage}
+            alt="Cliq cover"
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+          />
         </div>
 
-        <div className="flex flex-wrap gap-2 mt-2">
-          {cliq.members.map((m) => (
-            <img
-              key={m.user.id}
-              src={m.user.profile?.image || '/default-avatar.png'}
-              alt="Cliq member"
-              title={m.user.profile?.username || 'Cliq member'}
-              className="w-8 h-8 rounded-full border"
-            />
-          ))}
-        </div>
-      </aside>
+        <h1 className="text-2xl font-bold text-gray-800">{cliq.name}</h1>
+        <CliqProfileContent cliqId={cliq.id} />
+        <PostForm cliqId={cliq.id} />
+        <CliqFeed cliqId={cliq.id} />
+      </main>
 
-      {/* FEED WRAP */}
-      <section className="flex-1 p-4 overflow-y-auto">
-        <div className="max-w-2xl mx-auto space-y-6">
-          {/* COVER IMAGE */}
-          <div className="w-full h-48 relative rounded-md overflow-hidden">
-            <Image
-              src={bannerImage}
-              alt="Cliq cover"
-              fill
-              className="object-cover"
-              sizes="100vw"
-              priority
-            />
-          </div>
-
-          {/* FEED CONTENT */}
-          <h1 className="text-2xl font-bold text-gray-800">{cliq.name}</h1>
-          <CliqProfileContent cliqId={cliq.id} />
-          <PostForm cliqId={cliq.id} />
-          <CliqFeed cliqId={cliq.id} />
-        </div>
-      </section>
-    </main>
+      <footer className="mt-10 border-t text-center text-sm text-neutral-500 py-6">
+        © 2025 Cliqstr. Built with 💗 for families and friends.
+      </footer>
+    </div>
   );
 }

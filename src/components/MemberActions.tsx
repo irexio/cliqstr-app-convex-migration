@@ -1,5 +1,9 @@
 'use client';
 
+// 🔐 APA-HARDENED — Member role actions (promote/remove)
+// POSTs to /cliqs/[id]/member-actions with action payload
+// No /api/ usage, no auth exposure
+
 import { useState } from 'react';
 
 interface MemberActionsProps {
@@ -23,7 +27,7 @@ export default function MemberActions({
     setSuccess('');
 
     try {
-      const res = await fetch(`/api/cliqs/${cliqId}/member-actions`, {
+      const res = await fetch(`/cliqs/${cliqId}/member-actions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -33,14 +37,9 @@ export default function MemberActions({
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Something went wrong');
-      }
+      if (!res.ok) throw new Error(await res.text());
 
       setSuccess('Action completed');
-      // optional: refresh UI
       window.location.reload();
     } catch (err: any) {
       setError(err.message || 'Error occurred');

@@ -1,9 +1,12 @@
+// 🔐 APA-HARDENED — Cliq Page UI
 import CliqPageServer from '@/components/server/CliqPageServer';
 
-export default async function CliqPage({ 
-  params 
-}: { 
-  params: { id: string } 
+export default async function CliqPage({
+  params,
+}: {
+  params: { id: string };
 }) {
-  return <CliqPageServer cliqId={params.id} />;
+  const { id } = params;
+
+  return <CliqPageServer cliqId={id} />;
 }

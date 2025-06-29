@@ -1,50 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// 🔐 APA-HARDENED — MyCliqsPage (client display only)
+// Expects full list of user's cliqs passed from server
+// No fetchJson — rendered via props only -062625 
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
 import Image from 'next/image';
 
 interface MyCliqsPageProps {
-  userId: string;
+  cliqs: {
+    id: string;
+    name: string;
+    description: string;
+    privacy: string;
+    createdAt: string;
+    ownerId: string;
+    bannerImage?: string;
+  }[];
 }
 
-interface Cliq {
-  id: string;
-  name: string;
-  description: string;
-  privacy: string;
-  createdAt: string;
-  ownerId: string;
-  bannerImage?: string; // Optional support for future
-}
-
-export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
-  const [cliqs, setCliqs] = useState<Cliq[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCliqs = async () => {
-      const res = await fetch('/api/my-cliqs');
-      const data = await res.json();
-      setCliqs(data.cliqs || []);
-      setLoading(false);
-    };
-
-    fetchCliqs();
-  }, []);
-
-  if (loading) {
-    return <div className="p-10 text-center">Loading your cliqs...</div>;
-  }
-
-  return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-1">My Cliqs</h1>
-
-      {/* First-Time Tip */}
-      {cliqs.length === 0 && (
-        <p className="text-sm text-neutral-500 mb-6">
+export default function MyCliqsPage({ cliqs }: MyCliqsPageProps) {
+  if (!cliqs.length) {
+    return (
+      <div className="p-6 max-w-2xl mx-auto text-center">
+        <h1 className="text-2xl font-bold mb-4">My Cliqs</h1>
+        <p className="text-sm text-neutral-500">
           New here? You can{' '}
           <Link href="/cliqs/build" className="text-[#c032d1] underline font-medium">
             create your first cliq
@@ -55,12 +36,16 @@ export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
           </Link>{' '}
           to get started!
         </p>
-      )}
+      </div>
+    );
+  }
 
+  return (
+    <div className="p-6 max-w-5xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">My Cliqs</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {cliqs.map((cliq) => (
           <Card key={cliq.id} className="flex flex-col justify-between overflow-hidden border border-gray-200">
-            {/* Optional Banner */}
             {cliq.bannerImage && (
               <div className="relative w-full h-28">
                 <Image
@@ -71,17 +56,14 @@ export default function MyCliqsPage({ userId }: MyCliqsPageProps) {
                 />
               </div>
             )}
-
             <CardHeader>
               <CardTitle className="text-lg">{cliq.name}</CardTitle>
               <p className="text-sm text-gray-500 capitalize">{cliq.privacy} Cliq</p>
             </CardHeader>
-
             <CardContent>
               <p className="text-sm text-neutral-700 mb-4">
                 {cliq.description || 'No description yet.'}
               </p>
-
               <div className="flex flex-wrap gap-2 mt-auto">
                 <Link
                   href={`/cliqs/${cliq.id}`}

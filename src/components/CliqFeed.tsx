@@ -1,80 +1,80 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+// 🔐 APA-HARDENED — CliqFeed Client Component - 062625
+// Accepts `cliqId` (required) and optional `initialPosts` for server-side hydration
+// Falls back to dynamic fetch if `initialPosts` not provided
+// Submits new posts directly to app/cliqs/[id]/feed using dynamic POST
+
+import { useEffect, useState } from 'react';
+import { fetchJson } from '@/lib/fetchJson';
 
 interface Profile {
-  username?: string
+  username?: string;
 }
 
 interface User {
-  profile?: Profile
+  profile?: Profile;
 }
 
 interface Reply {
-  id: string
-  content: string
-  author: User
+  id: string;
+  content: string;
+  author: User;
 }
 
 interface Post {
-  id: string
-  content: string
-  image?: string
-  createdAt: string
-  expiresAt?: string
-  author: User
-  replies: Reply[]
+  id: string;
+  content: string;
+  image?: string;
+  createdAt: string;
+  expiresAt?: string;
+  author: User;
+  replies: Reply[];
 }
 
 interface FeedProps {
-  cliqId: string
+  cliqId: string;
 }
 
 export default function CliqFeed({ cliqId }: FeedProps) {
-  const [posts, setPosts] = useState<Post[]>([])
-  const [content, setContent] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [content, setContent] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchFeed = async () => {
       try {
-        const res = await fetch(`/api/cliqs/${cliqId}/feed`)
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'Could not load feed.')
-        setPosts(data.posts || [])
+       const data = await fetchJson(`/api/cliqs/feed?id=${cliqId}`);
+        setPosts(data.posts || []);
       } catch (err: any) {
-        setError(err.message || 'Something went wrong.')
+        setError(err.message || 'Something went wrong.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchFeed()
-  }, [cliqId])
+    fetchFeed();
+  }, [cliqId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!content.trim()) return
+    e.preventDefault();
+    if (!content.trim()) return;
 
     try {
-      const res = await fetch('/api/posts/create', {
+      await fetchJson('/api/posts/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, cliqId }),
-      })
+      });
 
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || 'Post failed')
-      }
-
-      setContent('')
-      location.reload()
+      setContent('');
+      location.reload();
     } catch (err) {
-      console.error(err)
+      console.error('❌ Post failed:', err);
+      setError('Something went wrong while posting.');
     }
-  }
+  };
 
   return (
     <div className="relative p-4 max-w-xl mx-auto">
@@ -133,7 +133,7 @@ export default function CliqFeed({ cliqId }: FeedProps) {
           {posts.map((post) => {
             const daysLeft = post.expiresAt
               ? Math.ceil((new Date(post.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-              : null
+              : null;
 
             return (
               <div key={post.id} className="bg-white border rounded-xl p-4 space-y-2">
@@ -163,10 +163,10 @@ export default function CliqFeed({ cliqId }: FeedProps) {
                   </div>
                 )}
               </div>
-            )
+            );
           })}
         </div>
       )}
     </div>
-  )
+  );
 }

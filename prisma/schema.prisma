@@ -19,6 +19,7 @@ model Invite {
   cliqId        String?
   maxUses       Int       @default(1)
   inviteeEmail  String?
+  message       String?   // <-- message field is present
 
   inviter       User      @relation("UserToInvites", fields: [inviterId], references: [id])
   inviterId     String
@@ -46,19 +47,19 @@ model User {
 model Profile {
   id           String   @id @default(cuid())
   userId       String   @unique
-  username     String   @unique       // ✅ added @unique
+  username     String   @unique
   birthdate    DateTime
   createdAt    DateTime @default(now())
 
-  role         String                 // ✅ APA roles
+  role         String
   ageGroup     String?
   isApproved   Boolean  @default(false)
   password     String?
   stripeStatus String?
 
-  about        String?                // ✅ bio
-  image        String?                // ✅ avatar
-  bannerImage  String?                // ✅ banner
+  about        String?
+  image        String?
+  bannerImage  String?
 
   user         User     @relation(fields: [userId], references: [id])
   parentLinks  ParentLink[]
@@ -84,7 +85,7 @@ model Cliq {
   ownerId String
   owner   User   @relation("UserToCliqs", fields: [ownerId], references: [id])
 
-  members Membership[]
+  memberships Membership[]
   posts   Post[]
   inviteRequests InviteRequest[]
 }
@@ -107,7 +108,7 @@ model Post {
   content   String
   image     String?
   createdAt DateTime @default(now())
-  expiresAt DateTime?  // ✅ New field for expiration
+  expiresAt DateTime?
 
   authorId String
   cliqId   String

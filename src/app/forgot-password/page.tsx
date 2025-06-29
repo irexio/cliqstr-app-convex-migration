@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
+import { fetchJson } from '@/lib/fetchJson';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -17,22 +18,16 @@ export default function ForgotPasswordPage() {
     setError('');
 
     try {
-      const res = await fetch('/api/send-reset-email', {
+      await fetchJson('/api/send-reset-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
 
-      if (res.ok) {
-        setStatus('sent');
-      } else {
-        const data = await res.json();
-        setError(data.error || 'Could not send reset email');
-        setStatus('error');
-      }
-    } catch (err) {
+      setStatus('sent');
+    } catch (err: any) {
       console.error(err);
-      setError('Something went wrong.');
+      setError(err.message || 'Something went wrong.');
       setStatus('error');
     }
   };

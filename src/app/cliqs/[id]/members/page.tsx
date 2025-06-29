@@ -1,9 +1,13 @@
-// src/app/cliqs/[id]/page.tsx
+// 🔐 APA-HARDENED — Server entrypoint for cliq member listing
 
-import CliqPageServer from '@/components/server/CliqPageServer';
+import CliqMembersContent from '@/components/CliqMembersContent';
 
-const Page = async ({ params }: any) => {
-  return await CliqPageServer({ cliqId: params.id });
-};
+interface PageProps {
+  params: { id: string };
+}
 
-export default Page;
+export default function MembersPage({ params }: PageProps) {
+  return (
+    <CliqMembersContent cliqId={params.id} currentUserId="" />
+  );
+}

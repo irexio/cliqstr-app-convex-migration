@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadDropzone } from '@uploadthing/react';
 import type { OurFileRouter } from '@/lib/uploadthing';
+import { fetchJson } from '@/lib/fetchJson'; // ✅ Added
 
 export default function SetupProfileClient({ userId }: { userId: string }) {
   const router = useRouter();
@@ -49,7 +50,7 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
     setError('');
 
     try {
-      const res = await fetch('/api/sign-up/invite', {
+      const res = await fetch('/sign-up/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -64,13 +65,8 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
         }),
       });
 
-      const data = await res.json();
+      if (!res.ok) throw new Error(await res.text());
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to complete sign-up.');
-      }
-
-      console.log('[✅] Signed up:', data);
       router.push('/my-cliqs');
     } catch (err: any) {
       console.error('[❌] Signup error:', err);

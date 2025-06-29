@@ -1,54 +1,30 @@
-// src/app/api/create-setup-intent/route.ts
+// 📦 Stripe SetupIntent API — used for adding payment methods
 import { NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import Stripe from 'stripe';
 
-// Check if Stripe secret key is available
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn('STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
-}
+export const dynamic = 'force-dynamic';
 
-const stripe = process.env.STRIPE_SECRET_KEY 
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-04-30.basil', // ✅ Updated to fix type error
-    })
-  : null;
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
+});
 
-export async function POST(req: Request) {
+export async function POST() {
   try {
-    // Check if Stripe is properly initialized
-    if (!stripe) {
-      return NextResponse.json({ error: 'Payment processing is not configured' }, { status: 503 });
-    }
-
-    const { inviteCode, cliqId, role } = await req.json();
-
-    if (!inviteCode || !cliqId || !role) {
-      return NextResponse.json(
-        { error: 'Missing inviteCode, cliqId, or role' },
-        { status: 400 }
-      );
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const setupIntent = await stripe.setupIntents.create({
-      usage: 'off_session',
       metadata: {
-        inviteCode,
-        cliqId,
-        role,
-        reason: 'Identity verification for invited user',
+        userId: user.id,
       },
     });
 
-    return NextResponse.json({
-      success: true,
-      setupIntentId: setupIntent.id,
-      clientSecret: setupIntent.client_secret,
-    });
+    return NextResponse.json({ clientSecret: setupIntent.client_secret });
   } catch (err) {
-    console.error('SetupIntent error:', err);
-    return NextResponse.json(
-      { error: 'Failed to create setup intent' },
-      { status: 500 }
-    );
+    console.error('💥 SetupIntent error:', err);
+    return NextResponse.json({ error: 'Failed to create SetupIntent' }, { status: 500 });
   }
 }

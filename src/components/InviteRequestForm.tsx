@@ -1,5 +1,8 @@
 'use client';
 
+// 🔐 APA-HARDENED — Invite Request Form (with role + message)
+// POSTs to /cliqs/[id]/invite — no /api/ dependency
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
@@ -19,13 +22,15 @@ export default function InviteRequestForm({ cliqId, inviterId }: InviteRequestFo
   const [role, setRole] = useState<'child' | 'adult'>('child');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setError('');
 
     try {
-      const res = await fetch('/api/invite/create', {
+      const res = await fetch(`/cliqs/${cliqId}/invite`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -37,13 +42,12 @@ export default function InviteRequestForm({ cliqId, inviterId }: InviteRequestFo
         }),
       });
 
-      if (res.ok) {
-        router.push('/invite-request/sent');
-      } else {
-        console.error('Invite request failed');
-      }
-    } catch (err) {
+      if (!res.ok) throw new Error(await res.text());
+
+      router.push('/invite-request/sent');
+    } catch (err: any) {
       console.error(err);
+      setError(err.message || 'Something went wrong.');
     } finally {
       setSubmitting(false);
     }
@@ -85,6 +89,8 @@ export default function InviteRequestForm({ cliqId, inviterId }: InviteRequestFo
           placeholder="Tell your parent why you want to invite them"
         />
       </div>
+
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button type="submit" disabled={submitting}>
         {submitting ? 'Sending Request...' : 'Send to Parent for Approval'}

@@ -1,7 +1,8 @@
 'use client'
 
 // 🔐 APA-HARDENED HEADER FOR CLIQSTR — now penguin-pure ⚫⚪
-// Neutral base UI, leaves decorating to the kids 🐧✨
+// Uses /auth/status to detect login state (no /api/)
+// Verified: 2025-06-27
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -15,16 +16,22 @@ export function Header() {
   useEffect(() => {
     async function fetchUser() {
       try {
-        const res = await fetch('/api/me')
-        if (!res.ok) return
-        const data = await res.json()
+        const res = await fetch('/auth/status', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        });
+
+        if (!res.ok) return;
+
+        const data = await res.json();
 
         if (data?.id) {
-          setIsLoggedIn(true)
-          setHasCliqs(data.memberships?.length > 0)
+          setIsLoggedIn(true);
+          setHasCliqs(data.memberships?.length > 0);
         }
       } catch (err) {
-        console.error('Error fetching /api/me:', err)
+        console.error('Error fetching /auth/status:', err);
       }
     }
 

@@ -1,9 +1,12 @@
 'use client';
 
+// 🔐 APA-COMPATIBLE — PostForm (using legacy /api route for now)
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/Button';
+import { fetchJson } from '@/lib/fetchJson';
 
 interface PostFormProps {
   cliqId: string;
@@ -23,27 +26,17 @@ export default function PostForm({ cliqId }: PostFormProps) {
     setError('');
 
     try {
-      const res = await fetch(`/api/cliqs/${cliqId}/feed/create`, {
+      await fetchJson('/api/cliqs/feed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ content, cliqId }),
       });
 
-      const isJson = res.headers.get('content-type')?.includes('application/json');
-      const result = isJson ? await res.json() : await res.text();
-
-      if (!res.ok) {
-        console.error('❌ Post failed:', result);
-        setError(typeof result === 'string' ? result : result?.error || 'Unknown error');
-        return;
-      }
-
-      console.log('✅ Post created:', result);
       setContent('');
       router.refresh();
     } catch (err: any) {
-      console.error('⚠️ Network error:', err);
-      setError('Network error — please try again.');
+      console.error('⚠️ Post error:', err);
+      setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }

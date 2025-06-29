@@ -5,7 +5,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadDropzone } from '@uploadthing/react';
-import type { OurFileRouter } from "@/app/api/uploadthing/core"; // ✅ Only import the type!
+import { fetchJson } from '@/lib/fetchJson';
+import type { OurFileRouter } from '@/app/api/uploadthing/core';
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -17,23 +18,25 @@ export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load current profile data
+  // Load current profile
   useEffect(() => {
-    const fetchProfile = async () => {
-      const res = await fetch('/api/profile/me');
-      const data = await res.json();
-      if (res.ok) {
-        setProfile(data.profile);
-        setUsername(data.profile.username || '');
-        setAbout(data.profile.about || '');
-        setAvatarUrl(data.profile.image || '');
-        setBannerUrl(data.profile.bannerImage || '');
-      } else {
-        setError(data.error || 'Failed to load profile.');
+    const loadProfile = async () => {
+      try {
+        const res = await fetchJson('/api/profile/me');
+        if (res?.profile) {
+          setProfile(res.profile);
+          setUsername(res.profile.username || '');
+          setAbout(res.profile.about || '');
+          setAvatarUrl(res.profile.image || '');
+          setBannerUrl(res.profile.bannerImage || '');
+        }
+      } catch (err: any) {
+        console.error('❌ Profile load error:', err);
+        setError(err.message || 'Failed to load profile.');
       }
     };
 
-    fetchProfile();
+    loadProfile();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,7 +45,7 @@ export default function EditProfilePage() {
     setError('');
 
     try {
-      const res = await fetch('/api/profile/update', {
+      await fetchJson('/api/profile/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -53,21 +56,22 @@ export default function EditProfilePage() {
         }),
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Update failed');
-      }
-
       router.push(`/profile/${username}`);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong');
+      console.error('❌ Profile update failed:', err);
+      setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (!profile) return <div className="p-10">Loading profile...</div>;
+  if (!profile) {
+    return (
+      <div className="p-10 text-center text-sm text-gray-500">
+        {error ? error : 'Loading profile...'}
+      </div>
+    );
+  }
 
   return (
     <main className="max-w-2xl mx-auto px-4 py-10">
@@ -99,10 +103,10 @@ export default function EditProfilePage() {
         {/* Avatar Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Update Avatar</label>
-          <UploadDropzone<OurFileRouter, any>
+          <UploadDropzone<OurFileRouter>
             endpoint="avatar"
             onClientUploadComplete={(res) => {
-              if (res && res[0]?.url) setAvatarUrl(res[0].url);
+              if (res?.[0]?.url) setAvatarUrl(res[0].url);
             }}
             onUploadError={(err: Error) => alert(`Avatar upload error: ${err.message}`)}
           />
@@ -118,10 +122,10 @@ export default function EditProfilePage() {
         {/* Banner Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Update Banner</label>
-          <UploadDropzone<OurFileRouter, any>
+          <UploadDropzone<OurFileRouter>
             endpoint="banner"
             onClientUploadComplete={(res) => {
-              if (res && res[0]?.url) setBannerUrl(res[0].url);
+              if (res?.[0]?.url) setBannerUrl(res[0].url);
             }}
             onUploadError={(err: Error) => alert(`Banner upload error: ${err.message}`)}
           />

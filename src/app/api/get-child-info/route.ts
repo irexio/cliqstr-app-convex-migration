@@ -1,29 +1,69 @@
-import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
+
+import { NextRequest, NextResponse } from 'next/server';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const childId = searchParams.get('childId');
+// Check if Stripe secret key is available
+if (!process.env.STRIPE_SECRET_KEY) {
+  console.warn('STRIPE_SECRET_KEY is not set. Stripe functionality will be disabled.');
+}
 
-  if (!childId) {
-    return NextResponse.json({ error: 'Missing childId' }, { status: 400 });
-  }
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-04-30.basil', // ✅ Correct version
+    })
+  : null;
 
+export async function POST(req: NextRequest) {
   try {
-    const profile = await prisma.profile.findUnique({
-      where: { id: childId },
-      select: {
-        birthdate: true, // Removed .name to avoid schema conflict
+    // ✅ Require authenticated user
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // ✅ Confirm Stripe is enabled
+    if (!stripe) {
+      return NextResponse.json(
+        { error: 'Payment processing is not configured' },
+        { status: 503 }
+      );
+    }
+
+    const { inviteCode, cliqId, role } = await req.json();
+
+    if (!inviteCode || !cliqId || !role) {
+      return NextResponse.json(
+        { error: 'Missing inviteCode, cliqId, or role' },
+        { status: 400 }
+      );
+    }
+
+    // Optional: Add backend-side role validation if needed
+
+    const setupIntent = await stripe.setupIntents.create({
+      usage: 'off_session',
+      metadata: {
+        inviteCode,
+        cliqId,
+        role,
+        initiatedBy: user.id,
+        reason: 'Identity verification for invited user',
       },
     });
 
-    if (!profile) {
-      return NextResponse.json({ error: 'Child not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ profile });
+    return NextResponse.json({
+      success: true,
+      setupIntentId: setupIntent.id,
+      clientSecret: setupIntent.client_secret,
+    });
   } catch (err) {
-    console.error('Error fetching child info:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    console.error('❌ SetupIntent error:', err);
+    return NextResponse.json(
+      { error: 'Failed to create setup intent' },
+      { status: 500 }
+    );
   }
 }

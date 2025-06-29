@@ -1,47 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// 🔐 APA-HARDENED — Cliq Profile Client Component
+// Renders cliq info passed from server (name, description, etc.)
+// No API call — uses props only
 
-interface Cliq {
-  id: string;
+interface CliqProfile {
   name: string;
-  description: string;
-  privacy: string;
+  description?: string;
+  bannerImage?: string;
 }
 
-export default function CliqProfileContent({ cliqId }: { cliqId: string }) {
-  const [cliq, setCliq] = useState<Cliq | null>(null);
-  const [loading, setLoading] = useState(true);
+interface CliqProfileContentProps {
+  cliq: CliqProfile;
+}
 
-  useEffect(() => {
-    const fetchCliq = async () => {
-      try {
-        const res = await fetch(`/api/cliqs/${cliqId}`);
-        const data = await res.json();
-        setCliq(data.cliq || null);
-      } catch (err) {
-        console.error('Failed to load cliq', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCliq();
-  }, [cliqId]);
-
-  if (loading) {
-    return <div className="p-6 text-center">Loading cliq info...</div>;
-  }
-
-  if (!cliq) {
-    return <div className="p-6 text-center text-red-600">Cliq not found.</div>;
-  }
-
+export default function CliqProfileContent({ cliq }: CliqProfileContentProps) {
   return (
-    <div className="space-y-2">
-      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">{cliq.name}</h1>
-      <p className="text-gray-700">{cliq.description}</p>
-      <p className="text-sm text-gray-500">Privacy: {cliq.privacy}</p>
+    <div className="w-full max-w-3xl mx-auto space-y-4 p-6">
+      {cliq.bannerImage && (
+        <img
+          src={cliq.bannerImage}
+          alt="Cliq banner"
+          className="w-full h-48 object-cover rounded-xl"
+        />
+      )}
+      <h1 className="text-2xl font-bold">{cliq.name}</h1>
+      {cliq.description && <p className="text-gray-600">{cliq.description}</p>}
     </div>
   );
 }

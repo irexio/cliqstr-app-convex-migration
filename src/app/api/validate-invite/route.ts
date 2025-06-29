@@ -1,24 +1,8 @@
-import { NextResponse } from 'next/server';
+// 🔐 APA-HARDENED — Validate Invite Code from DB
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 
-// Temp mock invite list — will replace with real DB later
-const invites = [
-  {
-    code: 'abc123',
-    cliqId: 'cliq_001',
-    inviter: 'user_001',
-    role: 'child_invited',
-    expiresAt: '2025-06-30T00:00:00Z',
-  },
-  {
-    code: 'fun456',
-    cliqId: 'cliq_dinos',
-    inviter: 'user_002',
-    role: 'child_invited',
-    expiresAt: '2025-06-15T00:00:00Z',
-  },
-];
-
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');
 
@@ -26,21 +10,34 @@ export async function GET(req: Request) {
     return NextResponse.json({ valid: false, error: 'Missing invite code' }, { status: 400 });
   }
 
-  const invite = invites.find((i) => i.code === code);
+  const invite = await prisma.invite.findUnique({
+    where: { code },
+    select: {
+      cliqId: true,
+      invitedRole: true,
+      inviterId: true,
+      status: true,
+      expiresAt: true,
+    },
+  });
 
   if (!invite) {
     return NextResponse.json({ valid: false, error: 'Invite not found' }, { status: 404 });
   }
 
-  const expired = new Date(invite.expiresAt) < new Date();
-  if (expired) {
+  if (invite.status !== 'pending') {
+    return NextResponse.json({ valid: false, error: 'Invite already used' }, { status: 410 });
+  }
+
+  if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
     return NextResponse.json({ valid: false, error: 'Invite expired' }, { status: 410 });
   }
 
   return NextResponse.json({
     valid: true,
     cliqId: invite.cliqId,
-    role: invite.role,
-    inviter: invite.inviter,
+    role: invite.invitedRole,
+    inviterId: invite.inviterId,
   });
 }
+// 🔐 APA-HARDENED — Validate Invite Code from DB

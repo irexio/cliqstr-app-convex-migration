@@ -1,17 +1,18 @@
-'use client';
+// 🔐 APA-HARDENED by Aiden — Page shell for child user approval.
+// This renders the full parent message and imports the form component.
 
-interface ParentApprovalPageProps {
-  parentId: string;
-}
+import ParentApprovalForm from './parent-approval-form';
 
-export default function ParentApprovalPage({ parentId }: ParentApprovalPageProps) {
+export default function ParentApprovalPage() {
   return (
-    <div className="p-10 text-center">
-      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Parent Approval Dashboard</h1>
-      <p>Welcome, parent #{parentId}.</p>
-      <p className="mt-2 text-gray-600">
-        Here you’ll see requests from your child and others you need to approve.
+    <div className="max-w-md mx-auto py-16 px-4 text-center">
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">We need your parent's OK 👋</h1>
+      <p className="text-sm text-gray-600 mb-6">
+        Since you're under 18, we need to verify that a parent or guardian approves your account.
+        Please enter their email below — we'll send them a message right away.
       </p>
+
+      <ParentApprovalForm />
     </div>
   );
 }

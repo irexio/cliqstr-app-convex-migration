@@ -6,7 +6,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import CliqCard from '@/components/CliqCard'; // ✅ import real card
+import CliqCard from '@/components/CliqCard';
+import { fetchJson } from '@/lib/fetchJson';
 
 interface Cliq {
   id: string;
@@ -25,13 +26,8 @@ export default function MyCliqsPage() {
   useEffect(() => {
     async function fetchCliqs() {
       try {
-        const res = await fetch('/api/my-cliqs-dashboard');
-        const data = await res.json();
-        if (res.ok) {
-          setCliqs(data.cliqs);
-        } else {
-          throw new Error(data.error || 'Failed to load cliqs');
-        }
+        const data = await fetchJson<{ cliqs: Cliq[] }>('/api/my-cliqs-dashboard');
+        setCliqs(data.cliqs);
       } catch (err: any) {
         setError(err.message || 'Unexpected error');
       } finally {
@@ -47,7 +43,7 @@ export default function MyCliqsPage() {
   if (error) return <p className="text-red-600 text-center mt-10">{error}</p>;
 
   return (
-    <main className="max-w-5xl mx-auto py-10 space-y-6">
+    <main className="min-h-[80vh] max-w-5xl mx-auto py-10 space-y-6">
       <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins text-center">My Cliqs</h1>
 
       {/* Action buttons */}
@@ -70,7 +66,7 @@ export default function MyCliqsPage() {
           <p className="text-sm text-gray-400">Start building your private community.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {cliqs.map((cliq) => (
             <CliqCard key={cliq.id} cliq={cliq} />
           ))}
