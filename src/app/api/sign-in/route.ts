@@ -21,17 +21,17 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!user || !user.profile || !user.profile.password) {
+    if (!user || !user.password) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const isCorrectPassword = await compare(password, user.profile.password);
+    const isCorrectPassword = await compare(password, user.password);
     if (!isCorrectPassword) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     // 🔒 Check if child account is approved
-    if (user.profile.role === 'child' && !user.profile.isApproved) {
+    if (user.profile?.role === 'child' && !user.profile?.isApproved) {
       return NextResponse.json(
         { error: 'Awaiting parent approval' },
         { status: 403 }
@@ -40,11 +40,13 @@ export async function POST(req: Request) {
 
     const token = signToken({
       userId: user.id,
-      role: user.profile.role,
-      isApproved: user.profile.isApproved,
+      role: user.profile?.role || 'adult',
+      isApproved: user.profile?.isApproved || false,
     });
 
-    cookies().set('auth_token', token, {
+    // Handle cookies as they may be async in newer Next.js versions
+    const cookieStore = await Promise.resolve(cookies());
+    cookieStore.set('auth_token', token, {
       httpOnly: true,
       path: '/',
       secure: true,
