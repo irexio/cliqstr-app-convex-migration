@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import SetupProfileClient from '@/components/SetUpProfileClient';
+import SetUpProfileClient from '@/components/SetUpProfileClient';
 import { notFound } from 'next/navigation';
 
 export default async function EditProfilePage() {
@@ -14,7 +14,7 @@ export default async function EditProfilePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
-      <SetupProfileClient userId={user.id} isEdit />
+      <SetUpProfileClient userId={user.id} isEdit />
     </div>
   );
 }
