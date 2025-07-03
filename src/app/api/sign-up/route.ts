@@ -12,10 +12,39 @@ export const dynamic = 'force-dynamic';
 const signUpSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  birthdate: z.string().refine(val => {
-    const date = new Date(val);
-    return !isNaN(date.getTime()) && date < new Date();
-  }, 'Please enter a valid birthdate (YYYY-MM-DD)'),
+  birthdate: z.preprocess((val) => {
+    if (val === null || val === undefined) return ''; // Aiden: block silently failing pickers
+    return val;
+  }, z.string().refine((val) => {
+    // Support multiple date formats (YYYY-MM-DD from ISO or MM/DD/YYYY from input)
+    let date: Date | null = null;
+    
+    // Try parsing MM/DD/YYYY format
+    if (val.includes('/')) {
+      const parts = val.split('/');
+      if (parts.length === 3) {
+        const month = parseInt(parts[0], 10) - 1; // months are 0-indexed
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        
+        // Validate individual parts
+        if (!isNaN(month) && !isNaN(day) && !isNaN(year) && 
+            month >= 0 && month <= 11 && day >= 1 && day <= 31 && 
+            year >= 1900 && year <= new Date().getFullYear()) {
+          date = new Date(year, month, day);
+        }
+      }
+    } else {
+      // Try ISO format YYYY-MM-DD
+      date = new Date(val);
+    }
+    
+    // Validate the date is valid and in the past
+    return date !== null && 
+           !isNaN(date.getTime()) && 
+           date < new Date() &&
+           date.getFullYear() >= 1900;
+  }, 'Please enter a valid birthdate (MM/DD/YYYY or ISO format)')),
   inviteCode: z.string().optional(),
   parentEmail: z.string().email('Please enter a valid parent email').optional(),
 });
