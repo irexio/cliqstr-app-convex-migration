@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import SetupProfileClient from '@/components/SetupProfileClient';
+import SetupProfileClient from '@/components/SetUpProfileClient';
 import { notFound } from 'next/navigation';
 
 export default async function EditProfilePage() {

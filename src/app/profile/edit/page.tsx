@@ -103,7 +103,7 @@ export default function EditProfilePage() {
         {/* Avatar Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Update Avatar</label>
-          <UploadDropzone<OurFileRouter>
+          <UploadDropzone<OurFileRouter, "avatar">
             endpoint="avatar"
             onClientUploadComplete={(res) => {
               if (res?.[0]?.url) setAvatarUrl(res[0].url);
@@ -122,7 +122,7 @@ export default function EditProfilePage() {
         {/* Banner Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Update Banner</label>
-          <UploadDropzone<OurFileRouter>
+          <UploadDropzone<OurFileRouter, "banner">
             endpoint="banner"
             onClientUploadComplete={(res) => {
               if (res?.[0]?.url) setBannerUrl(res[0].url);

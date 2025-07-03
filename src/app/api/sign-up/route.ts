@@ -49,20 +49,25 @@ export async function POST(req: Request) {
     }
 
     const hashed = await hash(password, 10);
-    const role = age < 18 ? 'child' : 'adult';
-    const isApproved = role === 'adult';
+    const role = age < 18 ? 'Child' : 'Adult';
+    const isApproved = role === 'Adult';
+
+    // Generate a more meaningful username based on email with timestamp
+    const usernameBase = email.split('@')[0].replace(/[^a-zA-Z0-9]/g, '');
+    const timestamp = Date.now().toString().slice(-6);
+    const username = `${usernameBase}-${timestamp}`;
 
     const user = await prisma.user.create({
       data: {
         email,
-        password,
+        password: hashed, // Store hashed password in User model
         profile: {
           create: {
-            username: email.split('@')[0] + '-' + Math.floor(Math.random() * 10000),
+            username,
             birthdate: new Date(birthdate),
             role,
             isApproved,
-            password: hashed,
+            // Removed duplicate password storage from profile
           },
         },
       },
@@ -71,7 +76,7 @@ export async function POST(req: Request) {
       },
     });
 
-    if (role === 'child' && parentEmail) {
+    if (role === 'Child' && parentEmail) {
       await sendParentEmail({
         to: parentEmail,
         childName: user.profile?.username || 'Your child',

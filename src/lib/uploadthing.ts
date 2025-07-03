@@ -8,7 +8,7 @@ export const ourFileRouter = {
   avatar: f({ image: { maxFileSize: '1MB' } }).onUploadComplete(async ({ file }) => {
     const session = await getServerSession()
 
-    if (!session?.user?.id) {
+    if (!session?.id) {
       throw new Error('Unauthorized upload attempt')
     }
 
@@ -19,7 +19,7 @@ export const ourFileRouter = {
   banner: f({ image: { maxFileSize: '4MB' } }).onUploadComplete(async ({ file }) => {
     const session = await getServerSession()
 
-    if (!session?.user?.id) {
+    if (!session?.id) {
       throw new Error('Unauthorized upload attempt')
     }
 
@@ -30,7 +30,7 @@ export const ourFileRouter = {
   postImage: f({ image: { maxFileSize: '2MB' } }).onUploadComplete(async ({ file }) => {
     const session = await getServerSession()
 
-    if (!session?.user?.id) {
+    if (!session?.id) {
       throw new Error('Unauthorized upload attempt')
     }
 

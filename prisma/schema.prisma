@@ -7,22 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Invite {
-  id            String    @id @default(cuid())
-  code          String    @unique
-  createdAt     DateTime  @default(now())
-  used          Boolean   @default(false)
-  status        String    @default("pending")
-  expiresAt     DateTime?
-  invitedRole   String
-  isApproved    Boolean   @default(false)
-  cliqId        String?
-  maxUses       Int       @default(1)
-  inviteeEmail  String?
-  message       String?   // <-- message field is present
+enum Role {
+  Parent
+  Child
+  Adult
+}
 
-  inviter       User      @relation("UserToInvites", fields: [inviterId], references: [id])
-  inviterId     String
+enum MembershipRole {
+  Owner
+  Moderator
+  Member
+}
+
+enum InviteStatus {
+  pending
+  approved
+  used
+  expired
+}
+
+enum CliqPrivacy {
+  private
+  semi_private
+  public
+}
+
+model Invite {
+  id           String    @id @default(cuid())
+  code         String    @unique
+  createdAt    DateTime  @default(now())
+  expiresAt    DateTime?
+  used         Boolean   @default(false)
+  status       InviteStatus @default(pending)
+  invitedRole  Role
+  isApproved   Boolean   @default(false)
+  cliqId       String?
+  maxUses      Int       @default(1)
+  inviteeEmail String?
+  message      String?
+
+  inviter   User   @relation("UserToInvites", fields: [inviterId], references: [id])
+  inviterId String
 }
 
 model User {
@@ -30,39 +55,42 @@ model User {
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  name      String? // ✅ Added for compatibility with existing routes/components
 
   resetToken        String?
   resetTokenExpires DateTime?
 
   profile Profile?
   invites Invite[] @relation("UserToInvites")
-
-  cliqs       Cliq[]       @relation("UserToCliqs")
-  memberships Membership[]
-  posts       Post[]
-  replies     Reply[]
+  cliqs   Cliq[]   @relation("OwnedCliqs")
+  memberships    Membership[]
+  posts          Post[]
+  replies        Reply[]
   inviteRequests InviteRequest[] @relation("UserInviteRequests")
 }
 
 model Profile {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  username     String   @unique
-  birthdate    DateTime
-  createdAt    DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  username  String   @unique
+  birthdate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  role         String
+  role         Role
   ageGroup     String?
-  isApproved   Boolean  @default(false)
+  isApproved   Boolean @default(false)
   password     String?
   stripeStatus String?
 
-  about        String?
-  image        String?
-  bannerImage  String?
+  about       String?
+  image       String?
+  bannerImage String?
 
-  user         User     @relation(fields: [userId], references: [id])
-  parentLinks  ParentLink[]
+  user        User         @relation(fields: [userId], references: [id])
+  parentLinks ParentLink[]
 }
 
 model ParentLink {
@@ -78,15 +106,18 @@ model Cliq {
   id          String   @id @default(cuid())
   name        String
   description String?
-  privacy     String   @default("private")
+  privacy     CliqPrivacy @default(private)
   coverImage  String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deleted     Boolean  @default(false)
+  deletedAt   DateTime?
 
-  ownerId String
-  owner   User   @relation("UserToCliqs", fields: [ownerId], references: [id])
+  ownerId     String
+  owner       User   @relation("OwnedCliqs", fields: [ownerId], references: [id])
 
-  memberships Membership[]
-  posts   Post[]
+  memberships    Membership[]
+  posts          Post[]
   inviteRequests InviteRequest[]
 }
 
@@ -94,7 +125,7 @@ model Membership {
   id       String   @id @default(cuid())
   userId   String
   cliqId   String
-  role     String   @default("Member")
+  role     MembershipRole @default(Member)
   joinedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
@@ -104,11 +135,15 @@ model Membership {
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   content   String
   image     String?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  editedAt  DateTime?
   expiresAt DateTime?
+  deleted   Boolean   @default(false)
+  deletedAt DateTime?
 
   authorId String
   cliqId   String
@@ -131,15 +166,15 @@ model Reply {
 }
 
 model InviteRequest {
-  id             String   @id @default(cuid())
-  cliqId         String
-  inviterId      String
-  invitedRole    String
-  inviteeEmail   String
-  message        String?
-  status         String
-  createdAt      DateTime @default(now())
+  id           String   @id @default(cuid())
+  cliqId       String
+  inviterId    String
+  invitedRole  Role
+  inviteeEmail String
+  message      String?
+  status       InviteStatus
+  createdAt    DateTime @default(now())
 
-  cliq           Cliq     @relation(fields: [cliqId], references: [id])
-  inviter        User     @relation("UserInviteRequests", fields: [inviterId], references: [id])
+  cliq    Cliq @relation(fields: [cliqId], references: [id])
+  inviter User @relation("UserInviteRequests", fields: [inviterId], references: [id])
 }

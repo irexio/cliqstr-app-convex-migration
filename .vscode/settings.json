@@ -2,5 +2,6 @@
     "workbench.editor.autoLockGroups": {
         "imagePreview.previewEditor": true,
         "mainThreadWebview-markdown.preview": true
-    }
+    },
+    "nxConsole.generateAiAgentRules": true
 }

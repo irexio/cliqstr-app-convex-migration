@@ -1,5 +1,5 @@
 import { getParentEmailsForChild } from './getParentEmailsForChild';
-import { sendParentEmail } from '@/lib/sendParentEmail';
+import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 
 /**
  * Sends a notification to all parent emails linked to a given child.

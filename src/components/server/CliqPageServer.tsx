@@ -1,8 +1,10 @@
+// 🔐 APA-SAFE — Loads cliq feed and verifies membership
+
 import { prisma } from '@/lib/prisma';
 import CliqProfileContent from '@/components/CliqProfileContent';
 import PostForm from '@/components/PostForm';
 import CliqFeed from '@/components/CliqFeed';
-import { getServerSession } from '@/lib/auth/getServerSession';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser'; // ✅ uses correct APA-safe session
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
@@ -11,26 +13,15 @@ interface CliqPageServerProps {
 }
 
 export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
-  const session = await getServerSession();
-  if (!session || !session.user?.id) return notFound();
+  const session = await getCurrentUser();
+  if (!session?.id) return notFound();
 
+  // Fetch cliq with minimal membership info
   const cliq = await prisma.cliq.findUnique({
     where: { id: cliqId },
     include: {
-      members: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              profile: {
-                select: {
-                  image: true,
-                  username: true,
-                },
-              },
-            },
-          },
-        },
+      memberships: {
+        select: { userId: true },
       },
     },
   });
@@ -40,10 +31,9 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
     return notFound();
   }
 
-  const isMember = cliq.members.some((m) => m.user.id === session.user.id);
-
+  const isMember = cliq.memberships.some((m) => m.userId === session.id);
   if (!isMember) {
-    console.warn(`⚠️ User ${session.user.id} is not a member of cliq ${cliqId}`);
+    console.warn(`⚠️ User ${session.id} is not a member of cliq ${cliqId}`);
     return (
       <main className="p-6 max-w-xl mx-auto text-center text-red-500 font-medium">
         You do not have access to this cliq. Please ask the owner to invite you.
@@ -51,6 +41,7 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
     );
   }
 
+  // Fetch posts for this cliq
   const posts = await prisma.post.findMany({
     where: { cliqId },
     orderBy: { createdAt: 'desc' },
@@ -77,32 +68,18 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
     },
   });
 
-  const bannerImage = cliq.coverImage || '/placeholder-banner.jpg';
+  // Extract only the fields needed for CliqProfileContent
+  const cliqProfile = {
+    name: cliq.name,
+    description: cliq.description || undefined, // Convert null to undefined
+    bannerImage: cliq.coverImage || undefined, // Use coverImage as bannerImage
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white text-neutral-900">
-      <main className="flex-grow px-4 py-8 max-w-4xl mx-auto space-y-6">
-        {/* COVER IMAGE */}
-        <div className="w-full h-48 relative rounded-md overflow-hidden">
-          <Image
-            src={bannerImage}
-            alt="Cliq cover"
-            fill
-            className="object-cover"
-            sizes="100vw"
-            priority
-          />
-        </div>
-
-        <h1 className="text-2xl font-bold text-gray-800">{cliq.name}</h1>
-        <CliqProfileContent cliqId={cliq.id} />
-        <PostForm cliqId={cliq.id} />
-        <CliqFeed cliqId={cliq.id} />
-      </main>
-
-      <footer className="mt-10 border-t text-center text-sm text-neutral-500 py-6">
-        © 2025 Cliqstr. Built with 💗 for families and friends.
-      </footer>
+    <div className="space-y-6">
+      <CliqProfileContent cliq={cliqProfile} />
+      <PostForm cliqId={cliqId} />
+      <CliqFeed cliqId={cliqId} />
     </div>
   );
 }

@@ -1,8 +1,31 @@
-// 🔐 APA-HARDENED — Create post with optional image, locked to real session
+/**
+ * 🔐 APA-HARDENED ROUTE: POST /api/posts/create
+ *
+ * Purpose:
+ *   - Creates a new post inside a specific cliq
+ *   - Supports optional image and text content
+ *   - Sets default expiration at 90 days
+ *
+ * Auth:
+ *   - Uses getCurrentUser() for session validation
+ *
+ * Input Body:
+ *   {
+ *     content?: string,
+ *     image?: string (URL),
+ *     cliqId: string
+ *   }
+ *
+ * Returns:
+ *   - 200 OK + new post
+ *   - 401 if unauthenticated
+ *   - 400 if invalid input or missing content
+ *   - 500 on DB/server error
+ */
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from '@/lib/auth/getServerSession';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -12,8 +35,8 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getServerSession();
-  if (!session || !session.user?.id) {
+  const user = await getCurrentUser();
+  if (!user?.id) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 
@@ -30,13 +53,17 @@ export async function POST(req: Request) {
     return new NextResponse('Post must include content or an image.', { status: 400 });
   }
 
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 90);
+
   try {
     const post = await prisma.post.create({
       data: {
         content: content || '',
         image: image || null,
         cliqId,
-        authorId: session.user.id,
+        authorId: user.id,
+        expiresAt,
       },
     });
 

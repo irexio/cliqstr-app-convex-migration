@@ -1,4 +1,31 @@
-// 🔐 APA-HARDENED — Validate Invite Code from DB
+/**
+ * 🔐 APA-HARDENED ROUTE: GET /api/validate-invite
+ *
+ * Purpose:
+ *   - Validates an invite code provided in the query string
+ *   - Confirms the invite exists, is still pending, and is not expired
+ *
+ * Query Params:
+ *   - code: string (invite code to validate)
+ *
+ * Returns:
+ *   - 200 OK with cliqId, invitedRole, inviterId if valid
+ *   - 400 if no code is provided
+ *   - 404 if invite is not found
+ *   - 410 if invite is already used or expired
+ *
+ * Used In:
+ *   - Sign-up and onboarding flow to validate invite links
+ *   - Early access or referral systems (optional future use)
+ *
+ * Related Routes:
+ *   - /api/invite/create → issues new invite codes
+ *   - /api/invite-request/approve → enables parent approval before invite creation
+ *
+ * Completion:
+ *   ✅ Fully live and APA-compliant as of June 30, 2025
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 

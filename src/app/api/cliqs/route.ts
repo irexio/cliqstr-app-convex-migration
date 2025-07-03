@@ -1,4 +1,25 @@
-// 🔐 APA-HARDENED — Return cliq info via query param
+/**
+ * 🔐 APA-HARDENED ROUTE: GET /api/cliqs?id={cliqId}
+ *
+ * Purpose:
+ *   - Returns public info about a cliq based on the query parameter
+ *   - Used when viewing cliq details safely without revealing private data
+ *
+ * Auth:
+ *   - Requires user to be logged in
+ *   - Requires user to be a member of the cliq
+ *
+ * Query Param:
+ *   - id: string (cliq ID)
+ *
+ * Returns:
+ *   - 200 OK with cliq summary info
+ *   - 401 if unauthenticated or missing cliq ID
+ *   - 403 if user is not a member of the cliq
+ *   - 404 if cliq does not exist
+ *   - 500 on server error
+ */
+
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -32,7 +53,7 @@ export async function GET(req: NextRequest) {
         privacy: true,
         createdAt: true,
         ownerId: true,
-        bannerImage: true,
+        coverImage: true,
       },
     });
 

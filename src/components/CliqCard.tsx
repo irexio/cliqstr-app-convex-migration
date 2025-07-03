@@ -1,9 +1,12 @@
 'use client';
 
+// 🔐 APA-HARDENED — Cliq Card for Dashboard View
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import BaseCard from '@/components/cards/BaseCard';
+import { CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/Button';
+
 
 interface CliqCardProps {
   cliq: {
@@ -11,7 +14,7 @@ interface CliqCardProps {
     name: string;
     description?: string | null;
     privacy: string;
-    coverImage?: string | null; // Add this to pull in uploaded image
+    coverImage?: string | null;
   };
 }
 
@@ -19,21 +22,21 @@ export default function CliqCard({ cliq }: CliqCardProps) {
   const imageUrl = cliq.coverImage || '/placeholder-banner.jpg';
 
   return (
-    <Card className="flex flex-col justify-between shadow-md">
-      <CardHeader className="p-0">
-        <div className="relative w-full h-40 rounded-t overflow-hidden">
-          <Image
-            src={imageUrl}
-            alt="Cliq banner"
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-        </div>
-      </CardHeader>
+    <BaseCard>
+      {/* Cover Image */}
+      <div className="relative w-full h-40 rounded-xl overflow-hidden">
+        <Image
+          src={imageUrl}
+          alt={`Cover for ${cliq.name}`}
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority
+        />
+      </div>
 
-      <CardContent className="p-4 flex flex-col gap-3">
+      {/* Card Content */}
+      <div className="pt-4 flex flex-col gap-3">
         <div>
           <CardTitle className="text-lg font-semibold">{cliq.name}</CardTitle>
           <p className="text-sm text-gray-600">Cliq Type: {cliq.privacy}</p>
@@ -43,6 +46,7 @@ export default function CliqCard({ cliq }: CliqCardProps) {
           {cliq.description || 'No description yet.'}
         </p>
 
+        {/* Action Buttons */}
         <div className="flex gap-2 mt-auto">
           <Link href={`/cliqs/${cliq.id}`}>
             <Button variant="outline">View</Button>
@@ -50,11 +54,11 @@ export default function CliqCard({ cliq }: CliqCardProps) {
           <Link href={`/cliqs/${cliq.id}/members`}>
             <Button variant="outline">Members</Button>
           </Link>
-          <Link href={`/cliqs/${cliq.id}/invite-request`}>
+          <Link href={`/cliqs/${cliq.id}/invite`}>
             <Button variant="outline">Invite</Button>
           </Link>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </BaseCard>
   );
 }

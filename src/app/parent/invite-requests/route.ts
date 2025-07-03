@@ -14,7 +14,7 @@ export async function GET() {
     where: { userId: user.id },
   });
 
-  if (!profile || profile.role !== 'parent') {
+  if (!profile || profile.role !== 'Parent') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

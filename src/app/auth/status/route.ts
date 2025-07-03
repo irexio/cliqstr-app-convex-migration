@@ -1,4 +1,19 @@
-// 🔐 APA-HARDENED — Current Authenticated User Snapshot
+/**
+ * 🔐 APA-HARDENED ROUTE: GET /api/auth/status
+ *
+ * Purpose:
+ *   - Returns a snapshot of the currently authenticated user
+ *   - Includes user ID, email, profile info, and cliq memberships
+ *   - Supports Feature Panel, Navbar auth check, Parent HQ, and more
+ *
+ * Behavior:
+ *   - Returns { id: null } if unauthenticated (safe fallback)
+ *   - Never throws 401 — UI-safe for passive polling or client auth logic
+ *
+ * 🔐 DO NOT DELETE OR IMPORT THIS FILE DIRECTLY
+ */
+
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';

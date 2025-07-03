@@ -18,10 +18,10 @@ export default function PricingPage() {
 
       <div className="grid gap-8 md:grid-cols-3 text-center">
         <div className="border rounded-lg p-6 shadow-md bg-indigo-50">
-          <h2 className="text-xl font-semibold mb-2">Starter</h2>
-          <p className="text-3xl font-bold text-indigo-600 mb-4">$3.99/mo</p>
+          <h2 className="text-xl font-semibold mb-2">Basic</h2>
+          <p className="text-3xl font-bold text-indigo-600 mb-4">$4.99/mo</p>
           <ul className="text-sm text-gray-600 space-y-1 mb-4">
-            <li>Up to 5 active cliqs</li>
+            <li>Up to 3 active cliqs</li>
             <li>Invite-only access</li>
             <li>Parent-approved youth access</li>
             <li className="mt-2 font-medium text-green-600">Free for qualifying families</li>
@@ -36,9 +36,9 @@ export default function PricingPage() {
 
         <div className="border rounded-lg p-6 shadow-sm">
           <h2 className="text-xl font-semibold mb-2">Standard</h2>
-          <p className="text-3xl font-bold text-indigo-600 mb-4">$5.99/mo</p>
+          <p className="text-3xl font-bold text-indigo-600 mb-4">$6.99/mo</p>
           <ul className="text-sm text-gray-600 space-y-1 mb-4">
-            <li>Up to 10 active cliqs</li>
+            <li>Up to 6 active cliqs</li>
             <li>Priority support</li>
             <li>Autonomy mode for youth</li>
           </ul>
@@ -54,7 +54,7 @@ export default function PricingPage() {
           <h2 className="text-xl font-semibold mb-2">Family+</h2>
           <p className="text-3xl font-bold text-indigo-600 mb-4">$9.99/mo</p>
           <ul className="text-sm text-gray-600 space-y-1 mb-4">
-            <li>Up to 25 cliqs</li>
+            <li>Up to 15 cliqs</li>
             <li>All features unlocked</li>
             <li>Best for large or extended families</li>
           </ul>

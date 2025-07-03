@@ -1,9 +1,6 @@
 'use client';
 
 // 🔐 APA-HARDENED — CliqFeed Client Component - 062625
-// Accepts `cliqId` (required) and optional `initialPosts` for server-side hydration
-// Falls back to dynamic fetch if `initialPosts` not provided
-// Submits new posts directly to app/cliqs/[id]/feed using dynamic POST
 
 import { useEffect, useState } from 'react';
 import { fetchJson } from '@/lib/fetchJson';
@@ -42,18 +39,18 @@ export default function CliqFeed({ cliqId }: FeedProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchFeed = async () => {
-      try {
-       const data = await fetchJson(`/api/cliqs/feed?id=${cliqId}`);
-        setPosts(data.posts || []);
-      } catch (err: any) {
-        setError(err.message || 'Something went wrong.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchFeed = async () => {
+    try {
+      const data = await fetchJson(`/api/cliqs/feed?id=${cliqId}`);
+      setPosts(data.posts || []);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchFeed();
   }, [cliqId]);
 
@@ -69,7 +66,7 @@ export default function CliqFeed({ cliqId }: FeedProps) {
       });
 
       setContent('');
-      location.reload();
+      await fetchFeed();
     } catch (err) {
       console.error('❌ Post failed:', err);
       setError('Something went wrong while posting.');
@@ -128,6 +125,8 @@ export default function CliqFeed({ cliqId }: FeedProps) {
         <p className="text-center text-gray-500">Loading feed...</p>
       ) : error ? (
         <p className="text-center text-red-500">{error}</p>
+      ) : posts.length === 0 ? (
+        <p className="text-center text-gray-400">No posts yet — be the first to share something!</p>
       ) : (
         <div className="space-y-4">
           {posts.map((post) => {

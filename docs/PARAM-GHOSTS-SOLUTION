@@ -1,0 +1,116 @@
+# 🧩 Next.js 15+ Ghost Type Fix Guide
+
+*Last updated: 2025-07-01*
+
+This file documents the **exact fix** used to resolve the ghost-type build errors caused by `.next/types/...` in **Next.js 15.3+** involving dynamic route `params` inference.
+
+---
+
+## ❗ The Problem
+
+When using dynamic routes like:
+
+```tsx
+app/cliqs/[id]/layout.tsx
+app/cliqs/[id]/route.ts
+```
+
+Next.js 15+ tries to **trace the shape of **`` during build. It expects `params` to be a **Promise**, even in places where it used to be synchronous.
+
+This causes errors like:
+
+```txt
+Type '{ id: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally...
+```
+
+Even if your runtime logic is fine, your build fails due to this **type mismatch in **``.
+
+---
+
+## ✅ The Solution (Confirmed by Joseph from Next.js team)
+
+### 🔧 1. Force `params` to be a Promise
+
+Use this signature **anywhere a dynamic param like **``** is used**:
+
+#### ✅ For `route.ts`:
+
+```ts
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  // ...
+}
+```
+
+#### ✅ For `layout.tsx`:
+
+```ts
+export default async function CliqLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: Promise<{ id: string }>;
+}) {
+  await params; // or destructure with const { id } = await params
+  return <>{children}</>;
+}
+```
+
+This satisfies the `.next/types/...` checker during build and prevents the ghost error.
+
+---
+
+## ⚠️ Do Not Use
+
+```ts
+params: { id: string }
+```
+
+This will break your build under Next 15.3+ for any API route or layout/page using a dynamic param.
+
+---
+
+## ✅ Works With
+
+| File Type                | Fix Works?                              |
+| ------------------------ | --------------------------------------- |
+| `app/**/[id]/route.ts`   | ✅ Required                              |
+| `app/**/[id]/layout.tsx` | ✅ Required                              |
+| `app/**/[id]/page.tsx`   | ✅ Optional (can still use sync for now) |
+
+---
+
+## 📄 Reference
+
+- [Next.js 15 Breaking Changes](https://nextjs.org/blog/next-15#async-request-apis-breaking-change)
+- [API Route Context](https://nextjs.org/docs/app/api-reference/file-conventions/route#context-optional)
+
+---
+
+## ✅ Recap: How to Kill the Ghost
+
+### ❌ Don't do this:
+
+```ts
+{ params }: { params: { id: string } }
+```
+
+### ✅ Do this:
+
+```ts
+{ params }: { params: Promise<{ id: string }> }
+const { id } = await params;
+```
+
+This fixes `.next/types/...` ghost errors **in both route handlers and layouts**.
+
+---
+
+Keep this file updated as you onboard new routes or contributors. You only need this fix **once per **``** segment** — not globally.
+
+You’re ghost-free now. 👻✅
+

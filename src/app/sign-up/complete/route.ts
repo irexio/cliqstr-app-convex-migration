@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       data: {
         cliqId,
         userId,
-        role: invitedRole,
+        role: 'Member', // Default to Member role for all invited users regardless of their user role
       },
     });
 

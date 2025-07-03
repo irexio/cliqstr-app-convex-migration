@@ -4,9 +4,15 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { UploadDropzone } from '@uploadthing/react';
 import type { OurFileRouter } from '@/lib/uploadthing';
-import { fetchJson } from '@/lib/fetchJson'; // ✅ Added
+import { fetchJson } from '@/lib/fetchJson';
 
-export default function SetupProfileClient({ userId }: { userId: string }) {
+export default function SetupProfileClient({
+  userId,
+  isEdit = false,
+}: {
+  userId: string;
+  isEdit?: boolean;
+}) {
   const router = useRouter();
 
   const [username, setUsername] = useState('');
@@ -19,7 +25,30 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // If editing, prefill data
   useEffect(() => {
+    const fetchProfile = async () => {
+      if (!isEdit) return;
+
+      try {
+        const res = await fetchJson('/api/profile/me');
+        setUsername(res.username || '');
+        setBirthdate(res.birthdate || '');
+        setAvatarUrl(res.image || '');
+        setBannerUrl(res.bannerImage || '');
+      } catch (err) {
+        console.error('[EDIT_PROFILE_LOAD_ERROR]', err);
+        setError('Could not load profile data.');
+      }
+    };
+
+    fetchProfile();
+  }, [isEdit]);
+
+  // For invited users (create mode only)
+  useEffect(() => {
+    if (isEdit) return;
+
     const code = sessionStorage.getItem('inviteCode');
     const role = sessionStorage.getItem('invitedRole');
     const cliq = sessionStorage.getItem('cliqId');
@@ -31,7 +60,7 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
     } else {
       router.push('/sign-up');
     }
-  }, [router]);
+  }, [router, isEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,26 +79,31 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
     setError('');
 
     try {
-      const res = await fetch('/sign-up/invite', {
+      const url = isEdit ? '/api/profile/edit' : '/sign-up/invite';
+
+      const body = {
+        userId,
+        username,
+        birthdate,
+        image: avatarUrl,
+        bannerImage: bannerUrl,
+      };
+
+      if (!isEdit) {
+        Object.assign(body, { inviteCode, cliqId, invitedRole });
+      }
+
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          username,
-          birthdate,
-          inviteCode,
-          cliqId,
-          invitedRole,
-          image: avatarUrl,
-          bannerImage: bannerUrl,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) throw new Error(await res.text());
 
       router.push('/my-cliqs');
     } catch (err: any) {
-      console.error('[❌] Signup error:', err);
+      console.error('[❌] Profile error:', err);
       setError(err.message || 'Something went wrong.');
     } finally {
       setLoading(false);
@@ -78,7 +112,9 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
 
   return (
     <main className="max-w-md mx-auto px-4 py-16 space-y-6">
-      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">Finish Setting Up</h1>
+      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">
+        {isEdit ? 'Edit Your Profile' : 'Finish Setting Up'}
+      </h1>
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded-lg shadow border">
         {/* Username */}
@@ -153,7 +189,7 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
         </div>
 
         {/* Invite Info */}
-        {inviteCode && (
+        {!isEdit && inviteCode && (
           <div className="text-sm text-gray-600">
             You’re joining a cliq as a <strong>{invitedRole}</strong> using an invite code.
           </div>
@@ -168,7 +204,13 @@ export default function SetupProfileClient({ userId }: { userId: string }) {
           disabled={loading}
           className="w-full bg-black text-white py-2 rounded hover:text-[#c032d1] text-sm transition"
         >
-          {loading ? 'Finishing...' : 'Create My Profile'}
+          {loading
+            ? isEdit
+              ? 'Saving...'
+              : 'Finishing...'
+            : isEdit
+            ? 'Save Changes'
+            : 'Create My Profile'}
         </button>
       </form>
     </main>

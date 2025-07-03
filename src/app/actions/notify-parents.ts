@@ -1,6 +1,6 @@
 'use server';
 
-import { sendParentEmail } from '@/lib/sendParentEmail';
+import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 
 export async function notifyParent({
   parentEmail,

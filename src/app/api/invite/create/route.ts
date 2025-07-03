@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         maxUses: 1,
         used: false,
         cliqId,
-        invitedRole: 'member', // Default role for invitees
+        invitedRole: 'Child', // Default role for invitees
         inviter: {
           connect: { id: payload.userId } // Use the authenticated user's ID
         }

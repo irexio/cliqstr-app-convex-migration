@@ -10,7 +10,7 @@ async function main() {
         create: {
           username: 'admin',
           birthdate: new Date('1980-01-01'),
-          role: 'admin',
+          role: 'Parent',
           ageGroup: 'adult',
           isApproved: true,
           stripeStatus: 'active',

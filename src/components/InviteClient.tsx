@@ -1,7 +1,20 @@
 'use client';
 
-// 🔐 APA-HARDENED — InviteClient
-// Used in /cliqs/[id]/invite page for form submission
+/**
+ * 🔐 APA-HARDENED COMPONENT: InviteClient
+ *
+ * Used in: /cliqs/[id]/invite/page.tsx
+ *
+ * Purpose:
+ *   - Renders the invite form to add a child, adult, or parent to a cliq
+ *   - Submits invite data to /api/invite/create
+ *   - Displays success or error messages
+ *
+ * Notes:
+ *   - Requires a valid `cliqId` prop (string)
+ *   - Uses fetch POST with JSON payload
+ *   - No direct use of inviterId (auth handled server-side)
+ */
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -11,10 +24,9 @@ import { Label } from '@/components/ui/label';
 
 interface InviteClientProps {
   cliqId: string;
-  inviterId: string;
 }
 
-export default function InviteClient({ cliqId, inviterId }: InviteClientProps) {
+export default function InviteClient({ cliqId }: InviteClientProps) {
   const router = useRouter();
 
   const [inviteeEmail, setInviteeEmail] = useState('');
@@ -33,7 +45,7 @@ export default function InviteClient({ cliqId, inviterId }: InviteClientProps) {
       const res = await fetch(`/api/invite/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cliqId, inviterId, inviteeEmail, invitedRole }),
+        body: JSON.stringify({ cliqId, inviteeEmail, invitedRole }),
       });
 
       const json = await res.json();

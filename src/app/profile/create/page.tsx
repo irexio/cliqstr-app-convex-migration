@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import SetupProfileClient from '@/components/SetupProfileClient';
+import SetUpProfileClient from '@/components/SetUpProfileClient';
 import { notFound } from 'next/navigation';
 
 export default async function CreateProfilePage() {
@@ -14,7 +14,7 @@ export default async function CreateProfilePage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4">
-      <SetupProfileClient userId={user.id} />
+      <SetUpProfileClient userId={user.id} />
     </div>
   );
 }

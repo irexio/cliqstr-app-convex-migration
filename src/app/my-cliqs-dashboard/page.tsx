@@ -50,7 +50,7 @@ export default async function MyCliqsDashboardPage() {
       privacy: true,
       createdAt: true,
       ownerId: true,
-      bannerImage: true,
+      coverImage: true,
     },
   });
 
@@ -78,9 +78,9 @@ export default async function MyCliqsDashboardPage() {
               className="border rounded-lg overflow-hidden bg-white shadow-sm flex flex-col"
             >
               <div className="relative w-full h-28">
-                {cliq.bannerImage ? (
+                {cliq.coverImage ? (
                   <Image
-                    src={cliq.bannerImage}
+                    src={cliq.coverImage}
                     alt={`${cliq.name} banner`}
                     fill
                     className="object-cover"

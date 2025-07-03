@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { sendResetEmail } from '@/lib/auth/sendResetEmail';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,10 +30,24 @@ export async function POST(req: Request) {
       // Silent success to prevent email enumeration
       return NextResponse.json({ success: true });
     }
-
-    // Trigger email send (utility function in lib/auth)
-    await sendResetEmail(user);
-
+    
+    // Generate a secure reset token
+    const resetToken = crypto.randomUUID();
+    const expires = new Date();
+    expires.setHours(expires.getHours() + 1); // Token expires in 1 hour
+    
+    // Save token in database
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken,
+        resetTokenExpires: expires
+      }
+    });
+    
+    // Trigger email send with email and token
+    await sendResetEmail(email, resetToken);
+    
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('❌ Reset password error:', err);

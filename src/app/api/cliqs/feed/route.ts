@@ -1,4 +1,33 @@
-// 🔐 APA-HARDENED — Get posts and replies for a cliq
+/**
+ * 🔐 APA-HARDENED ROUTE: GET /api/cliqs/feed?id={cliqId}
+ *
+ * Purpose:
+ *   - Returns all active (non-expired) posts and their replies for a specific cliq
+ *   - Requires that the requester is a member of the cliq
+ *
+ * Auth:
+ *   - Validates session with getCurrentUser
+ *   - Confirms user is a member of the cliq via the membership table
+ *
+ * Query Params:
+ *   - id: string (cliqId) — required
+ *
+ * Output:
+ *   - Array of posts ordered by `createdAt DESC`
+ *   - Each post includes:
+ *     - Author username
+ *     - Replies ordered ASC
+ *     - Reply author usernames
+ *
+ * Notes:
+ *   - Posts are filtered to only include those with future `expiresAt`
+ *   - This route intentionally uses query params instead of file-based [id]
+ *     to avoid Next.js type shadowing bugs
+ *
+ * Completion:
+ *   ✅ APA-safe and production-ready as of June 30, 2025
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';

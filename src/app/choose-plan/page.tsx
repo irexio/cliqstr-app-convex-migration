@@ -11,7 +11,7 @@ export default async function ChoosePlanPage() {
     redirect('/sign-in');
   }
 
-  if (user.profile?.role !== 'parent') {
+  if (user.profile?.role !== 'Parent') {
     return (
       <div className="p-10 text-red-600 text-center">
         Access denied. Only parents can select a plan.

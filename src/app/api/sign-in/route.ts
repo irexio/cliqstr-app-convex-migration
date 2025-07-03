@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
 
     // 🔒 Check if child account is approved
-    if (user.profile?.role === 'child' && !user.profile?.isApproved) {
+    if (user.profile?.role === 'Child' && !user.profile?.isApproved) {
       return NextResponse.json(
         { error: 'Awaiting parent approval' },
         { status: 403 }

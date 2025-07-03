@@ -1,4 +1,29 @@
-// 🔐 APA-HARDENED — Approve a child invite request
+/**
+ * 🔐 APA-HARDENED ROUTE: POST /api/invite-request/approve
+ *
+ * Purpose:
+ *   - Allows a verified parent or adult to approve a pending invite request
+ *     (usually submitted by a child user or system-initiated invite)
+ *
+ * Features:
+ *   - Authenticates the current user
+ *   - Ensures only adults (non-child profiles) can approve
+ *   - Fetches the original inviteRequest by ID
+ *   - Creates a new invite with `isApproved: true`
+ *   - Deletes the original pending request
+ *
+ * Used In:
+ *   - Parent HQ or email approval flow for child invites
+ *   - Admin dashboard (future: moderation review tools)
+ *
+ * Related Routes:
+ *   - /api/invite/create → creates invite or inviteRequest depending on role
+ *   - /api/validate-invite → used during sign-up
+ *
+ * Completion:
+ *   ✅ Fully live and APA-compliant as of June 30, 2025
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
@@ -17,7 +42,7 @@ export async function POST(req: NextRequest) {
       where: { userId: user.id },
     });
 
-    if (!profile || profile.role === 'child') {
+    if (!profile || profile.role === 'Child') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

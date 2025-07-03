@@ -1,4 +1,16 @@
 'use client';
+/**
+ * 🛠️ Cliq Builder Page — /cliqs/build
+ *
+ * Purpose:
+ *   - Allows users to create a new cliq (name, description, privacy, and banner)
+ *   - Uses UploadThing for image upload
+ *   - POSTs to /api/cliqs/create
+ *
+ * Notes:
+ *   - Not in a dynamic route, so no ghost fix needed
+ *   - APA safety is enforced in the backend route
+ */
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
