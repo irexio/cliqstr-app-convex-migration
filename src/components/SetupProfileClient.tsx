@@ -6,7 +6,7 @@ import { UploadDropzone } from '@uploadthing/react';
 import type { OurFileRouter } from '@/lib/uploadthing';
 import { fetchJson } from '@/lib/fetchJson';
 
-export default function SetupProfileClient({
+export default function SetUpProfileClient({
   userId,
   isEdit = false,
 }: {
