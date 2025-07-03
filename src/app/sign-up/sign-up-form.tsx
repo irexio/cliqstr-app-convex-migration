@@ -77,7 +77,7 @@ export default function SignUpForm() {
       if (data.requiresApproval) {
         router.push('/parent-approval');
       } else {
-        router.push('/choose-plan');
+        router.push('/profile/create');
       }
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
