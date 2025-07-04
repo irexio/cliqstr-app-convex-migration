@@ -4,8 +4,8 @@ import { verifyToken } from './jwt';
 
 export async function getCurrentUser() {
   try {
-    // Get cookies using Next.js 15+ compatible approach (no await needed)
-    const cookieStore = cookies(); // Next.js 15+ doesn't require await here
+    // In Next.js 15+, cookies() returns a Promise<ReadonlyRequestCookies>
+    const cookieStore = await cookies(); // Must await in Next.js 15+
     
     const token = cookieStore.get('auth_token')?.value;
     
