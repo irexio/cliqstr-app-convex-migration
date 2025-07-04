@@ -28,7 +28,9 @@ async function approveUser() {
           username: 'mimi',
           role: 'Adult',
           isApproved: true,
-          stripeStatus: 'verified'
+          stripeStatus: 'verified',
+          // Add birthdate for APA compliance - using an adult birthdate (30 years old)
+          birthdate: new Date(new Date().setFullYear(new Date().getFullYear() - 30)),
         },
       });
       
