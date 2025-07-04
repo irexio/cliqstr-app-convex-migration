@@ -55,10 +55,10 @@ export default function PublicNav() {
           <div className="hidden md:flex gap-2">
             <button
               onClick={() => setInviteModalOpen(true)}
-              className="flex items-center text-sm font-semibold text-gray-700 hover:text-[#c032d1] px-3 py-2 rounded-xl border border-gray-200 hover:border-[#c032d1]"
+              className="flex items-center bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm transition-all hover:shadow"
             >
-              <TicketIcon className="h-4 w-4 mr-1" />
-              Join with Invite
+              <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
+              <span>Join with <span className="font-bold">Invite</span></span>
             </button>
             <Link
               href="/sign-in"
@@ -102,10 +102,10 @@ export default function PublicNav() {
           </Link>
           <button
             onClick={() => setInviteModalOpen(true)}
-            className="flex items-center text-sm hover:text-accent font-medium py-2"
+            className="flex items-center text-sm bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm w-full my-2 justify-center"
           >
-            <TicketIcon className="h-4 w-4 mr-1" />
-            Join with Invite
+            <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
+            <span>Join with <span className="font-bold">Invite</span></span>
           </button>
           <Link href="/sign-in" className="block text-sm hover:text-accent">
             Sign in
