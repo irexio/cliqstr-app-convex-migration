@@ -89,19 +89,33 @@ export default function SignInForm() {
 
       console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
 
-      // 🧭 Step 3: Role + profile checks
+      // 🧭 Step 3: Role + plan checks (in priority order)
       const profile = user.profile;
 
-      if (!profile || typeof profile !== 'object') {
-        console.log('No profile — redirecting to profile create');
-        router.push('/profile/create');
-      } else if (profile.role === 'Child' && !profile.isApproved) {
+      // Check 1: Child approval status (only if profile exists)
+      if (profile && profile.role === 'Child' && !profile.isApproved) {
         console.log('Child account awaiting approval — redirecting');
         router.push('/approval-pending');
-      } else {
-        console.log(`User signed in: ${profile.role}, approved: ${profile.isApproved}`);
-        router.push('/my-cliqs');
+        return;
       }
+      
+      // Check 2: Plan existence (only if profile exists)
+      if (profile && !profile.plan) {
+        console.log('User has no plan — redirecting to plan selection');
+        router.push('/choose-plan');
+        return;
+      }
+      
+      // Log user state
+      if (profile) {
+        console.log(`User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${profile.plan || 'none'}`);
+      } else {
+        console.log('User signed in without profile - allowing access to my-cliqs');
+      }
+      
+      // All checks passed or no profile exists - redirect to dashboard
+      // User can create profile from button on my-cliqs page
+      router.push('/my-cliqs');
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
       setError(err.message || 'Something went wrong while signing in. Please try again.');

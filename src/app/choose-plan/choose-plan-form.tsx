@@ -1,92 +1,229 @@
 'use client';
 
 // 🔐 APA-HARDENED by Aiden — Do not remove or replace without APA review.
-// This form renders the current subscription plan options and triggers Stripe checkout.
-// Variant handling has been updated to avoid build-breaking type errors.
-// Reviewed and approved by Mimi on 2025-06-19.
+// This form renders the current subscription plan options for Cliqstr users.
+// Updated with new plan structure for simplified testing and deployment.
 
 import { useState } from 'react';
-import { Button } from '@/components/Button';
-import { cn } from '@/lib/utils'; // Ensure this exists or remove if not needed
+import { useRouter } from 'next/navigation';
+import BaseCard from '@/components/cards/BaseCard';
+import { cn } from '@/lib/utils';
 
+// Updated plan structure matching new specifications
 const PLANS = [
   { 
-    key: 'free', 
-    label: 'Free Plan', 
-    description: 'Access only to invited cliqs'
+    key: 'test',
+    label: 'Test Plan',
+    price: '$0',
+    period: 'mo',
+    recommended: false,
+    features: [
+      'Up to 2 cliqs',
+      '10 posts per cliq',
+      'Posts auto-expire after 30 days'
+    ]
   },
   { 
-    key: 'paid', 
-    label: 'Paid Plan', 
-    description: 'Create cliqs and invite others'
+    key: 'basic',
+    label: 'Basic Plan',
+    price: '$5',
+    period: 'mo',
+    recommended: true,
+    features: [
+      '5 cliqs',
+      '25 posts per cliq',
+      'Auto-expire after 90 days'
+    ]
   },
   { 
-    key: 'ebt', 
-    label: 'EBT Access', 
-    description: 'Special access tier for eligible families'
+    key: 'premium',
+    label: 'Premium Plan',
+    price: '$10',
+    period: 'mo',
+    recommended: false,
+    features: [
+      '10 cliqs',
+      '50 posts per cliq',
+      '1 GB storage'
+    ]
   },
+  { 
+    key: 'family',
+    label: 'Family Plan',
+    price: '$12',
+    period: 'mo',
+    recommended: false,
+    features: [
+      '3–5 users shared',
+      '25 posts per cliq',
+      '500 MB storage'
+    ]
+  },
+  { 
+    key: 'group',
+    label: 'Group/Org',
+    price: '$25+',
+    period: 'mo',
+    recommended: false,
+    features: [
+      '50 cliqs',
+      '100 posts per cliq',
+      '5 GB+ storage'
+    ]
+  }
 ];
 
 export default function ChoosePlanForm() {
-  const [selectedPlan, setSelectedPlan] = useState('free');
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [selectedPlan, setSelectedPlan] = useState('basic'); // Default to recommended plan
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Mock function to save plan to user profile
+  const savePlanToProfile = async (planKey: string) => {
+    // Mock API call to save the plan
+    try {
+      console.log(`Mocking POST to /api/user/plan with plan: ${planKey}`);
+      
+      // In a real implementation, this would be a fetch call:
+      // await fetch('/api/user/plan', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   credentials: 'include',
+      //   body: JSON.stringify({
+      //     userId: 'current-user-id', // Would be dynamically obtained
+      //     plan: planKey
+      //   })
+      // });
+      
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return { success: true };
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      return { success: false, error };
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('loading');
+    setMessage(null);
 
     try {
-      const res = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ planKey: selectedPlan }),
-      });
-
-      const data = await res.json();
-
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error('Invalid response from server');
+      // Save the plan selection (mocked)
+      const result = await savePlanToProfile(selectedPlan);
+      
+      if (!result.success) {
+        throw new Error('Failed to save plan selection');
       }
+      
+      // Special case for Test Plan - apply immediately
+      if (selectedPlan === 'test') {
+        console.log('Test Plan selected - applying immediately');
+        // In a real implementation, we would set isApproved to true here
+        setStatus('success');
+        router.push('/my-cliqs');
+        return;
+      }
+      
+      // For all other plans, show Stripe placeholder message
+      setStatus('success');
+      setMessage("Stripe integration coming soon. You've selected your plan — access will be upgraded soon.");
+      
+      // Redirect after showing message briefly
+      setTimeout(() => {
+        router.push('/my-cliqs');
+      }, 3000);
+      
     } catch (err) {
-      console.error('Checkout error:', err);
+      console.error('Plan selection error:', err);
       setStatus('error');
+      setMessage('Something went wrong while saving your plan. Please try again.');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-md w-full mx-auto">
-      <h2 className="text-2xl font-bold text-center text-indigo-800">Choose Your Plan</h2>
-
-      <div className="grid gap-4">
+    <form onSubmit={handleSubmit} className="w-full mx-auto">
+      {/* Plan grid - 2 columns on desktop, 1 on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {PLANS.map((plan) => (
-          <Button
-            key={plan.key}
-            type="button"
-            variant="outline"
-            className={cn(
-              'w-full transition',
-              selectedPlan === plan.key && 'bg-indigo-600 text-white border-indigo-700'
-            )}
-            onClick={() => setSelectedPlan(plan.key)}
-          >
-            {plan.label}
-          </Button>
+          <div key={plan.key} className="relative">
+            <BaseCard 
+              onClick={() => setSelectedPlan(plan.key)}
+              className={cn(
+                'h-full transition-all hover:translate-y-[-2px]',
+                selectedPlan === plan.key && 'ring-2 ring-black',
+                plan.recommended && 'ring-1 ring-gray-400 bg-gray-50'
+              )}
+            >
+              {/* Recommended badge */}
+              {plan.recommended && (
+                <span className="absolute -top-2 left-4 bg-gray-800 text-white text-xs px-3 py-1 rounded-full">
+                  Most Popular
+                </span>
+              )}
+              
+              {/* Plan header */}
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold">{plan.label}</h3>
+                <div className="mt-1 flex items-baseline">
+                  <span className="text-2xl font-bold">{plan.price}</span>
+                  <span className="text-gray-500 ml-1">/{plan.period}</span>
+                </div>
+              </div>
+              
+              {/* Feature list */}
+              <ul className="space-y-2 mb-6">
+                {plan.features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start">
+                    <span className="text-black mr-2">•</span>
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              {/* Choose button */}
+              <button
+                type="button"
+                onClick={() => setSelectedPlan(plan.key)}
+                className={cn(
+                  'w-full mt-auto py-2 rounded transition-colors',
+                  'bg-black text-white hover:bg-gray-800',
+                  selectedPlan === plan.key && 'bg-black',
+                  selectedPlan !== plan.key && 'bg-gray-800'
+                )}
+              >
+                Choose Plan
+              </button>
+            </BaseCard>
+          </div>
         ))}
       </div>
 
-      <Button
+      {/* Submit button */}
+      <button
         type="submit"
         disabled={status === 'loading'}
-        className="w-full bg-indigo-600 hover:bg-indigo-700"
+        className="w-full max-w-md mx-auto block py-3 px-6 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-70 transition-colors"
       >
-        {status === 'loading' ? 'Redirecting to Stripe…' : 'Continue to Checkout'}
-      </Button>
+        {status === 'loading' ? 'Processing...' : 'Confirm Selection'}
+      </button>
 
-      {status === 'error' && (
-        <p className="text-sm text-red-600 text-center">
-          Something went wrong. Please try again.
+      {message && status === 'success' && (
+        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded text-center">
+          <p className="text-sm text-gray-800">{message}</p>
+          <div className="mt-2">
+            <div className="inline-block w-4 h-4 border-2 border-t-black border-r-black border-gray-300 rounded-full animate-spin"></div>
+            <span className="ml-2 text-xs text-gray-600">Redirecting to dashboard...</span>
+          </div>
+        </div>
+      )}
+      
+      {message && status === 'error' && (
+        <p className="text-sm text-red-600 text-center mt-4">
+          {message}
         </p>
       )}
     </form>

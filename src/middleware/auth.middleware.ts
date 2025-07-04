@@ -3,46 +3,41 @@ import type { NextRequest } from 'next/server';
 import { verifyToken } from '@/lib/auth/jwt';
 
 /**
- * APA (Aiden's Power Auth) Authentication Middleware
+ * 🔐 APA (Aiden's Power Auth) Middleware
  * 
- * This middleware provides COPAA-compliant authentication for Cliqstr:
- * - Handles child/parent account relationships
- * - Enforces parental approval requirements
- * - Manages role-based access controls
- * - Redirects unapproved child accounts to the approval waiting page
- * 
- * Part of the ghost-type solution for Next.js 15.x parameter handling
+ * - Enforces session checks for protected routes
+ * - Redirects unapproved child accounts to approval page
+ * - Fails gracefully if unauthenticated
  */
+
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
-  // Read your custom JWT from a cookie (e.g., 'auth_token')
   const token = req.cookies.get('auth_token')?.value;
 
   if (!token) {
-    // No token = not logged in
+    console.log('[Middleware] No auth_token cookie found:', req.url);
     return res;
   }
 
   try {
-    // Using proper JWT verification with signature check
     const payload = verifyToken(token);
-    
-    // If token verification fails, continue without redirection
+
     if (!payload) {
-      console.error('Invalid or expired token');
+      console.error('[Middleware] Invalid or expired token');
       return res;
     }
-    
+
     const { role, isApproved } = payload;
 
     if (role?.startsWith('child') && !isApproved) {
+      console.log('[Middleware] Unapproved child redirected to /awaiting-approval');
       return NextResponse.redirect(new URL('/awaiting-approval', req.url));
     }
 
     return res;
   } catch (err) {
-    console.error('Invalid token in middleware:', err);
+    console.error('[Middleware] Token verification error:', err);
     return res;
   }
 }

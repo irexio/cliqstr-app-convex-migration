@@ -48,7 +48,7 @@ export default function ProfilePublic({
         <h2 className="text-xl font-semibold text-[#202020]">{username}</h2>
 
         <p className="text-sm text-gray-500 italic mt-1">
-          Age Group: {getAgeGroup(birthdate)}
+          Age Group: {getAgeGroup(birthdate).group}
         </p>
 
         {about && (
