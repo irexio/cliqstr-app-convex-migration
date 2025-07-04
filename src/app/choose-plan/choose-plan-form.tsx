@@ -10,13 +10,25 @@ import { Button } from '@/components/Button';
 import { cn } from '@/lib/utils'; // Ensure this exists or remove if not needed
 
 const PLANS = [
-  { key: 'starter', label: 'Starter (Free Trial)' },
-  { key: 'standard', label: 'Standard' },
-  { key: 'familyPlus', label: 'Family Plus' },
+  { 
+    key: 'free', 
+    label: 'Free Plan', 
+    description: 'Access only to invited cliqs'
+  },
+  { 
+    key: 'paid', 
+    label: 'Paid Plan', 
+    description: 'Create cliqs and invite others'
+  },
+  { 
+    key: 'ebt', 
+    label: 'EBT Access', 
+    description: 'Special access tier for eligible families'
+  },
 ];
 
 export default function ChoosePlanForm() {
-  const [selectedPlan, setSelectedPlan] = useState('starter');
+  const [selectedPlan, setSelectedPlan] = useState('free');
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -46,7 +46,7 @@ function InnerCardForm() {
       setStatus('idle');
     } else {
       setStatus('success');
-      router.push('/choose-plan');
+      router.push('/profile/create');
     }
   };
 

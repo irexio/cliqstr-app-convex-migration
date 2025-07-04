@@ -4,7 +4,7 @@
 // Secure account creation with birthdate validation, password strength check,
 // and server-determined role + routing. Invite codes supported but optional for adults.
 // Client performs light validation — server controls all actual role logic.
-// Verified: 2025-06-25 — Upgraded to fetchJson
+// Verified: 2025-07-03 — Synced with /api/sign-up and APA rules
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -21,6 +21,7 @@ export default function SignUpForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [parentEmail, setParentEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,111 +36,101 @@ export default function SignUpForm() {
     return age;
   };
 
-  const handleSubmit = async () => {
-    setError('');
+  const isChild = birthdate ? calculateAge(birthdate) < 13 : false;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setLoading(true);
-
-    if (!email.trim() || !password.trim()) {
-      setError('Email and password are required.');
-      setLoading(false);
-      return;
-    }
-
-    // Ensure birthdate is not empty
-    if (!birthdate) {
-      setError('Please enter a valid birthdate.');
-      setLoading(false);
-      return;
-    }
-    
-    // Parse the date and verify it's valid
-    const parsedDate = new Date(birthdate);
-    if (isNaN(parsedDate.getTime())) {
-      setError('Please enter a valid birthdate.');
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      setLoading(false);
-      return;
-    }
-
-    // Format date as YYYY-MM-DD for the server
-    const formattedDate = birthdate ? parsedDate.toISOString().split('T')[0] : "";
-    const age = calculateAge(formattedDate); // UI-only (not sent)
+    setError('');
 
     try {
-      const data = await fetchJson('/api/sign-up', {
+      const body: Record<string, string> = {
+        email,
+        password,
+        birthdate,
+      };
+
+      if (inviteCode) {
+        body.inviteCode = inviteCode;
+      }
+
+      if (isChild && parentEmail) {
+        body.parentEmail = parentEmail;
+      }
+
+      const res = await fetchJson('/api/sign-up', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
-          birthdate: formattedDate,
-          inviteCode,
-        }),
+        body: JSON.stringify(body),
       });
 
-      // Server determines role and destination
-      if (data.requiresApproval) {
-        router.push('/parent-approval');
-      } else {
-        router.push('/profile/create');
-      }
+      // 👣 Redirect after success (can be adjusted later)
+      router.push('/sign-in');
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
-      setError(err.message || 'Something went wrong.');
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold text-[#202020] mb-6 font-poppins">
-        Create Your Account
-      </h1>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+      </div>
 
-      <Label>Email</Label>
-      <Input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="you@example.com"
-      />
+      <div>
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          type="password"
+          required
+          autoComplete="new-password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
 
-      <Label className="mt-4">Password</Label>
-      <Input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="••••••••"
-      />
+      <div>
+        <Label htmlFor="birthdate">Birthdate</Label>
+        <Input
+          id="birthdate"
+          type="date"
+          required
+          value={birthdate}
+          onChange={(e) => setBirthdate(e.target.value)}
+        />
+      </div>
 
-      <Label className="mt-4">Birthdate</Label>
-      <input
-        type="date"
-        value={birthdate}
-        onChange={(e) => {
-          // Always store as a string, never as null
-          const value = e.target.value || "";
-          // This ensures the value is always a string in YYYY-MM-DD format or empty string
-          setBirthdate(value);
-        }}
-        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-      />
+      {isChild && (
+        <div>
+          <Label htmlFor="parentEmail">Parent Email</Label>
+          <Input
+            id="parentEmail"
+            type="email"
+            required
+            autoComplete="email"
+            value={parentEmail}
+            onChange={(e) => setParentEmail(e.target.value)}
+          />
+        </div>
+      )}
 
-      {error && <p className="text-red-500 mt-3">{error}</p>}
+      {error && (
+        <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>
+      )}
 
-      <Button
-        onClick={handleSubmit}
-        className="mt-6 w-full"
-        disabled={loading}
-      >
-        {loading ? 'Creating Account…' : 'Sign Up'}
+      <Button type="submit" disabled={loading} className="w-full">
+        {loading ? 'Creating account…' : 'Sign Up'}
       </Button>
-    </div>
+    </form>
   );
 }
