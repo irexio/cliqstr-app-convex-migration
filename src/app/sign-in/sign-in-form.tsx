@@ -124,11 +124,17 @@ export default function SignInForm() {
       // Log cookie details for debugging
       console.log('Cookies present after auth:', document.cookie.split(';').map(c => c.trim()).filter(c => c.length > 0).length > 0 ? 'Yes' : 'No');
 
-      // 🧭 Step 3: Route based on profile completion and age verification
-      if (!user?.profile?.username) {
+      // 🧭 Step 3: Critical age verification and profile checks
+      // SAFETY CHECK: We must verify user profile data before directing them
+      if (!user?.profile) {
+        console.log('Missing profile data - user needs to create profile');
         router.push('/profile/create');
+      } else if (user.profile.role === 'Child' && !user.profile.isApproved) {
+        console.log('Child account awaiting approval - redirecting to approval pending page');
+        router.push('/approval-pending');
       } else {
-        // Safe redirect to dashboard
+        // User has complete profile and is approved (or is an adult)
+        console.log(`User authenticated: ${user.profile.role}, approved: ${user.profile.isApproved}`);
         router.push('/my-cliqs');
       }
     } catch (err: any) {
