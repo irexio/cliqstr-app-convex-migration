@@ -5,7 +5,7 @@
   "scripts": {
     "prebuild": "echo 'Skipping hostname'",
     "dev": "nx next:dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "nx next:start",
     "lint": "next lint",
     "postinstall": "prisma generate"
