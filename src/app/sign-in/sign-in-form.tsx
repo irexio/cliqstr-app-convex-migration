@@ -61,6 +61,7 @@ export default function SignInForm() {
       // 🔍 Step 2: Validate session + role via /auth/status (no /api/ prefix)
       console.log('Attempting to fetch auth status from /auth/status');
       
+      let userData;
       try {
         const userRes = await fetch('/auth/status', {
           method: 'GET',
@@ -89,28 +90,21 @@ export default function SignInForm() {
           }
           
           // Parse the alternative response
-          let user;
           try {
-            user = await altUserRes.json();
-            console.log('Auth data (alt path):', JSON.stringify(user));
+            userData = await altUserRes.json();
+            console.log('Auth data (alt path):', JSON.stringify(userData));
           } catch (e) {
             throw new Error('Unable to process your account information.');
           }
-          
-          // Continue with this user data
-          return { user, ok: true };
+        } else {
+          // Parse the primary response
+          try {
+            userData = await userRes.json();
+            console.log('Auth data (primary path):', JSON.stringify(userData));
+          } catch (e) {
+            throw new Error('Unable to process your account information.');
+          }
         }
-        
-        // Parse the primary response
-        let user;
-        try {
-          user = await userRes.json();
-          console.log('Auth data (primary path):', JSON.stringify(user));
-        } catch (e) {
-          throw new Error('Unable to process your account information.');
-        }
-        
-        return { user, ok: true };
       } catch (error) {
         // Log detailed error server-side only
         console.error('Auth status fetch error:', error);
@@ -119,11 +113,11 @@ export default function SignInForm() {
         throw new Error('Unable to verify your session. Please try again.');
       }
 
-      // We've already parsed the user data in our enhanced fetch function
-      const { user } = userRes;
+      // Use the userData we obtained above
+      const user = userData?.user;
       
       if (!user || !user.id) {
-        console.error('Missing user ID in response:', user);
+        console.error('Missing user ID in response:', userData);
         throw new Error('Your session could not be established. Please try signing in again.');
       }
       
