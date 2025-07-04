@@ -45,8 +45,16 @@ export default function SignUpForm() {
       return;
     }
 
+    // Ensure birthdate is not empty
+    if (!birthdate) {
+      setError('Please enter a valid birthdate.');
+      setLoading(false);
+      return;
+    }
+    
+    // Parse the date and verify it's valid
     const parsedDate = new Date(birthdate);
-    if (!birthdate || isNaN(parsedDate.getTime())) {
+    if (isNaN(parsedDate.getTime())) {
       setError('Please enter a valid birthdate.');
       setLoading(false);
       return;
@@ -58,7 +66,8 @@ export default function SignUpForm() {
       return;
     }
 
-    const formattedDate = parsedDate.toISOString().split('T')[0];
+    // Format date as YYYY-MM-DD for the server
+    const formattedDate = birthdate ? parsedDate.toISOString().split('T')[0] : "";
     const age = calculateAge(formattedDate); // UI-only (not sent)
 
     try {
@@ -113,7 +122,12 @@ export default function SignUpForm() {
       <input
         type="date"
         value={birthdate}
-        onChange={(e) => setBirthdate(e.target.value)}
+        onChange={(e) => {
+          // Always store as a string, never as null
+          const value = e.target.value || "";
+          // This ensures the value is always a string in YYYY-MM-DD format or empty string
+          setBirthdate(value);
+        }}
         className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
       />
 
