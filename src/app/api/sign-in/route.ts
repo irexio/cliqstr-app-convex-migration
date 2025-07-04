@@ -56,9 +56,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true });
   } catch (err) {
+    // Detailed server-side logging for debugging (not exposed to client)
     console.error('💥 Sign-in error:', err);
     
-    // Enhanced error logging
+    // Enhanced error logging for server logs only
     if (err instanceof Error) {
       console.error('Error name:', err.name);
       console.error('Error message:', err.message);
@@ -82,9 +83,9 @@ export async function POST(req: Request) {
     console.error('NODE_ENV:', process.env.NODE_ENV);
     console.error('JWT_SECRET configured:', !!process.env.JWT_SECRET);
     
+    // Return a safe, user-friendly error message to client
     return NextResponse.json({ 
-      error: 'Server error',
-      details: process.env.NODE_ENV !== 'production' ? (err instanceof Error ? err.message : String(err)) : undefined 
+      error: 'Unable to sign in. Please try again later.'
     }, { status: 500 });
   }
 }

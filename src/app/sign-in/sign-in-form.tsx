@@ -1,8 +1,8 @@
 'use client';
 
 // 🔐 APA-HARDENED — SIGN-IN FORM
-// Posts to /sign-in, then fetches /auth/status to verify user state
-// Dynamic-only — avoids /api for secure SSR-free login
+// Posts to /api/sign-in, then fetches /api/auth/status to verify user state
+// Dynamic-only — secure login with proper error handling
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -28,33 +28,69 @@ export default function SignInForm() {
         body: JSON.stringify({ email, password }),
       });
 
+      // Handle API errors with proper user-friendly messages
       if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(errText || 'Sign-in failed');
+        let errorMessage = 'Unable to sign in. Please check your credentials.';
+        
+        try {
+          const errorData = await res.json();
+          if (errorData.error) {
+            // Convert API error messages to user-friendly text
+            switch (errorData.error) {
+              case 'Invalid credentials':
+                errorMessage = 'The email or password you entered is incorrect.';
+                break;
+              case 'Awaiting parent approval':
+                errorMessage = 'Your account requires parent approval before signing in.';
+                break;
+              default:
+                errorMessage = errorData.error;
+            }
+          }
+        } catch {
+          // If can't parse JSON, try to get text
+          try {
+            const errText = await res.text();
+            if (errText) errorMessage = errText;
+          } catch {}
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      // 🔍 Step 2: Validate session + role via /auth/status
-      const userRes = await fetch('/auth/status', {
+      // 🔍 Step 2: Validate session + role via /api/auth/status
+      const userRes = await fetch('/api/auth/status', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
       });
 
-      const user = await userRes.json();
-
-      if (!user || !user.id) {
-        throw new Error('Unable to fetch user session');
+      if (!userRes.ok) {
+        throw new Error('Unable to verify your session. Please try again.');
       }
 
-      // 🧭 Step 3: Route based on profile completion
+      let user;
+      try {
+        user = await userRes.json();
+      } catch (e) {
+        throw new Error('Unable to process your account information. Please try again.');
+      }
+
+      if (!user || !user.id) {
+        throw new Error('Your session could not be established. Please try signing in again.');
+      }
+
+      // 🧭 Step 3: Route based on profile completion and age verification
       if (!user?.profile?.username) {
         router.push('/profile/create');
       } else {
+        // Safe redirect to dashboard
         router.push('/my-cliqs');
       }
     } catch (err: any) {
       console.error('❌ Login error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      // Ensure user-friendly error message
+      setError(err.message || 'Something went wrong while signing in. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -87,13 +123,15 @@ export default function SignInForm() {
       </div>
 
       {error && (
-        <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>
+        <div className="p-3 rounded bg-red-50 border border-red-100">
+          <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>
+        </div>
       )}
 
       <button
         type="submit"
         disabled={loading}
-        className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 text-sm w-full"
+        className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 text-sm w-full hover:text-[#c032d1]"
       >
         {loading ? 'Signing in…' : 'Sign In'}
       </button>

@@ -20,12 +20,15 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
+    // Get current authenticated user
     const user = await getCurrentUser();
 
+    // Return safe fallback for unauthenticated users
     if (!user) {
       return NextResponse.json({ id: null }, { status: 200 });
     }
 
+    // Get user profile with age-verification related fields
     const profile = await prisma.profile.findUnique({
       where: { userId: user.id },
       select: {
@@ -39,9 +42,32 @@ export async function GET() {
       },
     });
 
+    // Get user's memberships for access control
     const memberships = await prisma.membership.findMany({
       where: { userId: user.id },
+      include: {
+        cliq: {
+          select: {
+            id: true,
+            name: true,
+            privacy: true,
+            // Removed ageRestricted field as it doesn't exist in the schema
+          }
+        }
+      }
     });
+
+    // Ensure child accounts can only access appropriate content
+    if (profile?.role === 'Child' && !profile?.isApproved) {
+      // Return limited information for unapproved child accounts
+      return NextResponse.json({
+        id: user.id,
+        email: user.email,
+        profile,
+        isAwaitingApproval: true,
+        // No memberships included for unapproved children
+      });
+    }
 
     return NextResponse.json({
       id: user.id,
@@ -50,7 +76,8 @@ export async function GET() {
       profile,
     });
   } catch (err) {
-    console.error('❌ /auth/status error:', err);
-    return NextResponse.json({ id: null }, { status: 500 });
+    // Log error server-side without exposing details to client
+    console.error('❌ /api/auth/status error:', err);
+    return NextResponse.json({ id: null, error: "Session verification failed" }, { status: 200 }); // Still 200 for UI safety
   }
 }

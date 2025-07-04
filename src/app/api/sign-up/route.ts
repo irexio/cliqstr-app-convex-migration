@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     const ageDifMs = Date.now() - birthDateObj.getTime();
     const ageDate = new Date(ageDifMs);
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-    const isChild = age < 13;
+    const isChild = age < 17;
 
     if (isChild && !parentEmail && !inviteCode) {
       return NextResponse.json({ error: 'Children must include a parent email' }, { status: 403 });

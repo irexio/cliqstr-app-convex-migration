@@ -36,7 +36,7 @@ export default function SignUpForm() {
     return age;
   };
 
-  const isChild = birthdate ? calculateAge(birthdate) < 13 : false;
+  const isChild = birthdate ? calculateAge(birthdate) < 17 : false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
