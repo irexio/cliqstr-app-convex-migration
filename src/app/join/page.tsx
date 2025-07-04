@@ -11,12 +11,19 @@
 // Server Component - no 'use client' directive here
 import { Suspense } from 'react';
 import Link from 'next/link';
-import { InviteClientContent } from '@/components/InviteClientContent';
+import { InviteClientContent } from '../../components/InviteClientContent';
+import type { Metadata } from 'next';
+
+// Define the correct param type for Next.js 15
+type Props = {
+  params: { [key: string]: string | string[] };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
 
 // This is a server component that gets the search parameters server-side
-export default async function JoinPage({ searchParams }: { searchParams: { code?: string } }) {
+export default async function JoinPage({ searchParams }: Props) {
   // Extract the code from searchParams passed by Next.js
-  const inviteCode = searchParams?.code || '';
+  const inviteCode = searchParams?.code ? (Array.isArray(searchParams.code) ? searchParams.code[0] : searchParams.code) : '';
   
   // If no code, show error
   if (!inviteCode) {

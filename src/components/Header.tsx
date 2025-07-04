@@ -6,12 +6,14 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon, TicketIcon } from '@heroicons/react/24/outline'
+import InviteCodeModal from './InviteCodeModal'
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [hasCliqs, setHasCliqs] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
 
   useEffect(() => {
     async function fetchUser() {
@@ -71,6 +73,13 @@ export function Header() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 text-sm">
+            <button
+              onClick={() => setInviteModalOpen(true)}
+              className="flex items-center bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm transition-all hover:shadow"
+            >
+              <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
+              <span>Join with <span className="font-bold">Invite</span></span>
+            </button>
             <Link
               href="/sign-in"
               className="px-4 py-2 border border-black text-black rounded hover:bg-gray-100 transition"
@@ -144,6 +153,16 @@ export function Header() {
 
               {/* Mobile Auth Buttons */}
               <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setInviteModalOpen(true);
+                  }}
+                  className="flex items-center justify-center text-sm bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm w-full my-2"
+                >
+                  <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
+                  <span>Join with <span className="font-bold">Invite</span></span>
+                </button>
                 <Link
                   href="/sign-in"
                   className="px-4 py-2 border border-black text-black rounded text-center hover:bg-gray-100 transition"
@@ -163,6 +182,9 @@ export function Header() {
           </div>
         )}
       </div>
+      
+      {/* Invite Code Modal */}
+      <InviteCodeModal open={inviteModalOpen} setOpen={setInviteModalOpen} />
     </header>
   )
 }
