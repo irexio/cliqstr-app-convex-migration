@@ -6,11 +6,13 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function VerificationErrorPage() {
+// Client component that uses useSearchParams
+function VerificationErrorContent() {
   const router = useRouter();
+  const { useSearchParams } = require('next/navigation');
   const searchParams = useSearchParams();
   const [countdown, setCountdown] = useState(10);
   
@@ -77,5 +79,28 @@ export default function VerificationErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense boundary
+function VerificationErrorLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-300 w-full max-w-md mx-auto">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c032d1] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main component that wraps VerificationErrorContent with Suspense
+export default function VerificationErrorPage() {
+  return (
+    <Suspense fallback={<VerificationErrorLoading />}>
+      <VerificationErrorContent />
+    </Suspense>
   );
 }
