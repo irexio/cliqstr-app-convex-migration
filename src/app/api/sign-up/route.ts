@@ -109,6 +109,32 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, userId: newUser.id });
   } catch (error) {
     console.error('Sign-up route error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    // More detailed error logging
+    if (error instanceof Error) {
+      console.error('Error name:', error.name);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+
+      // Log specific Prisma errors
+      if (error.name === 'PrismaClientKnownRequestError') {
+        // @ts-ignore - Prisma error properties
+        console.error('Prisma error code:', error.code);
+        // @ts-ignore - Prisma error properties
+        console.error('Prisma error meta:', error.meta);
+      }
+      
+      if (error.message.includes('database') || error.message.includes('connection')) {
+        console.error('Likely database connection issue. Check DATABASE_URL environment variable.');
+      }
+    }
+    
+    // Log environment check (without exposing sensitive data)
+    console.error('Database URL configured:', !!process.env.DATABASE_URL);
+    console.error('NODE_ENV:', process.env.NODE_ENV);
+    
+    return NextResponse.json({ 
+      error: 'Internal server error', 
+      details: process.env.NODE_ENV !== 'production' ? (error instanceof Error ? error.message : String(error)) : undefined 
+    }, { status: 500 });
   }
 }

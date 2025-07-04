@@ -57,6 +57,34 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('💥 Sign-in error:', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    
+    // Enhanced error logging
+    if (err instanceof Error) {
+      console.error('Error name:', err.name);
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
+      
+      // Log specific Prisma errors
+      if (err.name === 'PrismaClientKnownRequestError') {
+        // @ts-ignore - Prisma error properties
+        console.error('Prisma error code:', err.code);
+        // @ts-ignore - Prisma error properties
+        console.error('Prisma error meta:', err.meta);
+      }
+      
+      if (err.message.includes('database') || err.message.includes('connection')) {
+        console.error('Likely database connection issue. Check DATABASE_URL environment variable.');
+      }
+    }
+    
+    // Log environment check (without exposing sensitive data)
+    console.error('Database URL configured:', !!process.env.DATABASE_URL);
+    console.error('NODE_ENV:', process.env.NODE_ENV);
+    console.error('JWT_SECRET configured:', !!process.env.JWT_SECRET);
+    
+    return NextResponse.json({ 
+      error: 'Server error',
+      details: process.env.NODE_ENV !== 'production' ? (err instanceof Error ? err.message : String(err)) : undefined 
+    }, { status: 500 });
   }
 }
