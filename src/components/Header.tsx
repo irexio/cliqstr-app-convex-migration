@@ -18,10 +18,12 @@ export function Header() {
   useEffect(() => {
     async function fetchUser() {
       try {
+        console.log('[Header] Attempting to fetch auth status');
         const res = await fetch('/auth/status', {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
           cache: 'no-store',
+          credentials: 'include', // Critical: Include cookies in the request
         });
 
         if (!res.ok) return;

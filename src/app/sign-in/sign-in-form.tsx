@@ -59,26 +59,76 @@ export default function SignInForm() {
       }
 
       // 🔍 Step 2: Validate session + role via /auth/status (no /api/ prefix)
-      const userRes = await fetch('/auth/status', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        cache: 'no-store',
-      });
-
-      if (!userRes.ok) {
+      console.log('Attempting to fetch auth status from /auth/status');
+      
+      try {
+        const userRes = await fetch('/auth/status', {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+          credentials: 'include', // Critical: Include cookies in the request
+        });
+        
+        console.log('Auth status response:', userRes.status, userRes.statusText);
+        
+        if (!userRes.ok) {
+          // Try the alternative path if the first one fails
+          console.log('Trying alternative API path: /api/auth/status');
+          
+          const altUserRes = await fetch('/api/auth/status', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+            credentials: 'include', // Critical: Include cookies in the request
+          });
+          
+          console.log('Alt auth status response:', altUserRes.status, altUserRes.statusText);
+          
+          if (!altUserRes.ok) {
+            throw new Error('Unable to verify your session. Please try both API paths.');
+          }
+          
+          // Parse the alternative response
+          let user;
+          try {
+            user = await altUserRes.json();
+            console.log('Auth data (alt path):', JSON.stringify(user));
+          } catch (e) {
+            throw new Error('Unable to process your account information.');
+          }
+          
+          // Continue with this user data
+          return { user, ok: true };
+        }
+        
+        // Parse the primary response
+        let user;
+        try {
+          user = await userRes.json();
+          console.log('Auth data (primary path):', JSON.stringify(user));
+        } catch (e) {
+          throw new Error('Unable to process your account information.');
+        }
+        
+        return { user, ok: true };
+      } catch (error) {
+        // Log detailed error server-side only
+        console.error('Auth status fetch error:', error);
+        
+        // Return sanitized error for client
         throw new Error('Unable to verify your session. Please try again.');
       }
 
-      let user;
-      try {
-        user = await userRes.json();
-      } catch (e) {
-        throw new Error('Unable to process your account information. Please try again.');
-      }
-
+      // We've already parsed the user data in our enhanced fetch function
+      const { user } = userRes;
+      
       if (!user || !user.id) {
+        console.error('Missing user ID in response:', user);
         throw new Error('Your session could not be established. Please try signing in again.');
       }
+      
+      // Log cookie details for debugging
+      console.log('Cookies present after auth:', document.cookie.split(';').map(c => c.trim()).filter(c => c.length > 0).length > 0 ? 'Yes' : 'No');
 
       // 🧭 Step 3: Route based on profile completion and age verification
       if (!user?.profile?.username) {

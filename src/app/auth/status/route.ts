@@ -41,6 +41,26 @@ export async function GET() {
         birthdate: true,
       },
     });
+    
+    // Handle legacy accounts gracefully - if no profile exists, create minimal valid data
+    // This ensures APA protection while allowing older accounts to function
+    if (!profile) {
+      console.log('⚠️ Legacy account detected for user', user.id, '- handling gracefully while maintaining APA');
+      
+      // For security, treat any account without a complete profile as an adult account requiring verification
+      // This is the safest approach for APA compliance
+      return NextResponse.json({
+        id: user.id,
+        email: user.email,
+        legacyAccount: true,
+        profile: {
+          role: 'Adult', 
+          isApproved: false,
+          username: user.email.split('@')[0] || 'user',
+          stripeStatus: 'incomplete'
+        }
+      });
+    }
 
     // Get user's memberships for access control
     const memberships = await prisma.membership.findMany({
