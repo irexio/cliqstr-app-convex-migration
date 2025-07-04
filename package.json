@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "prebuild": "echo 'Skipping hostname'",
     "dev": "nx next:dev",
-    "build": "nx next:build",
+    "build": "next build",
     "start": "nx next:start",
     "lint": "next lint",
     "postinstall": "prisma generate"

@@ -1,4 +1,7 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "npm run build"
+  "build": {
+    "env": {
+      "HOSTNAME": "cliqstr-safe"
+    }
+  }
 }
