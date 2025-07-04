@@ -26,7 +26,8 @@ import { Resend } from 'resend';
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function sendResetEmail(email: string, resetToken: string) {
-  const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}`;
+  // Using NEXT_PUBLIC_SITE_URL which is the standard URL env var throughout the app
+  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${resetToken}`;
 
   try {
     const data = await resend.emails.send({
