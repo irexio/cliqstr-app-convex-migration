@@ -8,7 +8,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { verifyToken, TokenPayload } from '@/lib/auth/jwt';
 import { verifyAccount } from '@/lib/auth/verifyAccount';
 
@@ -22,11 +21,17 @@ export async function GET(req: Request) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=missing-token`);
     }
 
-    // Verify the token
+    // Verify the token with proper type casting
     const payload = verifyToken(token) as TokenPayload | null;
     
-    if (!payload || payload.purpose !== 'email_verification' || !payload.userId) {
+    // Validate token contents
+    if (!payload) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=invalid-token`);
+    }
+    
+    // Check specific token properties
+    if (payload.purpose !== 'email_verification' || !payload.userId) {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=wrong-token-type`);
     }
 
     // Use the common verification helper

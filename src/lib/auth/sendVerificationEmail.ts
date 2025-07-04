@@ -8,7 +8,7 @@
  */
 
 import { Resend } from 'resend';
-import { signToken } from './jwt';
+import { signToken, TokenPayload } from './jwt';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -22,11 +22,12 @@ interface SendVerificationEmailOptions {
 export async function sendVerificationEmail({ to, userId, name }: SendVerificationEmailOptions) {
   try {
     // Generate verification token (24 hour expiration)
-    const token = signToken({ 
+    const tokenPayload: TokenPayload = { 
       userId, 
       purpose: 'email_verification',
       exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    });
+    };
+    const token = signToken(tokenPayload);
 
     const verificationLink = `${APP_URL}/verify-email?token=${token}`;
     const displayName = name || to.split('@')[0];
