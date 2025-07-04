@@ -22,7 +22,7 @@ export default function SignInForm() {
 
     try {
       // 🔐 Step 1: Authenticate via form-based POST
-      const res = await fetch('/sign-in', {
+      const res = await fetch('/api/sign-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
