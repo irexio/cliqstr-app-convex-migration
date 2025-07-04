@@ -17,15 +17,16 @@ import type { Metadata } from 'next';
 // Define the correct param type for Next.js 15 to fix "ghost type" error
 type Props = {
   params: Promise<{ [key: string]: string | string}>;
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
 // This is a server component that gets the search parameters server-side
 export default async function JoinPage({ params, searchParams }: Props) {
-  // Wait for params promise to resolve (required by Next.js 15+)
+  // Wait for params and searchParams promises to resolve (required by Next.js 15+)
   await params;
-  // Extract the code from searchParams passed by Next.js
-  const inviteCode = searchParams?.code ? (Array.isArray(searchParams.code) ? searchParams.code[0] : searchParams.code) : '';
+  const resolvedSearchParams = await searchParams;
+  // Extract the code from resolved searchParams passed by Next.js
+  const inviteCode = resolvedSearchParams?.code ? (Array.isArray(resolvedSearchParams.code) ? resolvedSearchParams.code[0] : resolvedSearchParams.code) : '';
   
   // If no code, show error
   if (!inviteCode) {
