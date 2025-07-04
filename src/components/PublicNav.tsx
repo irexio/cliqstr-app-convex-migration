@@ -2,10 +2,12 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Bars3Icon } from '@heroicons/react/24/outline'
+import { Bars3Icon, TicketIcon } from '@heroicons/react/24/outline'
+import InviteCodeModal from './InviteCodeModal'
 
 export default function PublicNav() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [inviteModalOpen, setInviteModalOpen] = useState(false)
 
   return (
     <header className="w-full border-b bg-background px-4 py-3 shadow-sm font-sans">
@@ -51,11 +53,18 @@ export default function PublicNav() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex gap-2">
+            <button
+              onClick={() => setInviteModalOpen(true)}
+              className="flex items-center text-sm font-semibold text-gray-700 hover:text-[#c032d1] px-3 py-2 rounded-xl border border-gray-200 hover:border-[#c032d1]"
+            >
+              <TicketIcon className="h-4 w-4 mr-1" />
+              Join with Invite
+            </button>
             <Link
-              href="/login"
+              href="/sign-in"
               className="text-sm font-semibold text-gray-700 hover:text-black px-4 py-2 rounded-xl"
             >
-              Log in
+              Sign in
             </Link>
             <Link
               href="/sign-up"
@@ -91,14 +100,24 @@ export default function PublicNav() {
           <Link href="/faqs" className="block text-sm hover:text-accent">
             FAQs
           </Link>
-          <Link href="/login" className="block text-sm hover:text-accent">
-            Log in
+          <button
+            onClick={() => setInviteModalOpen(true)}
+            className="flex items-center text-sm hover:text-accent font-medium py-2"
+          >
+            <TicketIcon className="h-4 w-4 mr-1" />
+            Join with Invite
+          </button>
+          <Link href="/sign-in" className="block text-sm hover:text-accent">
+            Sign in
           </Link>
           <Link href="/sign-up" className="block text-sm hover:text-accent">
             Sign up
           </Link>
         </div>
       )}
+
+      {/* Invite Code Modal */}
+      <InviteCodeModal open={inviteModalOpen} setOpen={setInviteModalOpen} />
     </header>
   )
 }

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
+import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -104,6 +105,20 @@ export async function POST(req: Request) {
         childId: newUser.id,
         inviteCode: inviteCode ?? undefined,
       });
+    } else if (!isChild) {
+      // For adult accounts, send an optional verification email
+      // This is non-blocking - users can still access the app
+      try {
+        await sendVerificationEmail({
+          to: email,
+          userId: newUser.id,
+        });
+        console.log(`Optional verification email sent to ${email}`);
+      } catch (error) {
+        // Log but don't fail if verification email fails
+        console.error('Failed to send verification email:', error);
+        // Non-critical error, don't block account creation
+      }
     }
 
     return NextResponse.json({ success: true, userId: newUser.id });
