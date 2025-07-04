@@ -8,7 +8,8 @@
  */
 
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth/jwt';
+import { prisma } from '@/lib/prisma';
+import { verifyToken, TokenPayload } from '@/lib/auth/jwt';
 import { verifyAccount } from '@/lib/auth/verifyAccount';
 
 export async function GET(req: Request) {
@@ -22,7 +23,7 @@ export async function GET(req: Request) {
     }
 
     // Verify the token
-    const payload = verifyToken(token);
+    const payload = verifyToken(token) as TokenPayload | null;
     
     if (!payload || payload.purpose !== 'email_verification' || !payload.userId) {
       return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=invalid-token`);

@@ -1,11 +1,15 @@
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
+const TOKEN_EXPIRY = '7d'; // 7 days to match cookie expiry
 
-type TokenPayload = {
+// Export the TokenPayload type for use in other modules
+export type TokenPayload = {
   userId: string;
-  role: string;
-  isApproved: boolean;
+  role?: string;
+  isApproved?: boolean;
+  purpose?: 'email_verification' | 'password_reset' | 'authentication';
+  exp?: number; // Optional explicit expiration timestamp
 };
 
 export function verifyToken(token: string): TokenPayload | null {
