@@ -1,4 +1,4 @@
 {
-  "buildCommand": "mkdir -p /tmp && echo '#!/bin/sh\necho "vercel-build"' > /tmp/hostname && chmod +x /tmp/hostname && export PATH="/tmp:$PATH" && npm run build",
+  "buildCommand": "mkdir -p /tmp && echo \"#!/bin/sh\necho vercel-build\" > /tmp/hostname && chmod +x /tmp/hostname && export PATH=\"/tmp:$PATH\" && npm run build",
   "framework": "nextjs"
 }
