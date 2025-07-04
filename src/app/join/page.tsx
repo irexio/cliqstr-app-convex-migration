@@ -9,12 +9,15 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function JoinPage() {
+// This component uses useSearchParams which needs Suspense
+function JoinPageContent() {
   const router = useRouter();
+  // Import useSearchParams within the component that's wrapped in Suspense
+  const { useSearchParams } = require('next/navigation');
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('code') || '';
   const [inviteData, setInviteData] = useState<any>(null);
@@ -134,5 +137,28 @@ export default function JoinPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Loading fallback for Suspense boundary
+function JoinPageLoading() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-300 w-full max-w-md mx-auto">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c032d1] mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading invite details...</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Main component that wraps JoinPageContent with Suspense
+export default function JoinPage() {
+  return (
+    <Suspense fallback={<JoinPageLoading />}>
+      <JoinPageContent />
+    </Suspense>
   );
 }
