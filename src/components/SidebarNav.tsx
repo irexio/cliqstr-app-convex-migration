@@ -32,7 +32,7 @@ export default function SidebarNav() {
             href={href}
             className={cn(
               'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-              'bg-black text-white hover:bg-black/90',
+              'bg-black text-white hover:text-[#c032d1]',
               isActive && 'bg-black shadow-sm'
             )}
           >
