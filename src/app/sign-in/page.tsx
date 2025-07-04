@@ -14,17 +14,17 @@ export default function SignInPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-md space-y-4 px-4">
+      <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-300 w-full max-w-md mx-auto space-y-4">
         <Suspense fallback={<div>Loading form...</div>}>
           <SignInForm />
         </Suspense>
 
         {/* Forgot Password trigger */}
-        <div className="flex justify-end pt-1">
+        <div className="flex justify-center pt-1">
           <Button
             variant="outline"
             type="button"
-            className="text-sm text-gray-500 hover:text-[#c032d1]"
+            className="w-full border border-black text-black py-2 px-4 rounded hover:bg-gray-100 text-sm"
             onClick={() => setForgotOpen(true)}
           >
             Forgot your password?

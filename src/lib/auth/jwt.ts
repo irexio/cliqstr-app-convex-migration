@@ -17,5 +17,6 @@ export function verifyToken(token: string): TokenPayload | null {
 }
 
 export function signToken(payload: TokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '1h' });
+  // Match cookie duration (7 days) to prevent session verification errors
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 }
