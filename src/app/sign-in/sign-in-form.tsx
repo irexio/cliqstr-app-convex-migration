@@ -58,8 +58,8 @@ export default function SignInForm() {
         throw new Error(errorMessage);
       }
 
-      // 🔍 Step 2: Validate session + role via /api/auth/status
-      const userRes = await fetch('/api/auth/status', {
+      // 🔍 Step 2: Validate session + role via /auth/status (no /api/ prefix)
+      const userRes = await fetch('/auth/status', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         cache: 'no-store',
