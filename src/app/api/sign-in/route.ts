@@ -44,17 +44,19 @@ export async function POST(req: Request) {
       isApproved: user.profile?.isApproved || false,
     });
 
-    // Handle cookies as they may be async in newer Next.js versions
-    const cookieStore = await Promise.resolve(cookies());
-    cookieStore.set('auth_token', token, {
+    // Using the Next.js response cookies pattern for Next.js 15+
+    // This fixes the TypeScript error with cookies().set()
+    const response = NextResponse.json({ success: true });
+    
+    response.cookies.set('auth_token', token, {
       httpOnly: true,
       path: '/',
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only secure in production
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     });
-
-    return NextResponse.json({ success: true });
+    
+    return response;
   } catch (err) {
     // Detailed server-side logging for debugging (not exposed to client)
     console.error('💥 Sign-in error:', err);
