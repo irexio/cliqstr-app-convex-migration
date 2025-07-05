@@ -1,7 +1,18 @@
+/**
+ * 🔐 APA-SAFE LOGIN ROUTE — FINAL VERSION
+ *
+ * Authenticates user with email/password,
+ * verifies child approval,
+ * issues secure auth_token cookie via NextResponse headers.
+ *
+ * ✅ No .set() usage (fixes error)
+ * ✅ Secure cookie
+ * ✅ Works with getCurrentUser
+ */
+
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { signToken } from '@/lib/auth/jwt';
@@ -30,7 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // 🔒 Check if child account is approved
+    // 🔒 Block unapproved children
     if (user.profile?.role === 'Child' && !user.profile?.isApproved) {
       return NextResponse.json(
         { error: 'Awaiting parent approval' },
@@ -44,62 +55,35 @@ export async function POST(req: Request) {
       isApproved: user.profile?.isApproved || false,
     });
 
-    // 🔒 Enhanced cookie security for APA protection
-    // The critical fix: Ensure cookies are properly set with correct attributes
-    // This prevents the "session could not be established" error
+    // ✅ Set secure auth_token cookie via header (not .set)
     const response = NextResponse.json({
       success: true,
-      // Return minimal user info to confirm successful auth without exposing sensitive data
       user: {
         id: user.id,
         role: user.profile?.role || 'Adult',
-      }
+      },
     });
-    
-    // Set the auth cookie with proper attributes
-    response.cookies.set('auth_token', token, {
-      httpOnly: true,
-      path: '/', 
-      // Use secure cookies in production, allow non-secure in development
-      secure: process.env.NODE_ENV === 'production',
-      // Use strict SameSite policy to enhance security
-      sameSite: 'lax',
-      // Match expiration with JWT token (7 days)
-      maxAge: 60 * 60 * 24 * 7,
-    });
-    
+
+    response.headers.append(
+      'Set-Cookie',
+      `auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${
+        60 * 60 * 24 * 7
+      }; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`
+    );
+
     return response;
   } catch (err) {
-    // Detailed server-side logging for debugging (not exposed to client)
     console.error('💥 Sign-in error:', err);
-    
-    // Enhanced error logging for server logs only
+
     if (err instanceof Error) {
       console.error('Error name:', err.name);
       console.error('Error message:', err.message);
       console.error('Error stack:', err.stack);
-      
-      // Log specific Prisma errors
-      if (err.name === 'PrismaClientKnownRequestError') {
-        // @ts-ignore - Prisma error properties
-        console.error('Prisma error code:', err.code);
-        // @ts-ignore - Prisma error properties
-        console.error('Prisma error meta:', err.meta);
-      }
-      
-      if (err.message.includes('database') || err.message.includes('connection')) {
-        console.error('Likely database connection issue. Check DATABASE_URL environment variable.');
-      }
     }
-    
-    // Log environment check (without exposing sensitive data)
-    console.error('Database URL configured:', !!process.env.DATABASE_URL);
-    console.error('NODE_ENV:', process.env.NODE_ENV);
-    console.error('JWT_SECRET configured:', !!process.env.JWT_SECRET);
-    
-    // Return a safe, user-friendly error message to client
-    return NextResponse.json({ 
-      error: 'Unable to sign in. Please try again later.'
-    }, { status: 500 });
+
+    return NextResponse.json(
+      { error: 'Unable to sign in. Please try again later.' },
+      { status: 500 }
+    );
   }
 }
