@@ -11,6 +11,7 @@ enum Role {
   Parent
   Child
   Adult
+  Admin
 }
 
 enum MembershipRole {

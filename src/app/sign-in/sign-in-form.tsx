@@ -3,17 +3,28 @@
 // 🔐 APA-HARDENED — SIGN-IN FORM
 // Posts to /api/sign-in, then fetches /auth/status to verify session
 // Includes fallback to /api/auth/status for deployment edge cases
+// Auto-logout security for APA compliance
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function SignInForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [securityMessage, setSecurityMessage] = useState<string | null>(null);
+
+  // Check for security-related message in URL parameters
+  useEffect(() => {
+    const message = searchParams.get('message');
+    if (message) {
+      setSecurityMessage(decodeURIComponent(message));
+    }
+  }, [searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +137,17 @@ export default function SignInForm() {
 
   return (
     <form onSubmit={handleSignIn} className="space-y-4">
+      {/* 🔐 APA-HARDENED - Security notification */}
+      {securityMessage && (
+        <div className="p-3 rounded bg-blue-50 border border-blue-100 mb-4">
+          <div className="flex">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <p className="text-sm text-blue-800 font-medium">{securityMessage}</p>
+          </div>
+        </div>
+      )}
       <div>
         <label className="block text-sm font-medium">Email</label>
         <input

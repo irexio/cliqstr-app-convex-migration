@@ -9,6 +9,7 @@ import { Poppins } from 'next/font/google';
 import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import Footer from '@/components/Footer';
+import SessionProvider from '@/components/SessionProvider';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -30,9 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="bg-white text-[#202020] font-poppins antialiased min-h-screen">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <SessionProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   );

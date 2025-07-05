@@ -19,8 +19,10 @@ export default function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [passwordResetLoading, setPasswordResetLoading] = useState<string | null>(null);
   
   // Fetch users
   useEffect(() => {
@@ -107,6 +109,41 @@ export default function UserManagement() {
   const filteredUsers = roleFilter === 'All'
     ? users
     : users.filter(user => user.profile?.role === roleFilter);
+
+  // Handle password reset email sending
+  const handlePasswordReset = async (userId: string, email: string) => {
+    setPasswordResetLoading(userId);
+    setError('');
+    setSuccess('');
+    
+    try {
+      // In production, this would call your actual API endpoint
+      // For now we'll log it and simulate a successful call
+      console.log(`Sending password reset email to ${email}`);
+      
+      // This would be a real API call in production
+      const response = await fetch('/api/admin/force-password-reset', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to send reset email');
+      }
+      
+      // Show success message
+      setSuccess(`Password reset email sent to ${email}`);
+    } catch (err: any) {
+      console.error('Error sending password reset:', err);
+      setError(err.message || 'Failed to send password reset email');
+    } finally {
+      setPasswordResetLoading(null);
+    }
+  };
 
   // Handle user actions
   const handleUserAction = async (userId: string, action: 'approve' | 'deactivate' | 'delete') => {
@@ -208,6 +245,12 @@ export default function UserManagement() {
         </div>
       )}
       
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded mb-4">
+          {success}
+        </div>
+      )}
+      
       {/* Users table */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
@@ -258,6 +301,16 @@ export default function UserManagement() {
                   </td>
                   <td className="p-3 text-right">
                     <div className="flex justify-end gap-2">
+                      {/* Force Password Reset button */}
+                      <button
+                        onClick={() => handlePasswordReset(user.id, user.email)}
+                        disabled={passwordResetLoading === user.id || actionLoading === user.id}
+                        className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                        title="Send password reset email"
+                      >
+                        {passwordResetLoading === user.id ? '...' : '🔐 Reset'}
+                      </button>
+                      
                       {!user.profile?.isApproved && (
                         <button
                           onClick={() => handleUserAction(user.id, 'approve')}
