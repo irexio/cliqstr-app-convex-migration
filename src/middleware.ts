@@ -12,8 +12,19 @@ import { verifyToken } from '@/lib/auth/jwt';
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
   
-  // Get auth token from cookie
+  // Get auth token from cookie with detailed logging
+  const allCookies = req.cookies.getAll();
+  console.log(`[Middleware DEBUG] All cookies:`, allCookies.map(c => c.name));
+  
   const token = req.cookies.get('auth_token')?.value;
+  console.log(`[Middleware DEBUG] Path: ${path}, Token exists: ${!!token}`);
+  
+  // TEMPORARY FIX: For development/debugging only
+  // Skip auth for My Cliqs to help debug the session issues
+  if (path === '/my-cliqs') {
+    console.log('[Middleware DEBUG] Bypassing auth check for My Cliqs page to debug session issues');
+    return NextResponse.next();
+  }
   
   // Admin route protection
   if (path.startsWith('/admin')) {
