@@ -52,16 +52,55 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
+    // Get profile and its userId
+    const childProfile = await prisma.profile.findUnique({
+      where: { id: childId },
+      select: { userId: true }
+    });
+    
+    if (!childProfile) {
+      return NextResponse.json({ error: 'Child profile not found' }, { status: 400 });
+    }
+
     // Update child profile
     await prisma.profile.update({
       where: { id: childId },
       data: {
         username,
-        password: hashedPassword,
         isApproved: plan !== 'ebt', // EBT requires manual approval
-        stripeStatus: plan,
       },
     });
+    
+    // Update user password
+    await prisma.user.update({
+      where: { id: childProfile.userId },
+      data: {
+        password: hashedPassword
+      }
+    });
+    
+    // Create or update account with subscription data
+    const existingAccount = await prisma.account.findUnique({
+      where: { userId: childProfile.userId }
+    });
+    
+    if (existingAccount) {
+      await prisma.account.update({
+        where: { id: existingAccount.id },
+        data: {
+          stripeStatus: plan,
+          plan: plan === 'paid' ? 'premium' : 'basic'
+        }
+      });
+    } else {
+      await prisma.account.create({
+        data: {
+          userId: childProfile.userId,
+          stripeStatus: plan,
+          plan: plan === 'paid' ? 'premium' : 'basic'
+        }
+      });
+    }
 
     // Mark invite as used
     await prisma.invite.update({
