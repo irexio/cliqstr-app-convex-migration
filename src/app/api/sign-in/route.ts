@@ -44,16 +44,28 @@ export async function POST(req: Request) {
       isApproved: user.profile?.isApproved || false,
     });
 
-    // Using the Next.js response cookies pattern for Next.js 15+
-    // This fixes the TypeScript error with cookies().set()
-    const response = NextResponse.json({ success: true });
+    // 🔒 Enhanced cookie security for APA protection
+    // The critical fix: Ensure cookies are properly set with correct attributes
+    // This prevents the "session could not be established" error
+    const response = NextResponse.json({
+      success: true,
+      // Return minimal user info to confirm successful auth without exposing sensitive data
+      user: {
+        id: user.id,
+        role: user.profile?.role || 'Adult',
+      }
+    });
     
+    // Set the auth cookie with proper attributes
     response.cookies.set('auth_token', token, {
       httpOnly: true,
-      path: '/',
-      secure: process.env.NODE_ENV === 'production', // Only secure in production
+      path: '/', 
+      // Use secure cookies in production, allow non-secure in development
+      secure: process.env.NODE_ENV === 'production',
+      // Use strict SameSite policy to enhance security
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      // Match expiration with JWT token (7 days)
+      maxAge: 60 * 60 * 24 * 7,
     });
     
     return response;

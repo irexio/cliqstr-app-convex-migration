@@ -39,69 +39,109 @@ export default function SignInForm() {
         body: JSON.stringify({ email, password }),
       });
 
+      // Parse the response
+      let signInData;
+      try {
+        signInData = await res.json();
+      } catch (parseErr) {
+        console.error('Failed to parse sign-in response:', parseErr);
+      }
+
       if (!res.ok) {
         let message = 'Unable to sign in. Please check your credentials.';
-        try {
-          const data = await res.json();
-          if (data?.error === 'Invalid credentials') {
-            message = 'The email or password you entered is incorrect.';
-          } else if (data?.error === 'Awaiting parent approval') {
-            message = 'Your account requires parent approval before signing in.';
-          } else if (data?.error) {
-            message = data.error;
-          }
-        } catch {
-          try {
-            const text = await res.text();
-            if (text) message = text;
-          } catch {}
+        if (signInData?.error === 'Invalid credentials') {
+          message = 'The email or password you entered is incorrect.';
+        } else if (signInData?.error === 'Awaiting parent approval') {
+          message = 'Your account requires parent approval before signing in.';
+        } else if (signInData?.error) {
+          message = signInData.error;
         }
         throw new Error(message);
       }
+      
+      // If we got minimal user data back from the sign-in API, use it directly
+      // This prevents the need for a separate status check if the API already gave us user info
+      const directUserData = signInData?.user;
 
+      // 🔐 APA-HARDENED: Add a short delay to allow cookie to be properly set before verification
+      // This prevents race conditions with cookie setting while maintaining security
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // 🔍 Step 2: Fetch session data to validate user
       let userData;
+      let attemptCount = 0;
+      const maxAttempts = 2;
 
-      try {
-        const userRes = await fetch('/auth/status', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          cache: 'no-store',
-        });
-
-        if (!userRes.ok) {
-          const altUserRes = await fetch('/api/auth/status', {
+      while (attemptCount < maxAttempts) {
+        attemptCount++;
+        try {
+          // Try primary endpoint first
+          const userRes = await fetch('/auth/status', {
             method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              // Force cache revalidation to ensure fresh data
+              'Cache-Control': 'no-cache' 
+            },
             credentials: 'include',
             cache: 'no-store',
           });
 
-          if (!altUserRes.ok) {
+          if (!userRes.ok) {
+            // Fall back to alternate endpoint
+            const altUserRes = await fetch('/api/auth/status', {
+              method: 'GET',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+              },
+              credentials: 'include',
+              cache: 'no-store',
+            });
+
+            if (!altUserRes.ok) {
+              // Only throw on final attempt
+              if (attemptCount >= maxAttempts) {
+                throw new Error('Unable to verify your session. Please try again.');
+              }
+              
+              // Wait longer before retry
+              await new Promise(resolve => setTimeout(resolve, 500));
+              continue;
+            }
+
+            userData = await altUserRes.json();
+            break;
+          } else {
+            userData = await userRes.json();
+            break;
+          }
+        } catch (err) {
+          console.error(`Session fetch error (attempt ${attemptCount}):`, err);
+          if (attemptCount >= maxAttempts) {
             throw new Error('Unable to verify your session. Please try again.');
           }
-
-          userData = await altUserRes.json();
-        } else {
-          userData = await userRes.json();
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
-      } catch (err) {
-        console.error('Session fetch error:', err);
-        throw new Error('Unable to verify your session. Please try again.');
       }
 
-      const user = userData?.user;
+      // If we received user data directly from sign-in API, use it first
+      // Otherwise, fall back to the user data from the status API
+      const user = directUserData || userData?.user;
 
       if (!user || !user.id) {
-        console.error('Missing user ID in session response:', userData);
+        console.error('Missing user ID in responses:', { directUserData, statusData: userData });
         throw new Error('Your session could not be established. Please try signing in again.');
       }
 
+      console.log('Authentication successful for user:', user.id);
       console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
 
-      // 🧭 Step 3: Role + plan checks (in priority order)
-      const profile = user.profile;
+      // Ensure we have complete user data by merging both sources if needed
+      const userProfile = userData?.user?.profile || user.profile;
+      
+      // 🧯 Step 3: Role + plan checks (in priority order)
+      const profile = userProfile;
 
       // Check 1: Child approval status (only if profile exists)
       if (profile && profile.role === 'Child' && !profile.isApproved) {
