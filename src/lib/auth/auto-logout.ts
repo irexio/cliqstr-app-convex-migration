@@ -1,9 +1,8 @@
 /**
  * Auto-Logout Utility for APA Compliance
  * 
- * Implements role-based inactivity timeouts:
- * - Child: 30 minutes
- * - Adult/Parent/Admin: 60 minutes
+ * Implements standard inactivity timeout:
+ * - All users: 60 minutes
  * 
  * This utility tracks user activity and automatically logs out users
  * after the specified period of inactivity.
@@ -12,9 +11,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Timeout durations in milliseconds
-const TIMEOUT_CHILD = 30 * 60 * 1000; // 30 minutes
-const TIMEOUT_ADULT = 60 * 60 * 1000; // 60 minutes
+// Timeout duration in milliseconds
+const TIMEOUT_STANDARD = 60 * 60 * 1000; // 60 minutes for all users
 
 // Activity events to monitor
 const ACTIVITY_EVENTS = [
@@ -32,10 +30,9 @@ export function useAutoLogout(userRole?: string) {
   const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
   const router = useRouter();
 
-  // Determine timeout based on role
+  // Return standard timeout regardless of role
   const getTimeoutForRole = (role?: string): number => {
-    if (!role) return TIMEOUT_ADULT; // Default to adult timeout
-    return role === 'Child' ? TIMEOUT_CHILD : TIMEOUT_ADULT;
+    return TIMEOUT_STANDARD; // Same timeout for all users
   };
 
   // Update last activity timestamp
