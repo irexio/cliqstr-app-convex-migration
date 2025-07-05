@@ -136,9 +136,18 @@ export default function SignInForm() {
 
       console.log('Authentication successful for user:', user.id);
       console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
-
+      
       // Ensure we have complete user data by merging both sources if needed
       const userProfile = userData?.user?.profile || user.profile;
+      
+      // Debug profile data for troubleshooting legacy accounts
+      console.log('User profile data:', { 
+        hasProfile: !!userProfile,
+        directData: directUserData,
+        statusData: userData?.user?.profile,
+        role: userProfile?.role,
+        stripeStatus: userProfile?.stripeStatus 
+      });
       
       // 🧯 Step 3: Role + plan checks (in priority order)
       const profile = userProfile;
@@ -151,8 +160,9 @@ export default function SignInForm() {
       }
       
       // Check 2: Plan existence (only if profile exists)
-      if (profile && !profile.plan) {
-        console.log('User has no plan — redirecting to plan selection');
+      // Look for stripeStatus instead of plan (the schema uses stripeStatus)
+      if (profile && (!profile.stripeStatus || profile.stripeStatus === 'incomplete')) {
+        console.log('User has no plan or incomplete plan — redirecting to plan selection');
         router.push('/choose-plan');
         return;
       }
