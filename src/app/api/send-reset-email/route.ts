@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { resend } from '@/lib/resend';
+import { sendResetEmail } from '@/lib/auth/sendResetEmail';
 import crypto from 'crypto';
 
 export async function POST(req: Request) {
@@ -55,15 +55,11 @@ export async function POST(req: Request) {
     const resetLink = `https://cliqstr.com/reset-password?token=${resetToken}`;
     console.log('🔗 Reset link generated');
 
-    console.log('📬 Attempting to send email via Resend...');
-    const emailResult = await resend.emails.send({
-      to: email,
-      from: 'noreply@email.cliqstr.com',
-      subject: 'Reset Your Cliqstr Password',
-      html: `<p>Click <a href="${resetLink}">here</a> to reset your password. Link expires in 15 minutes.</p>`,
-    });
+    console.log('📬 Attempting to send email via sendResetEmail utility...');
+    // Use the dedicated utility that has its own Resend instance
+    const emailResult = await sendResetEmail(email, resetToken);
 
-    console.log('✅ Resend response:', emailResult);
+    console.log('✅ Send email response:', emailResult);
 
     return NextResponse.json({ success: true });
   } catch (err) {

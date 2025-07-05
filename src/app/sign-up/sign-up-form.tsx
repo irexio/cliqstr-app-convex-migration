@@ -63,8 +63,12 @@ export default function SignUpForm() {
         body: JSON.stringify(body),
       });
 
-      // 👣 Redirect after success (can be adjusted later)
-      router.push('/sign-in');
+      // 👣 Redirect based on user role - adults go to plan selection
+      if (isChild) {
+        router.push('/sign-in'); // Children still go to sign-in
+      } else {
+        router.push('/choose-plan'); // Adults go to plan selection per APA rules
+      }
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
       setError(err.message || 'Something went wrong. Please try again.');
