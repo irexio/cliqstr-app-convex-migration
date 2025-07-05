@@ -11,10 +11,11 @@ export default async function ChoosePlanPage() {
     redirect('/sign-in');
   }
 
-  if (user.profile?.role !== 'Parent') {
+  // Allow both Parents and Adults to select plans per APA guidelines
+  if (user.profile?.role !== 'Parent' && user.profile?.role !== 'Adult') {
     return (
       <div className="p-10 text-red-600 text-center">
-        Access denied. Only parents can select a plan.
+        Access denied. Only parents and adults can select a plan.
       </div>
     );
   }
