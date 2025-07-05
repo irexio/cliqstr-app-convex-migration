@@ -6,8 +6,9 @@
  *   - Hashes password, sets username, sets plan
  *   - Creates ParentLink between parent + child
  *   - Updates invite status to 'used'
- * // 🔐 APA-HARDENED — DO NOT DELETE OR IMPORT THIS FILE DIRECTLY
-  *   - Validates invite code, checks expiration
+ *   - Creates or updates Account with stripeStatus + plan
+ *
+ * ⚠️ DO NOT IMPORT THIS FILE DIRECTLY
  */
 
 import { NextResponse } from 'next/server';
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
       username,
       password,
       parentEmail,
-      plan, // 'free', 'paid', 'ebt'
+      plan, // expected: 'free' | 'paid' | 'ebt'
     } = body;
 
     if (
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 400 });
     }
 
-    // Validate invite
+    // 🧪 Step 1: Validate invite
     const invite = await prisma.invite.findUnique({ where: { code: inviteCode } });
     if (!invite || invite.status !== 'pending') {
       return NextResponse.json({ error: 'Invalid or used invite' }, { status: 400 });
@@ -52,44 +53,46 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(password, 10);
 
-    // Get profile and its userId
+    // 📥 Step 2: Get profile and user ID
     const childProfile = await prisma.profile.findUnique({
       where: { id: childId },
       select: { userId: true }
     });
-    
+
     if (!childProfile) {
       return NextResponse.json({ error: 'Child profile not found' }, { status: 400 });
     }
 
-    // Update child profile
+    // 🔒 Step 3: Update profile (set username + approval)
     await prisma.profile.update({
       where: { id: childId },
       data: {
         username,
-        isApproved: plan !== 'ebt', // EBT requires manual approval
-      },
+        isApproved: plan !== 'ebt' // EBT requires manual approval
+      }
     });
-    
-    // Update user password
+
+    // 🔐 Step 4: Update user password
     await prisma.user.update({
       where: { id: childProfile.userId },
       data: {
         password: hashedPassword
       }
     });
-    
-    // Create or update account with subscription data
+
+    // 💳 Step 5: Create or update Account
     const existingAccount = await prisma.account.findUnique({
       where: { userId: childProfile.userId }
     });
-    
+
+    const planType = plan === 'paid' ? 'premium' : 'basic';
+
     if (existingAccount) {
       await prisma.account.update({
         where: { id: existingAccount.id },
         data: {
           stripeStatus: plan,
-          plan: plan === 'paid' ? 'premium' : 'basic'
+          plan: planType
         }
       });
     } else {
@@ -97,23 +100,23 @@ export async function POST(req: Request) {
         data: {
           userId: childProfile.userId,
           stripeStatus: plan,
-          plan: plan === 'paid' ? 'premium' : 'basic'
+          plan: planType
         }
       });
     }
 
-    // Mark invite as used
+    // 📌 Step 6: Mark invite as used
     await prisma.invite.update({
       where: { code: inviteCode },
-      data: { status: 'used' },
+      data: { status: 'used' }
     });
 
-    // Create ParentLink
+    // 👪 Step 7: Create ParentLink
     await prisma.parentLink.create({
       data: {
         childId,
-        email: parentEmail,
-      },
+        email: parentEmail
+      }
     });
 
     return NextResponse.json({ success: true });
