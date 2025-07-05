@@ -11,9 +11,9 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'cliqstr.app', '*.cliqstr.app', 'vercel.app', '*.vercel.app'],
     },
-    // Force dynamic rendering for all routes with server components
-    serverComponentsExternalPackages: ['@prisma/client'],
   },
+  // Force dynamic rendering for all routes with server components
+  serverComponentsExternalPackages: ['@prisma/client'],
 }
 
 module.exports = nextConfig
