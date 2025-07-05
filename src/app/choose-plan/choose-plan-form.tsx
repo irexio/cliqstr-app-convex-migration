@@ -125,13 +125,12 @@ export default function ChoosePlanForm() {
         setStatus('success');
         setMessage('Free plan selected! Redirecting to dashboard...');
         
-        // Force a full page reload to ensure cookies and session state are refreshed
-        // Use cookies.set before redirecting to ensure the session is maintained
+        // IMPORTANT: Instead of window.location.href, use router.push with { replace: true }
+        // This preserves the authentication context within Next.js routing
         setTimeout(() => {
-          // This will cause a full-page navigation but with proper cookie handling
-          // Add a unique timestamp to force a fresh request and avoid caching issues
-          window.location.href = `/my-cliqs?t=${Date.now()}`;
-        }, 1500); // Give a bit more time for the backend to process
+          // Use Next.js router instead of window.location for proper cookie handling
+          router.push('/my-cliqs');
+        }, 1500); // Give time for backend processing
         return;
       }
       
@@ -142,9 +141,8 @@ export default function ChoosePlanForm() {
       
       // Redirect after showing message briefly
       setTimeout(() => {
-        // Force refresh to ensure we have latest session data
-        // Add a timestamp parameter to prevent caching issues
-        window.location.href = `/my-cliqs?t=${Date.now()}`;
+        // Use Next.js router for proper session handling
+        router.push('/my-cliqs');
       }, 3000);
       
     } catch (err) {
