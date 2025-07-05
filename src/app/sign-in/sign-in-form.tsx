@@ -150,32 +150,31 @@ export default function SignInForm() {
       });
       
       // 🧯 Step 3: Role + plan checks (in priority order)
-      const profile = userProfile;
+      const account = userData?.user?.account || user.account;
+      const profile = userData?.user?.profile || user.profile;
 
-      // Check 1: Child approval status (only if profile exists)
-      if (profile && profile.role === 'Child' && !profile.isApproved) {
+      // Step 1: Block unapproved children
+      if (profile?.role === 'Child' && !profile.isApproved) {
         console.log('Child account awaiting approval — redirecting');
         router.push('/approval-pending');
         return;
       }
-      
-      // Check 2: Plan existence (only if profile exists)
-      // Look for stripeStatus instead of plan (the schema uses stripeStatus)
-      if (profile && (!profile.stripeStatus || profile.stripeStatus === 'incomplete')) {
-        console.log('User has no plan or incomplete plan — redirecting to plan selection');
+
+      // Step 2: Check if user has selected a plan (from Account)
+      if (!account?.stripeStatus || account.stripeStatus === 'incomplete') {
+        console.log('No active plan — redirecting to /choose-plan');
         router.push('/choose-plan');
         return;
       }
       
       // Log user state
       if (profile) {
-        console.log(`User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${profile.plan || 'none'}`);
+        console.log(`User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
       } else {
         console.log('User signed in without profile - allowing access to my-cliqs');
       }
       
-      // All checks passed or no profile exists - redirect to dashboard
-      // User can create profile from button on my-cliqs page
+      // Step 3: Success — go to My Cliqs
       router.push('/my-cliqs');
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
