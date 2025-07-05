@@ -62,7 +62,8 @@ export async function middleware(req: NextRequest) {
     path.startsWith('/cliqs/') || 
     path === '/cliqs' || 
     path === '/my-cliqs' || 
-    path === '/parents-hq'
+    path === '/my-cliqs-dashboard' || 
+    path.startsWith('/parents-hq')
   );
   
   if (isProtectedRoute) {
@@ -107,12 +108,13 @@ export async function middleware(req: NextRequest) {
 }
 
 // Configure which routes use this middleware
-// TEMPORARY: Removed '/my-cliqs' from middleware protection to bypass auth issues
+// Security middleware configuration
 export const config = {
   matcher: [
     '/admin/:path*',
     '/cliqs/:path*',
-    // '/my-cliqs',  // TEMPORARILY DISABLED to fix login loop
-    '/parents-hq',
+    '/my-cliqs',
+    '/my-cliqs-dashboard',
+    '/parents-hq/:path*',
   ],
 };
