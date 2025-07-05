@@ -125,12 +125,13 @@ export default function ChoosePlanForm() {
         setStatus('success');
         setMessage('Free plan selected! Redirecting to dashboard...');
         
-        // IMPORTANT: Instead of window.location.href, use router.push with { replace: true }
-        // This preserves the authentication context within Next.js routing
+        // Fix for session persistence issues - use direct full page navigation with auth parameter
+        // This ensures cookies are properly carried through the entire process
         setTimeout(() => {
-          // Use Next.js router instead of window.location for proper cookie handling
-          router.push('/my-cliqs');
-        }, 1500); // Give time for backend processing
+          console.log('Free plan selected - redirecting to dashboard');
+          // Use window.location for a fresh page load with all cookies intact
+          window.location.href = `/my-cliqs-dashboard?auth=true&t=${Date.now()}`;
+        }, 2000); // Extended time for backend processing
         return;
       }
       
@@ -141,9 +142,10 @@ export default function ChoosePlanForm() {
       
       // Redirect after showing message briefly
       setTimeout(() => {
-        // Use Next.js router for proper session handling
-        router.push('/my-cliqs');
-      }, 3000);
+        console.log('Paid plan selected - redirecting to dashboard');
+        // Use window.location for a fresh page load with all cookies intact
+        window.location.href = `/my-cliqs-dashboard?auth=true&plan=${selectedPlan}&t=${Date.now()}`;
+      }, 3500);
       
     } catch (err) {
       console.error('Plan selection error:', err);
