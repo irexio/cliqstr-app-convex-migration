@@ -1,12 +1,8 @@
 'use client'
 
-// 🔐 APA-HARDENED HEADER FOR CLIQSTR — now penguin-pure ⚫⚪
-// Uses /auth/status to detect login state (no /api/)
-// Verified: 2025-06-27
-
 import Link from 'next/link'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Bars3Icon, XMarkIcon, TicketIcon } from '@heroicons/react/24/outline'
 import InviteCodeModal from './InviteCodeModal'
 
@@ -16,6 +12,11 @@ export function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [lastActivity, setLastActivity] = useState(Date.now())
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Session timeout in milliseconds (30 minutes)
+  const SESSION_TIMEOUT = 30 * 60 * 1000
   const [userData, setUserData] = useState<null | {
     id: string;
     name?: string;
@@ -28,6 +29,83 @@ export function Header() {
     }
   }>(null)
 
+  // Function to handle sign out
+  const handleSignOut = async () => {
+    try {
+      const res = await fetch('/api/sign-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+      if (res.ok) {
+        // Force reload to clear all state
+        window.location.href = '/';
+      }
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
+  
+  // Function to handle auto logout
+  const handleAutoLogout = async () => {
+    console.log('[Header] Auto logout triggered due to inactivity');
+    await handleSignOut();
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Update last activity on user interactions
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    
+    const updateActivity = () => {
+      setLastActivity(Date.now());
+    };
+    
+    // Listen for user activity
+    window.addEventListener('mousemove', updateActivity);
+    window.addEventListener('mousedown', updateActivity);
+    window.addEventListener('keypress', updateActivity);
+    window.addEventListener('touchmove', updateActivity);
+    window.addEventListener('scroll', updateActivity);
+    
+    return () => {
+      window.removeEventListener('mousemove', updateActivity);
+      window.removeEventListener('mousedown', updateActivity);
+      window.removeEventListener('keypress', updateActivity);
+      window.removeEventListener('touchmove', updateActivity);
+      window.removeEventListener('scroll', updateActivity);
+    };
+  }, [isLoggedIn]);
+  
+  // Check for session timeout
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    
+    const interval = setInterval(() => {
+      const now = Date.now();
+      if (now - lastActivity > SESSION_TIMEOUT) {
+        console.log('[Header] Session timeout detected');
+        handleAutoLogout();
+      }
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, [isLoggedIn, lastActivity]);
+
+  // Fetch user data and authentication status
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -71,8 +149,8 @@ export function Header() {
       }
     }
 
-    fetchUser()
-  }, [])
+    fetchUser();
+  }, []);
 
   return (
     <header className="w-full bg-white border-b border-gray-200">
@@ -108,25 +186,31 @@ export function Header() {
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 text-sm">
             {isLoggedIn && userData ? (
-              <div className="relative">
+              <div className="relative" ref={dropdownRef}>
                 <button 
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
-                  className="relative focus:outline-none"
+                  className="relative focus:outline-none flex items-center gap-2"
                   aria-label="Account menu"
                 >
+                  <span className="hidden md:block text-sm font-medium">
+                    {userData.name || userData.email.split('@')[0]}
+                  </span>
                   {userData.avatarUrl ? (
                     <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
                       <Image
                         src={userData.avatarUrl}
-                        alt={userData.name || "User"}
+                        alt="User avatar"
                         width={32}
                         height={32}
                         className="object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">
-                      {userData.name ? userData.name.substring(0, 2).toUpperCase() : 'U'}
+                    <div className="h-8 w-8 bg-purple-100 text-[#c032d1] rounded-full flex items-center justify-center text-sm font-medium">
+                      {userData.name 
+                        ? userData.name.substring(0, 2).toUpperCase() 
+                        : userData.email.substring(0, 2).toUpperCase()
+                      }
                     </div>
                   )}
                 </button>
@@ -141,7 +225,9 @@ export function Header() {
                       </p>
                       {userData.account?.stripeStatus && (
                         <p className="text-xs text-gray-500 mt-1">
-                          Plan: <span className="font-medium capitalize">{userData.account.plan || userData.account.stripeStatus}</span>
+                          Plan: <span className="font-medium capitalize">
+                            {userData.account.plan || userData.account.stripeStatus}
+                          </span>
                         </p>
                       )}
                     </div>
@@ -185,13 +271,16 @@ export function Header() {
                     )}
                     
                     <div className="border-t border-gray-100 mt-1">
-                      <Link 
-                        href="/api/sign-out" 
-                        className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                        onClick={() => setIsUserMenuOpen(false)}
+                      <button 
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsUserMenuOpen(false);
+                          handleSignOut();
+                        }}
                       >
                         Sign Out
-                      </Link>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -281,32 +370,38 @@ export function Header() {
               {/* Mobile Auth Buttons */}
               <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
                 {isLoggedIn && userData ? (
-                  <>
-                    <div className="flex items-center mb-2 px-2">
+                  <div className="space-y-2">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b flex items-center gap-3">
                       {userData.avatarUrl ? (
-                        <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200 mr-2">
-                          <Image
-                            src={userData.avatarUrl}
-                            alt={userData.name || "User"}
-                            width={32}
-                            height={32}
-                            className="object-cover"
-                          />
-                        </div>
+                        <Image 
+                          src={userData.avatarUrl} 
+                          alt={userData.name || 'User'}
+                          width={28} 
+                          height={28} 
+                          className="rounded-full"
+                        />
                       ) : (
-                        <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium mr-2">
-                          {userData.name ? userData.name.substring(0, 2).toUpperCase() : 'U'}
+                        <div className="w-7 h-7 bg-purple-100 text-[#c032d1] rounded-full flex items-center justify-center text-xs font-medium">
+                          {userData.name 
+                            ? userData.name.substring(0, 2).toUpperCase() 
+                            : userData.email.substring(0, 2).toUpperCase()
+                          }
                         </div>
                       )}
-                      <div>
-                        <p className="text-sm font-medium">{userData.name || userData.email.split('@')[0]}</p>
-                        <p className="text-xs text-gray-500 capitalize">{userData.role.toLowerCase()}</p>
+                      <div className="overflow-hidden">
+                        <p className="text-sm font-medium truncate">
+                          {userData.name || userData.email.split('@')[0]}
+                        </p>
+                        <p className="text-xs text-gray-500 capitalize truncate">
+                          {userData.role.toLowerCase()}
+                        </p>
                       </div>
                     </div>
 
                     <Link 
                       href={`/profile/${userData.id}`} 
-                      className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Your Profile
@@ -314,7 +409,7 @@ export function Header() {
                     
                     <Link 
                       href="/account" 
-                      className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Account Settings
@@ -324,7 +419,7 @@ export function Header() {
                     {(userData.role === 'PARENT' || userData.role === 'ADULT') && (
                       <Link 
                         href="/billing" 
-                        className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Billing & Plans
@@ -335,23 +430,25 @@ export function Header() {
                     {userData.role === 'PARENT' && (
                       <Link 
                         href="/parent-controls" 
-                        className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         Parent Controls
                       </Link>
                     )}
 
-                    <Link 
-                      href="/api/sign-out" 
-                      className="mt-2 px-4 py-2 text-sm text-center text-red-600 hover:bg-gray-100 rounded"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                    <button
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleSignOut();
+                      }}
                     >
                       Sign Out
-                    </Link>
-                  </>
+                    </button>
+                  </div>
                 ) : (
-                  <>
+                  <div className="space-y-2">
                     <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
@@ -364,19 +461,19 @@ export function Header() {
                     </button>
                     <Link
                       href="/sign-in"
-                      className="px-4 py-2 border border-black text-black rounded text-center hover:bg-gray-100 transition"
+                      className="block px-4 py-2 border border-black text-black rounded text-center hover:bg-gray-100 transition"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign In
                     </Link>
                     <Link
                       href="/sign-up"
-                      className="px-4 py-2 bg-black text-white rounded text-center hover:bg-gray-800 transition"
+                      className="block px-4 py-2 bg-black text-white rounded text-center hover:bg-gray-800 transition"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign Up
                     </Link>
-                  </>
+                  </div>
                 )}
               </div>
             </nav>
