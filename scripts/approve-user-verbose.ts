@@ -18,7 +18,7 @@ async function approveUser() {
     console.log('Searching for user with email: mimi@cliqstr.com');
     const user = await prisma.user.findUnique({
       where: { email: 'mimi@cliqstr.com' },
-      include: { profile: true },
+      include: { profile: true, account: true },
     });
 
     if (!user) {
@@ -34,8 +34,15 @@ async function approveUser() {
         profileId: user.profile.id,
         username: user.profile.username,
         role: user.profile.role,
-        isApproved: user.profile.isApproved,
-        stripeStatus: user.profile.stripeStatus
+        isApproved: user.profile.isApproved
+      });
+    }
+    
+    if (user.account) {
+      console.log('Existing account details:', {
+        accountId: user.account.id,
+        stripeStatus: user.account.stripeStatus,
+        plan: user.account.plan
       });
     }
     
@@ -49,11 +56,21 @@ async function approveUser() {
           username: 'mimi',
           role: 'Adult',
           isApproved: true,
-          stripeStatus: 'verified',
           // Add birthdate for APA compliance - using an adult birthdate (30 years old)
           birthdate: new Date(new Date().setFullYear(new Date().getFullYear() - 30)),
         },
       });
+      
+      // Create account with subscription data
+      const account = await prisma.account.create({
+        data: {
+          userId: user.id,
+          stripeStatus: 'verified',
+          plan: 'basic'
+        },
+      });
+      
+      console.log('✅ Created account with ID:', account.id);
       
       console.log('✅ Created profile with ID:', profile.id);
     } else {
@@ -64,19 +81,46 @@ async function approveUser() {
         where: { id: user.profile.id },
         data: {
           isApproved: true,
-          role: 'Adult',
-          stripeStatus: 'verified'
+          role: 'Adult'
         },
       });
+      
+      // Update or create account
+      let account;
+      if (user.account) {
+        account = await prisma.account.update({
+          where: { id: user.account.id },
+          data: {
+            stripeStatus: 'verified',
+            plan: 'basic'
+          },
+        });
+      } else {
+        account = await prisma.account.create({
+          data: {
+            userId: user.id,
+            stripeStatus: 'verified',
+            plan: 'basic'
+          },
+        });
+        console.log('✅ Created new account with ID:', account.id);
+      }
       
       console.log('✅ Updated profile with ID:', profile.id);
       console.log('New profile details:', {
         profileId: profile.id,
         username: profile.username,
         role: profile.role,
-        isApproved: profile.isApproved,
-        stripeStatus: profile.stripeStatus
+        isApproved: profile.isApproved
       });
+      
+      if (account) {
+        console.log('Account details:', {
+          accountId: account.id,
+          stripeStatus: account.stripeStatus,
+          plan: account.plan
+        });
+      }
     }
 
     console.log('🎉 User has been approved successfully!');

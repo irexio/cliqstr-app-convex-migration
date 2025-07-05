@@ -12,21 +12,8 @@ const nextConfig = {
       allowedOrigins: ['localhost:3000', 'cliqstr.app', '*.cliqstr.app', 'vercel.app', '*.vercel.app'],
     }
   },
-  // Configure routes that need to be dynamically rendered
-  output: "standalone",
-  // This tells Next.js these routes should always be dynamically rendered
-  appDir: true,
-  // Explicitly set dynamic routes to prevent static rendering errors
-  dynamicRoutes: [
-    '/api/**',
-    '/auth/**',
-    '/account/**',
-    '/profile/**',
-    '/cliqs/**',
-    '/choose-plan',
-    '/verify-card',
-    '/parent/**'
-  ]
+  // Configure for production deployment
+  output: "standalone"
 }
 
 module.exports = nextConfig
