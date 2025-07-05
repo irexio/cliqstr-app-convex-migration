@@ -10,10 +10,23 @@ const nextConfig = {
   experimental: {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'cliqstr.app', '*.cliqstr.app', 'vercel.app', '*.vercel.app'],
-    },
-    // Force dynamic rendering for all routes with server components
-    serverExternalPackages: ['@prisma/client']
+    }
   },
+  // Configure routes that need to be dynamically rendered
+  output: "standalone",
+  // This tells Next.js these routes should always be dynamically rendered
+  appDir: true,
+  // Explicitly set dynamic routes to prevent static rendering errors
+  dynamicRoutes: [
+    '/api/**',
+    '/auth/**',
+    '/account/**',
+    '/profile/**',
+    '/cliqs/**',
+    '/choose-plan',
+    '/verify-card',
+    '/parent/**'
+  ]
 }
 
 module.exports = nextConfig

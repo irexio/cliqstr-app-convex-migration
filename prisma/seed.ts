@@ -13,12 +13,18 @@ async function main() {
           role: 'Parent',
           ageGroup: 'adult',
           isApproved: true,
-          stripeStatus: 'active',
           about: 'I am the founder of Cliqstr. This is a seeded admin profile.',
           image: null,         // no avatar yet
           bannerImage: null    // no banner yet
         },
       },
+      account: {
+        create: {
+          stripeStatus: 'active',
+          plan: 'premium',
+          stripeCustomerId: 'seed_customer_id'
+        }
+      }
     },
   });
 
