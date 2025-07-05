@@ -10,6 +10,11 @@ type AccountHeaderProps = {
     name: string;
     avatarUrl?: string;
     role: 'CHILD' | 'TEEN' | 'ADULT' | 'ADMIN' | 'PARENT';
+    account?: {
+      stripeStatus?: string;
+      plan?: string;
+      stripeCustomerId?: string;
+    } | null;
   } | null;
 };
 
@@ -62,6 +67,11 @@ export default function AccountHeader({ user }: AccountHeaderProps) {
                     <p className="text-xs text-gray-500">
                       {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
                     </p>
+                    {user.account?.stripeStatus && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Plan: <span className="font-medium capitalize">{user.account.plan || user.account.stripeStatus}</span>
+                      </p>
+                    )}
                   </div>
                   
                   <Link 
@@ -82,13 +92,24 @@ export default function AccountHeader({ user }: AccountHeaderProps) {
                   
                   {/* Show billing link only for adults and parents */}
                   {(user.role === 'ADULT' || user.role === 'PARENT') && (
-                    <Link 
-                      href="/billing" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Billing & Plans
-                    </Link>
+                    <>
+                      <Link 
+                        href="/billing" 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Billing & Plans
+                      </Link>
+                      {user.account?.stripeStatus && (
+                        <Link 
+                          href="/account" 
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Subscription Details
+                        </Link>
+                      )}
+                    </>
                   )}
                   
                   {/* Show parent controls only for parents */}

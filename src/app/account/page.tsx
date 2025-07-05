@@ -7,8 +7,9 @@ import { redirect } from 'next/navigation';
 export default async function AccountPage() {
   const user = await getCurrentUser();
 
+  // Only parents and adults can access this page
   if (!user?.id || !['parent', 'adult'].includes(user.role)) {
-    redirect('/'); // Or redirect to /parents-hq if you prefer
+    redirect('/'); // Optional: redirect to /parents-hq
   }
 
   return (
@@ -35,14 +36,15 @@ export default async function AccountPage() {
           </div>
         )}
 
-        {user.profile?.stripeStatus && (
+        {user.account?.stripeStatus && (
           <div>
             <span className="font-medium text-gray-600">Subscription Plan:</span>
-            <span className="ml-2 capitalize">{user.profile.stripeStatus}</span>
+            <span className="ml-2 capitalize">{user.account.stripeStatus}</span>
           </div>
         )}
 
-        {/* Optional future buttons:
+        {/* Future optional: subscription management */}
+        {/* 
         <div className="pt-4">
           <button className="bg-black text-white text-sm px-4 py-2 rounded hover:bg-gray-800">
             Manage Subscription

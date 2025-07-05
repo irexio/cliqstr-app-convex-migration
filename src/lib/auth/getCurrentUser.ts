@@ -22,7 +22,16 @@ export async function getCurrentUser() {
     
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      include: { profile: true },
+      include: { 
+        profile: true,
+        account: {
+          select: {
+            stripeStatus: true,
+            plan: true,
+            stripeCustomerId: true,
+          }
+        },
+      },
     });
     
     if (!user) {
@@ -41,6 +50,7 @@ export async function getCurrentUser() {
       role: user.profile.role,
       isApproved: user.profile.isApproved,
       profile: user.profile,
+      account: user.account,
     };
   } catch (error) {
     console.error('Error in getCurrentUser:', error);

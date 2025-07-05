@@ -58,14 +58,16 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  name      String? // ✅ Added for compatibility with existing routes/components
+  name      String?
 
   resetToken        String?
   resetTokenExpires DateTime?
 
-  profile Profile?
-  invites Invite[] @relation("UserToInvites")
-  cliqs   Cliq[]   @relation("OwnedCliqs")
+  profile   Profile?
+  account   Account?   // ✅ Now correctly linked to Account
+
+  invites        Invite[] @relation("UserToInvites")
+  cliqs          Cliq[]   @relation("OwnedCliqs")
   memberships    Membership[]
   posts          Post[]
   replies        Reply[]
@@ -83,8 +85,6 @@ model Profile {
   role         Role
   ageGroup     String?
   isApproved   Boolean @default(false)
-  password     String?
-  stripeStatus String?
 
   about       String?
   image       String?
@@ -178,4 +178,15 @@ model InviteRequest {
 
   cliq    Cliq @relation(fields: [cliqId], references: [id])
   inviter User @relation("UserInviteRequests", fields: [inviterId], references: [id])
+}
+
+model Account {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  stripeStatus     String?
+  plan             String?
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

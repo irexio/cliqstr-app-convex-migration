@@ -5,6 +5,7 @@
 // Verified: 2025-06-27
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { Bars3Icon, XMarkIcon, TicketIcon } from '@heroicons/react/24/outline'
 import InviteCodeModal from './InviteCodeModal'
@@ -14,6 +15,18 @@ export function Header() {
   const [hasCliqs, setHasCliqs] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [inviteModalOpen, setInviteModalOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+  const [userData, setUserData] = useState<null | {
+    id: string;
+    name?: string;
+    email: string;
+    role: string;
+    avatarUrl?: string;
+    account?: {
+      stripeStatus?: string;
+      plan?: string;
+    }
+  }>(null)
 
   useEffect(() => {
     async function fetchUser() {
@@ -39,9 +52,18 @@ export function Header() {
           console.log('[Header] User authenticated:', data.id);
           setIsLoggedIn(true);
           setHasCliqs(data.memberships?.length > 0);
+          setUserData({
+            id: data.id,
+            name: data.profile?.name || data.email.split('@')[0],
+            email: data.email,
+            role: data.role,
+            avatarUrl: data.profile?.image,
+            account: data.account
+          });
         } else {
           console.log('[Header] No user ID in response, setting as logged out');
           setIsLoggedIn(false);
+          setUserData(null);
         }
       } catch (err) {
         console.error('Error fetching /auth/status:', err);
@@ -85,25 +107,118 @@ export function Header() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 text-sm">
-            <button
-              onClick={() => setInviteModalOpen(true)}
-              className="flex items-center bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm transition-all hover:shadow"
-            >
-              <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
-              <span>Join with <span className="font-bold">Invite</span></span>
-            </button>
-            <Link
-              href="/sign-in"
-              className="px-4 py-2 border border-black text-black rounded hover:bg-gray-100 transition"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/sign-up"
-              className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition"
-            >
-              Sign Up
-            </Link>
+            {isLoggedIn && userData ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                  className="relative focus:outline-none"
+                  aria-label="Account menu"
+                >
+                  {userData.avatarUrl ? (
+                    <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+                      <Image
+                        src={userData.avatarUrl}
+                        alt={userData.name || "User"}
+                        width={32}
+                        height={32}
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">
+                      {userData.name ? userData.name.substring(0, 2).toUpperCase() : 'U'}
+                    </div>
+                  )}
+                </button>
+                
+                {/* User dropdown menu */}
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium">{userData.name || userData.email.split('@')[0]}</p>
+                      <p className="text-xs text-gray-500 capitalize">
+                        {userData.role.toLowerCase()}
+                      </p>
+                      {userData.account?.stripeStatus && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Plan: <span className="font-medium capitalize">{userData.account.plan || userData.account.stripeStatus}</span>
+                        </p>
+                      )}
+                    </div>
+                    
+                    <Link 
+                      href={`/profile/${userData.id}`} 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Your Profile
+                    </Link>
+                    
+                    <Link 
+                      href="/account" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Account Settings
+                    </Link>
+                    
+                    {/* Show billing link only for adults and parents */}
+                    {(userData.role === 'PARENT' || userData.role === 'ADULT') && (
+                      <Link 
+                        href="/billing" 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Billing & Plans
+                      </Link>
+                    )}
+                    
+                    {/* Show parent controls only for parents */}
+                    {userData.role === 'PARENT' && (
+                      <Link 
+                        href="/parent-controls" 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Parent Controls
+                      </Link>
+                    )}
+                    
+                    <div className="border-t border-gray-100 mt-1">
+                      <Link 
+                        href="/api/sign-out" 
+                        className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Sign Out
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setInviteModalOpen(true)}
+                  className="flex items-center bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm transition-all hover:shadow"
+                >
+                  <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
+                  <span>Join with <span className="font-bold">Invite</span></span>
+                </button>
+                <Link
+                  href="/sign-in"
+                  className="px-4 py-2 border border-black text-black rounded hover:bg-gray-100 transition"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -165,30 +280,104 @@ export function Header() {
 
               {/* Mobile Auth Buttons */}
               <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setInviteModalOpen(true);
-                  }}
-                  className="flex items-center justify-center text-sm bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm w-full my-2"
-                >
-                  <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
-                  <span>Join with <span className="font-bold">Invite</span></span>
-                </button>
-                <Link
-                  href="/sign-in"
-                  className="px-4 py-2 border border-black text-black rounded text-center hover:bg-gray-100 transition"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/sign-up"
-                  className="px-4 py-2 bg-black text-white rounded text-center hover:bg-gray-800 transition"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
+                {isLoggedIn && userData ? (
+                  <>
+                    <div className="flex items-center mb-2 px-2">
+                      {userData.avatarUrl ? (
+                        <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200 mr-2">
+                          <Image
+                            src={userData.avatarUrl}
+                            alt={userData.name || "User"}
+                            width={32}
+                            height={32}
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium mr-2">
+                          {userData.name ? userData.name.substring(0, 2).toUpperCase() : 'U'}
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{userData.name || userData.email.split('@')[0]}</p>
+                        <p className="text-xs text-gray-500 capitalize">{userData.role.toLowerCase()}</p>
+                      </div>
+                    </div>
+
+                    <Link 
+                      href={`/profile/${userData.id}`} 
+                      className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Your Profile
+                    </Link>
+                    
+                    <Link 
+                      href="/account" 
+                      className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Account Settings
+                    </Link>
+
+                    {/* Show billing link only for adults and parents */}
+                    {(userData.role === 'PARENT' || userData.role === 'ADULT') && (
+                      <Link 
+                        href="/billing" 
+                        className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Billing & Plans
+                      </Link>
+                    )}
+
+                    {/* Show parent controls only for parents */}
+                    {userData.role === 'PARENT' && (
+                      <Link 
+                        href="/parent-controls" 
+                        className="px-4 py-2 text-sm text-center text-gray-700 hover:bg-gray-100 rounded"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Parent Controls
+                      </Link>
+                    )}
+
+                    <Link 
+                      href="/api/sign-out" 
+                      className="mt-2 px-4 py-2 text-sm text-center text-red-600 hover:bg-gray-100 rounded"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign Out
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setInviteModalOpen(true);
+                      }}
+                      className="flex items-center justify-center text-sm bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm w-full my-2"
+                    >
+                      <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
+                      <span>Join with <span className="font-bold">Invite</span></span>
+                    </button>
+                    <Link
+                      href="/sign-in"
+                      className="px-4 py-2 border border-black text-black rounded text-center hover:bg-gray-100 transition"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/sign-up"
+                      className="px-4 py-2 bg-black text-white rounded text-center hover:bg-gray-800 transition"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Sign Up
+                    </Link>
+                  </>
+                )}
               </div>
             </nav>
           </div>

@@ -17,6 +17,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function GET() {
   try {
@@ -42,35 +43,23 @@ export async function GET() {
     });
     
     // Get user account for payment/plan status
-    const account = await prisma.account.findUnique({
-      where: { userId: user.id },
-      select: {
-        stripeStatus: true,
-        plan: true,
-        stripeCustomerId: true,
-      },
-    });
+    // Using raw Prisma query to avoid TypeScript errors with new schema
+    const accounts = await prisma.$queryRaw`
+      SELECT "stripeStatus", plan, "stripeCustomerId"
+      FROM "Account"
+      WHERE "userId" = ${user.id}
+    `;
     
-    // Handle legacy accounts gracefully - if no profile exists, create minimal valid data
-    // This ensures APA protection while allowing older accounts to function
+    // Get the first account or set to null
+    const account = Array.isArray(accounts) && accounts.length > 0 ? accounts[0] : null;
+    
+    // If no profile exists, simply return user with null profile
+    // Frontend will handle redirecting to profile creation
     if (!profile) {
-      console.log('⚠️ Legacy account detected for user', user.id, '- handling gracefully while maintaining APA');
-      
-      // For security, treat any account without a complete profile as an adult account requiring verification
-      // This is the safest approach for APA compliance
       return NextResponse.json({
         id: user.id,
         email: user.email,
-        legacyAccount: true,
-        profile: {
-          role: 'Adult', 
-          isApproved: false,
-          username: user.email.split('@')[0] || 'user',
-        },
-        account: {
-          stripeStatus: 'incomplete',
-          plan: null
-        }
+        account,
       });
     }
 

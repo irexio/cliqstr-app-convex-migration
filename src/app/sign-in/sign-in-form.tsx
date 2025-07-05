@@ -137,21 +137,17 @@ export default function SignInForm() {
       console.log('Authentication successful for user:', user.id);
       console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
       
-      // Ensure we have complete user data by merging both sources if needed
-      const userProfile = userData?.user?.profile || user.profile;
-      
-      // Debug profile data for troubleshooting legacy accounts
-      console.log('User profile data:', { 
-        hasProfile: !!userProfile,
-        directData: directUserData,
-        statusData: userData?.user?.profile,
-        role: userProfile?.role,
-        stripeStatus: userProfile?.stripeStatus 
-      });
-      
       // 🧯 Step 3: Role + plan checks (in priority order)
       const account = userData?.user?.account || user.account;
       const profile = userData?.user?.profile || user.profile;
+      
+      // Debug profile data
+      console.log('User data:', { 
+        hasProfile: !!profile,
+        hasAccount: !!account,
+        role: profile?.role,
+        accountStatus: account?.stripeStatus 
+      });
 
       // Step 1: Block unapproved children
       if (profile?.role === 'Child' && !profile.isApproved) {
@@ -171,7 +167,9 @@ export default function SignInForm() {
       if (profile) {
         console.log(`User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
       } else {
-        console.log('User signed in without profile - allowing access to my-cliqs');
+        console.log('User signed in without profile - redirecting to profile creation');
+        router.push('/profile/create');
+        return;
       }
       
       // Step 3: Success — go to My Cliqs
