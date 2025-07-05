@@ -26,16 +26,26 @@ export function Header() {
           credentials: 'include', // Critical: Include cookies in the request
         });
 
-        if (!res.ok) return;
+        // Make sure to explicitly set isLoggedIn to false if not authenticated
+        if (!res.ok) {
+          console.log('[Header] Auth status response not OK, setting as logged out');
+          setIsLoggedIn(false);
+          return;
+        }
 
         const data = await res.json();
 
         if (data?.id) {
+          console.log('[Header] User authenticated:', data.id);
           setIsLoggedIn(true);
           setHasCliqs(data.memberships?.length > 0);
+        } else {
+          console.log('[Header] No user ID in response, setting as logged out');
+          setIsLoggedIn(false);
         }
       } catch (err) {
         console.error('Error fetching /auth/status:', err);
+        setIsLoggedIn(false); // Explicitly set to false on error
       }
     }
 
