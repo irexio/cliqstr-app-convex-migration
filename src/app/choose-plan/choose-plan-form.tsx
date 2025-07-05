@@ -79,27 +79,27 @@ export default function ChoosePlanForm() {
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  // Mock function to save plan to user profile
+  // Function to save plan to user profile through API
   const savePlanToProfile = async (planKey: string) => {
-    // Mock API call to save the plan
     try {
-      console.log(`Mocking POST to /api/user/plan with plan: ${planKey}`);
+      console.log(`Saving plan selection: ${planKey}`);
       
-      // In a real implementation, this would be a fetch call:
-      // await fetch('/api/user/plan', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   credentials: 'include',
-      //   body: JSON.stringify({
-      //     userId: 'current-user-id', // Would be dynamically obtained
-      //     plan: planKey
-      //   })
-      // });
+      const response = await fetch('/api/user/plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          plan: planKey
+        })
+      });
       
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save plan');
+      }
       
-      return { success: true };
+      const result = await response.json();
+      return { success: true, ...result };
     } catch (error) {
       console.error('Error saving plan:', error);
       return { success: false, error };
@@ -119,22 +119,28 @@ export default function ChoosePlanForm() {
         throw new Error('Failed to save plan selection');
       }
       
-      // Special case for Test Plan - apply immediately
+      // Special case for Test/Free Plan - apply immediately
       if (selectedPlan === 'test') {
-        console.log('Test Plan selected - applying immediately');
-        // In a real implementation, we would set isApproved to true here
+        console.log('Free Plan selected - applying immediately');
         setStatus('success');
-        router.push('/my-cliqs');
+        setMessage('Free plan selected! Redirecting to dashboard...');
+        
+        // Force a full page reload to ensure cookies and session state are refreshed
+        setTimeout(() => {
+          window.location.href = '/my-cliqs';
+        }, 1000);
         return;
       }
       
-      // For all other plans, show Stripe placeholder message
+      // For paid plans, we'll show a message about Stripe integration
+      // In the future, this would redirect to Stripe checkout
       setStatus('success');
       setMessage("Stripe integration coming soon. You've selected your plan — access will be upgraded soon.");
       
       // Redirect after showing message briefly
       setTimeout(() => {
-        router.push('/my-cliqs');
+        // Force refresh to ensure we have latest session data
+        window.location.href = '/my-cliqs';
       }, 3000);
       
     } catch (err) {
