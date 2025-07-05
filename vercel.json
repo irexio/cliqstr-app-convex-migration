@@ -5,31 +5,10 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "functions": {
-    "src/app/api/**/*": {
+    "api/**/*": {
       "maxDuration": 10
     },
-    "src/app/auth/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/api/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/auth/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/parent/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/account/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/profile/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/choose-plan/**/*": {
-      "maxDuration": 10
-    },
-    ".next/server/app/verify-card/**/*": {
+    "auth/**/*": {
       "maxDuration": 10
     }
   },
