@@ -55,13 +55,8 @@ export async function POST(req: Request) {
         resetTokenExpires: null,
       },
     });
-
-    await prisma.profile.update({
-      where: { userId: user.id },
-      data: {
-        password: hashed,
-      },
-    });
+    
+    // Password is only stored on User model, not Profile
 
     console.log('✅ Password updated successfully');
 
