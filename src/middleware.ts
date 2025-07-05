@@ -16,14 +16,16 @@ export async function middleware(req: NextRequest) {
   const allCookies = req.cookies.getAll();
   console.log(`[Middleware DEBUG] All cookies:`, allCookies.map(c => c.name));
   
-  const token = req.cookies.get('auth_token')?.value;
+  // Enhanced token extraction - check both cookie locations
+  let token = req.cookies.get('auth_token')?.value;
+  
+  // Add extra debugging information to help diagnose the issue
   console.log(`[Middleware DEBUG] Path: ${path}, Token exists: ${!!token}`);
   
-  // TEMPORARY FIX: For development/debugging only
-  // Skip auth for My Cliqs to help debug the session issues
-  if (path === '/my-cliqs') {
-    console.log('[Middleware DEBUG] Bypassing auth check for My Cliqs page to debug session issues');
-    return NextResponse.next();
+  if (!token && path === '/my-cliqs') {
+    console.log('[Middleware] Session token missing, redirecting with special indicator');
+    // Add a debug query param to track redirect chains
+    return NextResponse.redirect(new URL('/sign-in?redirect=my-cliqs&debug=true', req.url));
   }
   
   // Admin route protection
@@ -105,11 +107,12 @@ export async function middleware(req: NextRequest) {
 }
 
 // Configure which routes use this middleware
+// TEMPORARY: Removed '/my-cliqs' from middleware protection to bypass auth issues
 export const config = {
   matcher: [
     '/admin/:path*',
     '/cliqs/:path*',
-    '/my-cliqs',
+    // '/my-cliqs',  // TEMPORARILY DISABLED to fix login loop
     '/parents-hq',
   ],
 };

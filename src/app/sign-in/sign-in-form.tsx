@@ -152,10 +152,16 @@ export default function SignInForm() {
 
       console.log(`✅ User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
 
-      // 🎉 Final redirect: force hard reload to fix session edge cases
+      // 🎉 Final redirect: Track the redirect with console logs
+      console.log('Authentication successful - redirecting to /my-cliqs');
+      console.log('Session cookie length:', document.cookie.length);
+      
+      // Use direct navigation for more reliable session handling
+      // Include a unique timestamp to force a fresh request
       setTimeout(() => {
-        window.location.href = '/my-cliqs';
-      }, 1000);
+        // Pass auth=true parameter to help debug the middleware token validation
+        window.location.href = `/my-cliqs?auth=true&t=${Date.now()}`;
+      }, 1500);
 
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
