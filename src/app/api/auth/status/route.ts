@@ -21,9 +21,18 @@ export async function GET() {
         username: true,
         role: true,
         isApproved: true,
-        stripeStatus: true,
         image: true,
         birthdate: true,
+      },
+    });
+    
+    const account = await prisma.account.findUnique({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        stripeStatus: true,
+        plan: true,
+        stripeCustomerId: true
       },
     });
 
@@ -36,8 +45,11 @@ export async function GET() {
           role: 'Adult',
           isApproved: false,
           username: user.email.split('@')[0] || 'user',
-          stripeStatus: 'incomplete',
         },
+        account: {
+          stripeStatus: 'incomplete',
+          plan: null
+        }
       });
     }
 
@@ -68,6 +80,7 @@ export async function GET() {
       email: user.email,
       memberships,
       profile,
+      account,
     });
   } catch (err) {
     console.error('❌ /api/auth/status error:', err);
