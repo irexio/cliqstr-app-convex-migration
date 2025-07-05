@@ -126,9 +126,12 @@ export default function ChoosePlanForm() {
         setMessage('Free plan selected! Redirecting to dashboard...');
         
         // Force a full page reload to ensure cookies and session state are refreshed
+        // Use cookies.set before redirecting to ensure the session is maintained
         setTimeout(() => {
-          window.location.href = '/my-cliqs';
-        }, 1000);
+          // This will cause a full-page navigation but with proper cookie handling
+          // Add a unique timestamp to force a fresh request and avoid caching issues
+          window.location.href = `/my-cliqs?t=${Date.now()}`;
+        }, 1500); // Give a bit more time for the backend to process
         return;
       }
       
@@ -140,7 +143,8 @@ export default function ChoosePlanForm() {
       // Redirect after showing message briefly
       setTimeout(() => {
         // Force refresh to ensure we have latest session data
-        window.location.href = '/my-cliqs';
+        // Add a timestamp parameter to prevent caching issues
+        window.location.href = `/my-cliqs?t=${Date.now()}`;
       }, 3000);
       
     } catch (err) {
