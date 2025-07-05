@@ -17,7 +17,8 @@ export async function middleware(req: NextRequest) {
 
   if (!token) {
     console.log('[Middleware] No auth_token cookie found:', req.url);
-    return res;
+    // Redirect unauthenticated users to sign-in page
+    return NextResponse.redirect(new URL('/sign-in', req.url));
   }
 
   try {
@@ -29,10 +30,19 @@ export async function middleware(req: NextRequest) {
     }
 
     const { role, isApproved } = payload;
-
-    if (role?.startsWith('child') && !isApproved) {
-      console.log('[Middleware] Unapproved child redirected to /awaiting-approval');
-      return NextResponse.redirect(new URL('/awaiting-approval', req.url));
+    
+    // CRITICAL: Enhanced child safety protection
+    // Check for child role and approval status
+    if (role?.startsWith('child')) {
+      console.log(`[Middleware] Child account detected, approval status: ${isApproved}`);
+      
+      if (!isApproved) {
+        console.log('[Middleware] Unapproved child redirected to /awaiting-approval');
+        return NextResponse.redirect(new URL('/awaiting-approval', req.url));
+      }
+      
+      // Log child account access for audit trail
+      console.log(`[Middleware] Approved child account accessing: ${req.url}`);
     }
 
     return res;

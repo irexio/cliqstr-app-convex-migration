@@ -2,7 +2,7 @@
 // Only accessible by admin users, triggers password reset emails
 
 import { NextRequest, NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth/token';
+import { verifyToken } from '@/lib/auth/jwt';
 import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: {
         resetToken,
-        resetTokenExpiry,
+        resetTokenExpires: resetTokenExpiry,
       },
     });
 
