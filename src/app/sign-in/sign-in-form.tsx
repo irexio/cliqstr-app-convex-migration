@@ -39,7 +39,6 @@ export default function SignInForm() {
         body: JSON.stringify({ email, password }),
       });
 
-      // Parse the response
       let signInData;
       try {
         signInData = await res.json();
@@ -58,16 +57,13 @@ export default function SignInForm() {
         }
         throw new Error(message);
       }
-      
-      // If we got minimal user data back from the sign-in API, use it directly
-      // This prevents the need for a separate status check if the API already gave us user info
+
       const directUserData = signInData?.user;
 
-      // 🔐 APA-HARDENED: Add a short delay to allow cookie to be properly set before verification
-      // This prevents race conditions with cookie setting while maintaining security
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // 🔍 Step 2: Fetch session data to validate user
+      // 🔐 APA-SAFE: Wait briefly for cookie to sync
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      // 🔍 Step 2: Fetch verified session
       let userData;
       let attemptCount = 0;
       const maxAttempts = 2;
@@ -75,42 +71,30 @@ export default function SignInForm() {
       while (attemptCount < maxAttempts) {
         attemptCount++;
         try {
-          // Try primary endpoint first
           const userRes = await fetch('/auth/status', {
             method: 'GET',
-            headers: { 
-              'Content-Type': 'application/json',
-              // Force cache revalidation to ensure fresh data
-              'Cache-Control': 'no-cache' 
-            },
+            headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
             credentials: 'include',
             cache: 'no-store',
           });
 
           if (!userRes.ok) {
-            // Fall back to alternate endpoint
-            const altUserRes = await fetch('/api/auth/status', {
+            const altRes = await fetch('/api/auth/status', {
               method: 'GET',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
-              },
+              headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
               credentials: 'include',
               cache: 'no-store',
             });
 
-            if (!altUserRes.ok) {
-              // Only throw on final attempt
+            if (!altRes.ok) {
               if (attemptCount >= maxAttempts) {
                 throw new Error('Unable to verify your session. Please try again.');
               }
-              
-              // Wait longer before retry
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               continue;
             }
 
-            userData = await altUserRes.json();
+            userData = await altRes.json();
             break;
           } else {
             userData = await userRes.json();
@@ -121,12 +105,10 @@ export default function SignInForm() {
           if (attemptCount >= maxAttempts) {
             throw new Error('Unable to verify your session. Please try again.');
           }
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
 
-      // If we received user data directly from sign-in API, use it first
-      // Otherwise, fall back to the user data from the status API
       const user = directUserData || userData?.user;
 
       if (!user || !user.id) {
@@ -134,46 +116,47 @@ export default function SignInForm() {
         throw new Error('Your session could not be established. Please try signing in again.');
       }
 
-      console.log('Authentication successful for user:', user.id);
+      console.log('✅ Authenticated user:', user.id);
       console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
-      
-      // 🧯 Step 3: Role + plan checks (in priority order)
+
       const account = userData?.user?.account || user.account;
       const profile = userData?.user?.profile || user.profile;
-      
-      // Debug profile data
-      console.log('User data:', { 
+
+      console.log('🔍 User state:', {
         hasProfile: !!profile,
         hasAccount: !!account,
         role: profile?.role,
-        accountStatus: account?.stripeStatus 
+        plan: account?.stripeStatus,
       });
 
-      // Step 1: Block unapproved children
+      // 🚫 Block unapproved children
       if (profile?.role === 'Child' && !profile.isApproved) {
-        console.log('Child account awaiting approval — redirecting');
+        console.log('Redirecting unapproved child to approval-pending page');
         router.push('/approval-pending');
         return;
       }
 
-      // Step 2: Check if user has selected a plan (from Account)
+      // 🧾 Plan check
       if (!account?.stripeStatus || account.stripeStatus === 'incomplete') {
         console.log('No active plan — redirecting to /choose-plan');
         router.push('/choose-plan');
         return;
       }
-      
-      // Log user state
-      if (profile) {
-        console.log(`User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
-      } else {
-        console.log('User signed in without profile - redirecting to profile creation');
+
+      // 👤 Require profile
+      if (!profile) {
+        console.log('No profile — redirecting to /profile/create');
         router.push('/profile/create');
         return;
       }
-      
-      // Step 3: Success — go to My Cliqs
-      router.push('/my-cliqs');
+
+      console.log(`✅ User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
+
+      // 🎉 Final redirect: force hard reload to fix session edge cases
+      setTimeout(() => {
+        window.location.href = '/my-cliqs';
+      }, 1000);
+
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
       setError(err.message || 'Something went wrong while signing in. Please try again.');
@@ -195,6 +178,7 @@ export default function SignInForm() {
           </div>
         </div>
       )}
+
       <div>
         <label className="block text-sm font-medium">Email</label>
         <input
