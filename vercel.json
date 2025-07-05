@@ -4,14 +4,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "functions": {
-    "api/**/*": {
-      "maxDuration": 10
-    },
-    "auth/**/*": {
-      "maxDuration": 10
-    }
-  },
   "env": {
     "NEXT_PRIVATE_STANDALONE": "true",
     "NEXT_FORCE_EDGE_IMAGES": "true",
