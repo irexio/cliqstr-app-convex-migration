@@ -68,7 +68,7 @@ export default async function MyCliqsDashboardPage() {
 
       {cliqs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20">
-          <h2 className="text-2xl font-bold mb-6">Welcome to My Cliqs Dashboard</h2>
+          <h2 className="text-2xl font-bold mb-6">Welcome to Cliqstr — Beta</h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <Link
               href="/cliqs/build"
