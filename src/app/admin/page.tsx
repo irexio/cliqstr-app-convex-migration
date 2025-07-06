@@ -108,7 +108,13 @@ export default function AdminDashboard() {
         setAuthStatus(authData);
         window.location.reload();
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      let message = 'Login failed. Please check your credentials.';
+      if (error && typeof error === 'object' && 'message' in error && typeof (error as any).message === 'string') {
+        message = (error as { message: string }).message;
+      }
+      console.error('Login error:', error);
+      setError(message);
       console.error('Login error:', error);
       setError(error.message || 'Login failed. Please check your credentials.');
     } finally {

@@ -19,6 +19,9 @@ type UserData = {
     stripeStatus?: string;
     plan?: string;
   };
+  profile?: {
+    username: string;
+  };
 };
 
 export function HeaderComponent() {
@@ -142,7 +145,10 @@ export function HeaderComponent() {
             email: data.email || '',
             role: data.role || '',
             avatarUrl: data.profile?.image || undefined,
-            account: data.account || undefined
+            account: data.account || undefined,
+            profile: {
+              username: data.profile?.username || data.email?.split('@')[0] || 'user',
+            },
           });
         } else {
           console.log('[Header] No user ID in response, setting as logged out');

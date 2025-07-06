@@ -30,10 +30,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className="bg-white text-[#202020] font-poppins antialiased min-h-screen">
+      <body className="bg-white text-[#202020] font-poppins antialiased min-h-screen flex flex-col">
         <SessionProvider>
           <Header />
-          <main>{children}</main>
+          <main className="flex-1">{children}</main>
           <Footer />
         </SessionProvider>
       </body>
