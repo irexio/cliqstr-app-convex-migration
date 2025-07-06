@@ -14,6 +14,9 @@ type UserData = {
     stripeStatus?: string;
     plan?: string;
   };
+  profile?: {
+    username?: string;
+  };
 };
 
 type UserDropdownProps = {
