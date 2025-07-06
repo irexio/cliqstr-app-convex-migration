@@ -115,9 +115,6 @@ export default function AdminDashboard() {
       } else {
         setError('Login failed. Please check your credentials.');
       }
-    
-      console.error('Login error:', error);
-      setError(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoginLoading(false);
     }
