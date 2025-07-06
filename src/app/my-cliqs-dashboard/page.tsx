@@ -67,9 +67,23 @@ export default async function MyCliqsDashboardPage() {
       </div>
 
       {cliqs.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          You don’t have any cliqs yet. Start by creating one or accepting an invite!
-        </p>
+        <div className="flex flex-col items-center justify-center py-20">
+          <h2 className="text-2xl font-bold mb-6">Welcome to My Cliqs Dashboard</h2>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Link
+              href="/cliqs/build"
+              className="bg-black text-white px-6 py-3 rounded-md text-lg font-semibold hover:text-[#c032d1] transition"
+            >
+              ➕ Create a Cliq
+            </Link>
+            <Link
+              href="/profile"
+              className="bg-black text-white px-6 py-3 rounded-md text-lg font-semibold hover:text-[#c032d1] transition"
+            >
+              👤 Create Your Profile
+            </Link>
+          </div>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {cliqs.map((cliq) => (
