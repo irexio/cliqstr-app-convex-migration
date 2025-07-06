@@ -137,7 +137,9 @@ export default function SignInForm() {
       }
 
       // 🧾 Plan check
-      if (!account?.stripeStatus || account.stripeStatus === 'incomplete') {
+      console.log('[Post-login] stripeStatus:', account?.stripeStatus);
+      const ACTIVE_STATUSES = ['active', 'verified', 'paid', 'trialing'];
+      if (!account?.stripeStatus || !ACTIVE_STATUSES.includes(account.stripeStatus)) {
         console.log('No active plan — redirecting to /choose-plan');
         router.push('/choose-plan');
         return;
