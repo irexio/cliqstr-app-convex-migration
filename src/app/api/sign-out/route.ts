@@ -14,7 +14,7 @@ export async function POST() {
     
     // Set an expired cookie to clear it
     response.cookies.set({
-      name: 'auth_token',
+      name: 'session',
       value: '',
       expires: new Date(0),
       httpOnly: true,

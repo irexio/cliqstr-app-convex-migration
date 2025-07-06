@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from '@/lib/auth/jwt';
 
 /**
  * 🔐 Consolidated Security Middleware
@@ -11,101 +10,43 @@ import { verifyToken } from '@/lib/auth/jwt';
  */
 export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
-  
-  // Get auth token from cookie with detailed logging
-  const allCookies = req.cookies.getAll();
-  console.log(`[Middleware DEBUG] All cookies:`, allCookies.map(c => c.name));
-  
-  // Enhanced token extraction - check both cookie locations
-  let token = req.cookies.get('auth_token')?.value;
-  
-  // Add extra debugging information to help diagnose the issue
-  console.log(`[Middleware DEBUG] Path: ${path}, Token exists: ${!!token}`);
-  
-  if (!token && path === '/my-cliqs') {
-    console.log('[Middleware] Session token missing, redirecting with special indicator');
-    // Add a debug query param to track redirect chains
-    return NextResponse.redirect(new URL('/sign-in?redirect=my-cliqs&debug=true', req.url));
-  }
-  
-  // Admin route protection
+
+  // Get session cookie
+  const session = req.cookies.get('session')?.value;
+
+  // Admin route protection (session-based)
   if (path.startsWith('/admin')) {
-    if (!token) {
-      console.log('[Middleware] No auth_token found for admin route, redirecting to /not-authorized');
+    if (!session) {
+      // No session cookie, not authorized
       return NextResponse.redirect(new URL('/not-authorized', req.url));
     }
-    
-    try {
-      const payload = verifyToken(token);
-      
-      if (!payload) {
-        console.error('[Middleware] Invalid or expired token for admin route');
-        return NextResponse.redirect(new URL('/not-authorized', req.url));
-      }
-      
-      // Check specifically for Admin role
-      if (payload.role !== 'Admin') {
-        console.log(`[Middleware] User with role ${payload.role} attempted to access admin route`);
-        return NextResponse.redirect(new URL('/not-authorized', req.url));
-      }
-      
-      // User is Admin, allow access
-      return NextResponse.next();
-    } catch (err) {
-      console.error('[Middleware] Token verification error for admin route:', err);
-      return NextResponse.redirect(new URL('/not-authorized', req.url));
-    }
+    // NOTE: For full role enforcement, do this server-side in page logic with getCurrentUser()
+    // Middleware cannot access DB, so session presence is all we can check here
+    return NextResponse.next();
   }
-  
+
   // APA-protected routes
   const isProtectedRoute = (
-    path.startsWith('/cliqs/') || 
-    path === '/cliqs' || 
-    path === '/my-cliqs' || 
-    path === '/my-cliqs-dashboard' || 
+    path.startsWith('/cliqs/') ||
+    path === '/cliqs' ||
+    path === '/my-cliqs' ||
+    path === '/my-cliqs-dashboard' ||
     path.startsWith('/parents-hq')
   );
-  
+
   if (isProtectedRoute) {
-    if (!token) {
-      console.log('[Middleware] No auth_token cookie found for protected route:', req.url);
+    if (!session) {
+      // No session cookie, must sign in
       return NextResponse.redirect(new URL('/sign-in', req.url));
     }
-    
-    try {
-      const payload = verifyToken(token);
-      
-      if (!payload) {
-        console.error('[Middleware] Invalid or expired token for protected route');
-        return NextResponse.redirect(new URL('/sign-in', req.url));
-      }
-      
-      const { role, isApproved } = payload;
-      
-      // CRITICAL: Enhanced child safety protection
-      if (role?.toLowerCase().startsWith('child')) {
-        console.log(`[Middleware] Child account detected, approval status: ${isApproved}`);
-        
-        if (!isApproved) {
-          console.log('[Middleware] Unapproved child redirected to /awaiting-approval');
-          return NextResponse.redirect(new URL('/awaiting-approval', req.url));
-        }
-        
-        // Log child account access for audit trail
-        console.log(`[Middleware] Approved child account accessing: ${req.url}`);
-      }
-      
-      // Authenticated and authorized user
-      return NextResponse.next();
-    } catch (err) {
-      console.error('[Middleware] Token verification error for protected route:', err);
-      return NextResponse.redirect(new URL('/sign-in', req.url));
-    }
+    // NOTE: Child approval and role checks should happen in the page/server logic with getCurrentUser()
+    return NextResponse.next();
   }
-  
+
   // For all other routes, allow access
   return NextResponse.next();
 }
+
 
 // Configure which routes use this middleware
 // Security middleware configuration

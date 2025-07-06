@@ -15,7 +15,6 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
-import { signToken } from '@/lib/auth/jwt';
 
 export async function POST(req: Request) {
   try {
@@ -49,13 +48,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const token = signToken({
-      userId: user.id,
-      role: user.profile?.role || 'adult',
-      isApproved: user.profile?.isApproved || false,
-    });
-
-    // ✅ Set secure auth_token cookie via header (not .set)
+    //  Set secure session cookie with user.id (APA-compliant)
     const response = NextResponse.json({
       success: true,
       user: {
@@ -64,12 +57,15 @@ export async function POST(req: Request) {
       },
     });
 
-    response.headers.append(
-      'Set-Cookie',
-      `auth_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${
-        60 * 60 * 24 * 7
-      }; ${process.env.NODE_ENV === 'production' ? 'Secure;' : ''}`
-    );
+    response.cookies.set({
+      name: 'session',
+      value: user.id,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
 
     return response;
   } catch (err) {

@@ -13,11 +13,15 @@
  *   - /api/parent/settings/update → saves changes
  */
 
-'use client';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { notFound } from 'next/navigation';
+import ParentDashboard from '@/components/ParentDashboard';
 
-import ParentDashboard from '@/components/ParentDashboard'; // 🔁 update path if needed
-
-export default function ParentsHQPage() {
+export default async function ParentsHQPage() {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'Parent') {
+    notFound();
+  }
   return (
     <main className="max-w-3xl mx-auto px-6 py-8">
       <h1 className="text-3xl font-bold mb-6">Parents HQ</h1>
