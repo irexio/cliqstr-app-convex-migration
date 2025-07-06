@@ -80,7 +80,7 @@ export function MobileMenu({
 
         {isLoggedIn && (
           <Link
-            href="/my-cliqs"
+            href="/my-cliqs-dashboard"
             className="font-semibold text-center hover:underline transition"
             onClick={() => setIsMobileMenuOpen(false)}
           >

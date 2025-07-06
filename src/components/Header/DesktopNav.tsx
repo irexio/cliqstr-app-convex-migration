@@ -23,7 +23,7 @@ export function DesktopNav({ isLoggedIn }: DesktopNavProps) {
       </Link>
 
       {isLoggedIn && (
-        <Link href="/my-cliqs" className="font-semibold hover:underline transition">
+        <Link href="/my-cliqs-dashboard" className="font-semibold hover:underline transition">
           My Cliqs
         </Link>
       )}

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { getAgeGroup } from '@/lib/ageUtils';
 
 interface ProfilePublicProps {
-  username: string;
+  displayName: string;
   image?: string;
   bannerImage?: string;
   about?: string;
@@ -12,7 +12,7 @@ interface ProfilePublicProps {
 }
 
 export default function ProfilePublic({
-  username,
+  displayName,
   image,
   bannerImage,
   about,
@@ -25,7 +25,7 @@ export default function ProfilePublic({
         <div className="w-full h-40 relative">
           <Image
             src={bannerImage}
-            alt={`${username}'s banner`}
+            alt={`${displayName}'s banner`}
             layout="fill"
             objectFit="cover"
             className="object-cover"
@@ -39,13 +39,13 @@ export default function ProfilePublic({
         {image && (
           <Image
             src={image}
-            alt={`${username}'s avatar`}
+            alt={`${displayName}'s avatar`}
             width={96}
             height={96}
             className="rounded-full border shadow mb-4"
           />
         )}
-        <h2 className="text-xl font-semibold text-[#202020]">{username}</h2>
+        <h2 className="text-xl font-semibold text-[#202020]">{displayName}</h2>
 
         <p className="text-sm text-gray-500 italic mt-1">
           Age Group: {getAgeGroup(birthdate).group}

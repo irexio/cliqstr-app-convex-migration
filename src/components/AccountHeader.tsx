@@ -63,10 +63,8 @@ export default function AccountHeader({ user }: AccountHeaderProps) {
               {isMenuOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
                   <div className="px-4 py-2 border-b border-gray-100">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-gray-500">
-                      {user.role.charAt(0) + user.role.slice(1).toLowerCase()}
-                    </p>
+                    <p className="text-sm font-medium">{user.name || 'New User'}</p>
+                    <p className="text-sm text-gray-500 capitalize">Role: {user.role}</p>
                     {user.account?.stripeStatus && (
                       <p className="text-xs text-gray-500 mt-1">
                         Plan: <span className="font-medium capitalize">{user.account.plan || user.account.stripeStatus}</span>
@@ -75,7 +73,7 @@ export default function AccountHeader({ user }: AccountHeaderProps) {
                   </div>
                   
                   <Link 
-                    href={`/profile/${user.id}`} 
+                    href={`/profile/${user.name || 'new-user'}`} 
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     onClick={() => setIsMenuOpen(false)}
                   >
