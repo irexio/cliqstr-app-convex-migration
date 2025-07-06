@@ -7,7 +7,6 @@ const f = createUploadthing()
 
 export const ourFileRouter = {
   avatar: f({ image: { maxFileSize: '1MB' } }).onUploadComplete(async ({ file }) => {
-    import { getCurrentUser } from '@/lib/auth/getCurrentUser';
     const user = await getCurrentUser();
     if (!user?.id) throw new Error('Unauthorized upload attempt');
     console.log('✅ Avatar uploaded:', file.url);
