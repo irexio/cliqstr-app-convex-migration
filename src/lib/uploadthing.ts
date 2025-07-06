@@ -1,7 +1,7 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/server'
 import { generateUploadButton } from '@uploadthing/react'
 import { getServerSession } from '@/lib/auth/getServerSession'
-
+import { cookies } from 'next/headers'
 const f = createUploadthing()
 
 export const ourFileRouter = {
@@ -17,26 +17,29 @@ export const ourFileRouter = {
   }),
 
   banner: f({ image: { maxFileSize: '4MB' } }).onUploadComplete(async ({ file }) => {
-    const session = await getServerSession()
-
-    if (!session?.id) {
-      throw new Error('Unauthorized upload attempt')
+    const cookieStore = await cookies(); // must await!
+    const session = cookieStore.get('session')?.value;
+  
+    if (!session) {
+      throw new Error('Unauthorized upload attempt');
     }
-
-    console.log('✅ Banner uploaded:', file.url)
-    return { url: file.url }
+  
+    console.log('✅ Banner uploaded:', file.url);
+    return { url: file.url };
   }),
+  
+postImage: f({ image: { maxFileSize: '2MB' } }).onUploadComplete(async ({ file }) => {
+  const cookieStore = await cookies();
+  const session = cookieStore.get('session')?.value;
 
-  postImage: f({ image: { maxFileSize: '2MB' } }).onUploadComplete(async ({ file }) => {
-    const session = await getServerSession()
+  if (!session) {
+    throw new Error('Unauthorized upload attempt');
+  }
 
-    if (!session?.id) {
-      throw new Error('Unauthorized upload attempt')
-    }
+  console.log('✅ Post image uploaded:', file.url);
+  return { url: file.url };
+}),
 
-    console.log('✅ Post image uploaded:', file.url)
-    return { url: file.url }
-  }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter
