@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     
     // For test/free plan, mark as active immediately and approve the profile
     // For paid plans, they remain pending until payment is confirmed through Stripe
-    const stripeStatus = plan === 'test' ? 'free' : 'pending';
+    const stripeStatus = plan === 'test' ? 'test' : 'pending';
     
     // Only mark profile as approved for free/test plan
     if (plan === 'test') {
