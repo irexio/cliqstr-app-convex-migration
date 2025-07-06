@@ -58,12 +58,7 @@ export default async function MyCliqsDashboardPage() {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">My Cliqs</h1>
-        <Link
-          href="/cliqs/build"
-          className="bg-[#7F56D9] text-white px-4 py-2 rounded-md hover:bg-[#6B46C1] transition text-sm"
-        >
-          ➕ Create New Cliq
-        </Link>
+        
       </div>
 
       {cliqs.length === 0 ? (
