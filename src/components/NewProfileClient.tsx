@@ -2,7 +2,8 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { UploadButton } from '@/lib/uploadthing';
+import { UploadButton } from '@uploadthing/react';
+import type { OurFileRouter } from '@/lib/uploadthing';
 import ScrapbookGallery from './ScrapbookGallery';
 import { getAgeGroup } from '@/lib/ageUtils';
 
@@ -96,9 +97,9 @@ export default function ProfileClient({
           <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-t-lg">
             <div className="bg-white p-4 rounded-lg shadow-lg max-w-sm w-full m-4">
               <h3 className="font-medium mb-3">Upload New Banner</h3>
-              <UploadButton
+              <UploadButton<OurFileRouter, "banner">
                 endpoint="banner"
-                onClientUploadComplete={(res) => {
+                onClientUploadComplete={(res: { url: string }[]) => {
                   if (res?.[0]?.url) {
                     setData({ ...data, bannerUrl: res[0].url });
                     handleChange('bannerUrl', res[0].url);
@@ -156,9 +157,9 @@ export default function ProfileClient({
           <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
             <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full m-4">
               <h3 className="font-medium mb-4">Upload New Profile Picture</h3>
-              <UploadButton
+              <UploadButton<OurFileRouter, "avatar">
                 endpoint="avatar"
-                onClientUploadComplete={(res) => {
+                onClientUploadComplete={(res: { url: string }[]) => {
                   if (res?.[0]?.url) {
                     setData({ ...data, avatarUrl: res[0].url });
                     handleChange('avatarUrl', res[0].url);

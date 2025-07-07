@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { UploadButton } from '@/lib/uploadthing';
+import { UploadButton } from '@uploadthing/react';
+import type { OurFileRouter } from '@/lib/uploadthing';
 
 type ScrapbookItem = {
   id: string;
@@ -88,9 +89,9 @@ export default function ScrapbookGallery({
 
       {isOwner && isUploading && (
         <div className="mb-6 p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
-          <UploadButton
+          <UploadButton<OurFileRouter, "postImage">
             endpoint="postImage"
-            onClientUploadComplete={(res) => {
+            onClientUploadComplete={(res: { url: string }[]) => {
               if (res?.[0]?.url) {
                 handleImageUploaded(res[0].url);
               }

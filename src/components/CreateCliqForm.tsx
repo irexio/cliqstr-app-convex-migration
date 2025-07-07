@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchJson } from '@/lib/fetchJson';
+import { UploadDropzone } from '@uploadthing/react';
+import type { OurFileRouter } from '@/lib/uploadthing'; // Adjust path if needed
 
 export default function CreateCliqForm({ userId }: { userId: string }) {
   const router = useRouter();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [coverImage, setCoverImage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -18,12 +21,14 @@ export default function CreateCliqForm({ userId }: { userId: string }) {
     setLoading(true);
 
     try {
-      const res = await fetchJson('/api/cliqs/create', {
+      await fetchJson('/api/cliqs/create', {
         method: 'POST',
         body: JSON.stringify({
           userId,
           name,
           description,
+          coverImage,
+          privacy: 'private', // Can update later with dropdown
         }),
       });
 
@@ -61,6 +66,22 @@ export default function CreateCliqForm({ userId }: { userId: string }) {
           rows={3}
           className="mt-1 w-full border px-3 py-2 rounded text-sm"
           placeholder="This is a private cliq for my closest friends"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Cliq Cover Image</label>
+        <UploadDropzone<OurFileRouter, "cliqCover">
+          endpoint="cliqCover"
+          onClientUploadComplete={(res) => {
+            if (res?.[0]?.url) {
+              setCoverImage(res[0].url);
+            }
+          }}
+          onUploadError={(err) => {
+            console.error('[UPLOAD_ERROR]', err);
+            setError('Image upload failed. Please try again.');
+          }}
         />
       </div>
 

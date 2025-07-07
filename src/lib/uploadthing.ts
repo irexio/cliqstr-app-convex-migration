@@ -1,9 +1,7 @@
-import { createUploadthing, type FileRouter } from 'uploadthing/server'
-import { generateUploadButton } from '@uploadthing/react'
-import { getCurrentUser } from '@/lib/auth/getCurrentUser'
-import { getServerSession } from '@/lib/auth/getServerSession'
-import { cookies } from 'next/headers'
-const f = createUploadthing()
+import { createUploadthing, type FileRouter } from 'uploadthing/server';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+
+const f = createUploadthing();
 
 export const ourFileRouter = {
   avatar: f({ image: { maxFileSize: '1MB' } }).onUploadComplete(async ({ file }) => {
@@ -19,17 +17,21 @@ export const ourFileRouter = {
     console.log('✅ Banner uploaded:', file.url);
     return { url: file.url };
   }),
-  
-postImage: f({ image: { maxFileSize: '2MB' } }).onUploadComplete(async ({ file }) => {
-  const user = await getCurrentUser();
-  if (!user?.id) throw new Error('Unauthorized upload attempt');
-  console.log('✅ Post image uploaded:', file.url);
-  return { url: file.url };
-}),
 
-} satisfies FileRouter
+  postImage: f({ image: { maxFileSize: '2MB' } }).onUploadComplete(async ({ file }) => {
+    const user = await getCurrentUser();
+    if (!user?.id) throw new Error('Unauthorized upload attempt');
+    console.log('✅ Post image uploaded:', file.url);
+    return { url: file.url };
+  }),
 
-export type OurFileRouter = typeof ourFileRouter
-export type UploadEndpoint = keyof OurFileRouter
+  cliqCover: f({ image: { maxFileSize: '4MB' } }).onUploadComplete(async ({ file }) => {
+    const user = await getCurrentUser();
+    if (!user?.id) throw new Error('Unauthorized upload attempt');
+    console.log('✅ Cliq cover uploaded:', file.url);
+    return { url: file.url };
+  }),
+} satisfies FileRouter;
 
-export const UploadButton = generateUploadButton<OurFileRouter>()
+export type OurFileRouter = typeof ourFileRouter;
+export type UploadEndpoint = keyof OurFileRouter;
