@@ -130,7 +130,7 @@ export default function ChoosePlanForm() {
         setTimeout(() => {
           console.log('Free plan selected - redirecting to dashboard');
           // Use window.location for a fresh page load with all cookies intact
-          window.location.href = `/my-cliqs-dashboard?auth=true&t=${Date.now()}`;
+          window.location.href = `/my-cliqs?auth=true&t=${Date.now()}`;
         }, 2000); // Extended time for backend processing
         return;
       }
