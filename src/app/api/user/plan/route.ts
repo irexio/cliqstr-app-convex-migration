@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     
     // Only mark profile as approved for free/test plan
     if (plan === 'test') {
-      await prisma.profile.update({
+      await prisma.account.update({
         where: { userId: user.id },
         data: { isApproved: true }
       });
@@ -59,6 +59,8 @@ export async function POST(req: Request) {
       account = await prisma.account.create({
         data: {
           userId: user.id,
+          role: user.account?.role || 'Child',
+          isApproved: plan === 'test',
           plan: planType,
           stripeStatus
         }

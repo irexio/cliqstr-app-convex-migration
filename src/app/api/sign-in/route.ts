@@ -28,6 +28,7 @@ export async function POST(req: Request) {
       where: { email },
       include: {
         profile: true,
+        account: true,
       },
     });
 
@@ -40,8 +41,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    // 🔒 Block unapproved children
-    if (user.profile?.role === 'Child' && !user.profile?.isApproved) {
+    // 🔒 Block unapproved children (APA: check Account, not Profile)
+    if (user.account?.role === 'Child' && !user.account?.isApproved) {
       return NextResponse.json(
         { error: 'Awaiting parent approval' },
         { status: 403 }
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       success: true,
       user: {
         id: user.id,
-        role: user.profile?.role || 'Adult',
+        role: user.account?.role || 'Adult',
       },
     });
 

@@ -7,9 +7,9 @@ import { redirect } from 'next/navigation';
 export default async function AccountPage() {
   const user = await getCurrentUser();
 
-  // Only parents and adults can access this page
-  if (!user?.id || !['parent', 'adult'].includes(user.role)) {
-    redirect('/'); // Optional: redirect to /parents-hq
+  // Only parents and adults can access this page (case-insensitive)
+  if (!user?.id || !['parent', 'adult'].includes((user.role ?? '').toLowerCase())) {
+    redirect('/');
   }
 
   return (
@@ -27,14 +27,6 @@ export default async function AccountPage() {
           <span className="ml-2 capitalize">{user.role}</span>
         </div>
 
-        {user.profile?.birthdate && (
-          <div>
-            <span className="font-medium text-gray-600">Birthdate:</span>
-            <span className="ml-2">
-              {new Date(user.profile.birthdate).toLocaleDateString()}
-            </span>
-          </div>
-        )}
 
         {user.account?.stripeStatus && (
           <div>
@@ -44,7 +36,7 @@ export default async function AccountPage() {
         )}
 
         {/* Future optional: subscription management */}
-        {/* 
+        {/*
         <div className="pt-4">
           <button className="bg-black text-white text-sm px-4 py-2 rounded hover:bg-gray-800">
             Manage Subscription

@@ -24,8 +24,7 @@ export async function GET() {
       select: {
         id: true,
         username: true,
-        role: true,
-        isApproved: true,
+
         image: true,
         birthdate: true,
       },
@@ -38,6 +37,8 @@ export async function GET() {
         plan: true,
         stripeStatus: true,
         stripeCustomerId: true,
+        role: true,
+        isApproved: true,
       },
     });
 
@@ -54,8 +55,8 @@ export async function GET() {
       }
     });
 
-    // Unapproved children only return limited info
-    if (profile?.role === 'Child' && !profile?.isApproved) {
+    // Unapproved children only return limited info (APA: check Account, not Profile)
+    if (account?.role === 'Child' && !account?.isApproved) {
       return NextResponse.json({
         id: user.id,
         email: user.email,

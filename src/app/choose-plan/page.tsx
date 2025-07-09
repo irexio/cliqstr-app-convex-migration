@@ -12,7 +12,7 @@ export default async function ChoosePlanPage() {
   }
 
   // Allow both Parents and Adults to select plans per APA guidelines
-  if (user.profile?.role !== 'Parent' && user.profile?.role !== 'Adult') {
+  if (user.account?.role !== 'Parent' && user.account?.role !== 'Adult') {
     return (
       <div className="p-10 text-red-600 text-center">
         Access denied. Only parents and adults can select a plan.

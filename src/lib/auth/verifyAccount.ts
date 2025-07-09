@@ -36,34 +36,33 @@ export async function verifyAccount({ userId, method, metadata = {} }: VerifyAcc
       throw new Error(`Profile not found for user ${userId}`);
     }
 
-    // For child accounts, only parent_approval can verify them
-    if (profile.role === 'Child' && method !== 'parent_approval') {
+    // For child accounts, only parent_approval can verify them (APA: check Account, not Profile)
+    if (account?.role === 'Child' && method !== 'parent_approval') {
       console.log(`Child account ${userId} requires parent approval, not ${method}`);
       return { success: false, message: 'Child accounts require parent approval' };
     }
 
-    // Update profile to mark as approved
-    const updatedProfile = await prisma.profile.update({
-      where: { userId },
-      data: {
-        isApproved: true
-      }
-    });
-    
-    // Track verification method in Account.stripeStatus field
-    let updatedAccount;
+    // Update account to mark as approved (APA: approval on Account, not Profile)
+    let updatedProfile = profile;
+    let updatedAccount = account;
     if (account) {
       updatedAccount = await prisma.account.update({
         where: { userId },
         data: {
+          isApproved: true,
           stripeStatus: method === 'credit_card' ? 'verified_by_payment' : 
-                      method === 'email' ? 'verified_by_email' : 'verified_by_parent'
+                      method === 'email' ? 'verified_by_email' : 'verified_by_parent',
+          plan: 'basic'
         }
       });
     } else {
+      // Fallback: try to get role from metadata, else default to 'Child'
+      const role = metadata?.role || 'Child';
       updatedAccount = await prisma.account.create({
         data: {
           userId,
+          role,
+          isApproved: true,
           stripeStatus: method === 'credit_card' ? 'verified_by_payment' : 
                       method === 'email' ? 'verified_by_email' : 'verified_by_parent',
           plan: 'basic'

@@ -20,8 +20,6 @@ export async function middleware(req: NextRequest) {
       // No session cookie, not authorized
       return NextResponse.redirect(new URL('/not-authorized', req.url));
     }
-    // NOTE: For full role enforcement, do this server-side in page logic with getCurrentUser()
-    // Middleware cannot access DB, so session presence is all we can check here
     return NextResponse.next();
   }
 
@@ -39,13 +37,34 @@ export async function middleware(req: NextRequest) {
       // No session cookie, must sign in
       return NextResponse.redirect(new URL('/sign-in', req.url));
     }
-    // NOTE: Child approval and role checks should happen in the page/server logic with getCurrentUser()
+    // Middleware cannot access DB, so we call the status endpoint to check suspension
+    try {
+      // Prefer /api/auth/status, fallback to /auth/status
+      const url = req.nextUrl.clone();
+      url.pathname = '/api/auth/status';
+      const res = await fetch(url.toString(), {
+        headers: { Cookie: req.headers.get('cookie') || '' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.user?.account?.suspended) {
+          if (path !== '/suspended') {
+            url.pathname = '/suspended';
+            return NextResponse.redirect(url);
+          }
+        }
+      }
+    } catch (err) {
+      // If status endpoint fails, let through (fail open)
+      // Optionally log error
+    }
     return NextResponse.next();
   }
 
   // For all other routes, allow access
   return NextResponse.next();
 }
+
 
 
 // Configure which routes use this middleware

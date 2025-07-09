@@ -1,4 +1,6 @@
 'use client';
+// NOTE: Stripe is currently in TEST MODE. Free plan skips Stripe approval. (2025-07-09)
+
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';

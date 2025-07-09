@@ -1,4 +1,4 @@
-// One-time script to approve a specific user with enhanced error reporting
+// scripts/approve-user-verbose.ts
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient({
@@ -7,136 +7,81 @@ const prisma = new PrismaClient({
 
 async function approveUser() {
   try {
-    console.log('Script started - attempting to approve mimi@cliqstr.com');
-    console.log('Checking database connection...');
-    
-    // Test database connection
+    console.log('🛠 Approving user: mimi@cliqstr.com');
     await prisma.$connect();
-    console.log('Database connection successful');
-    
-    // Find the user by email
-    console.log('Searching for user with email: mimi@cliqstr.com');
+
     const user = await prisma.user.findUnique({
       where: { email: 'mimi@cliqstr.com' },
       include: { profile: true, account: true },
     });
 
     if (!user) {
-      console.error('❌ User not found with email mimi@cliqstr.com');
+      console.error('❌ User not found.');
       return;
     }
 
-    console.log('✅ Found user:', { id: user.id, email: user.email });
-    console.log('Current profile status:', user.profile ? 'Exists' : 'Does not exist');
-    
-    if (user.profile) {
-      console.log('Existing profile details:', {
-        profileId: user.profile.id,
-        username: user.profile.username,
-        role: user.profile.role,
-        isApproved: user.profile.isApproved
-      });
-    }
-    
+    console.log('👤 Found user:', { id: user.id, email: user.email });
+
+    // ✅ Ensure account exists and is updated
     if (user.account) {
-      console.log('Existing account details:', {
-        accountId: user.account.id,
-        stripeStatus: user.account.stripeStatus,
-        plan: user.account.plan
+      const updatedAccount = await prisma.account.update({
+        where: { id: user.account.id },
+        data: {
+          role: 'Parent',
+          isApproved: true,
+          plan: 'basic',
+          stripeStatus: 'verified',
+        },
       });
+      console.log('✅ Updated account:', updatedAccount);
+    } else {
+      const newAccount = await prisma.account.create({
+        data: {
+          userId: user.id,
+          role: 'Parent',
+          isApproved: true,
+          plan: 'basic',
+          stripeStatus: 'verified',
+        },
+      });
+      console.log('✅ Created new account:', newAccount);
     }
-    
-    if (!user.profile) {
-      // Create profile if it doesn't exist
-      console.log('Creating new profile for user...');
-      
-      const profile = await prisma.profile.create({
+
+    // ✅ Ensure profile exists (only includes valid fields)
+    if (user.profile) {
+      const updatedProfile = await prisma.profile.update({
+        where: { id: user.profile.id },
+        data: {
+          username: user.profile.username || 'mimi',
+          birthdate: user.profile.birthdate || new Date('1980-01-01'),
+          ageGroup: user.profile.ageGroup || 'adult',
+        },
+      });
+      console.log('✅ Updated profile:', updatedProfile);
+    } else {
+      const newProfile = await prisma.profile.create({
         data: {
           userId: user.id,
           username: 'mimi',
-          role: 'Adult',
-          isApproved: true,
-          // Add birthdate for APA compliance - using an adult birthdate (30 years old)
-          birthdate: new Date(new Date().setFullYear(new Date().getFullYear() - 30)),
+          birthdate: new Date('1980-01-01'),
+          ageGroup: 'adult',
         },
       });
-      
-      // Create account with subscription data
-      const account = await prisma.account.create({
-        data: {
-          userId: user.id,
-          stripeStatus: 'verified',
-          plan: 'basic'
-        },
-      });
-      
-      console.log('✅ Created account with ID:', account.id);
-      
-      console.log('✅ Created profile with ID:', profile.id);
-    } else {
-      // Update existing profile
-      console.log('Updating existing profile...');
-      
-      const profile = await prisma.profile.update({
-        where: { id: user.profile.id },
-        data: {
-          isApproved: true,
-          role: 'Adult'
-        },
-      });
-      
-      // Update or create account
-      let account;
-      if (user.account) {
-        account = await prisma.account.update({
-          where: { id: user.account.id },
-          data: {
-            stripeStatus: 'verified',
-            plan: 'basic'
-          },
-        });
-      } else {
-        account = await prisma.account.create({
-          data: {
-            userId: user.id,
-            stripeStatus: 'verified',
-            plan: 'basic'
-          },
-        });
-        console.log('✅ Created new account with ID:', account.id);
-      }
-      
-      console.log('✅ Updated profile with ID:', profile.id);
-      console.log('New profile details:', {
-        profileId: profile.id,
-        username: profile.username,
-        role: profile.role,
-        isApproved: profile.isApproved
-      });
-      
-      if (account) {
-        console.log('Account details:', {
-          accountId: account.id,
-          stripeStatus: account.stripeStatus,
-          plan: account.plan
-        });
-      }
+      console.log('✅ Created new profile:', newProfile);
     }
 
-    console.log('🎉 User has been approved successfully!');
+    console.log('🎉 User approved successfully!');
   } catch (error) {
     console.error('❌ Error approving user:', error);
     if (error instanceof Error) {
-      console.error('Error name:', error.name);
       console.error('Error message:', error.message);
-      console.error('Stack trace:', error.stack);
     }
   } finally {
     try {
       await prisma.$disconnect();
-      console.log('Database connection closed');
+      console.log('🔌 Disconnected from database');
     } catch (disconnectError) {
-      console.error('Error disconnecting from database:', disconnectError);
+      console.error('❌ Error disconnecting:', disconnectError);
     }
   }
 }

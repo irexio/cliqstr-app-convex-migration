@@ -10,11 +10,8 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const profile = await prisma.profile.findUnique({
-    where: { userId: user.id },
-  });
-
-  if (!profile || profile.role !== 'Parent') {
+  // APA: Only allow parents (check Account, not Profile)
+  if (!user.account || user.account.role !== 'Parent') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

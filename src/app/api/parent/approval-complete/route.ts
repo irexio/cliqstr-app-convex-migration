@@ -65,6 +65,13 @@ export async function POST(req: Request) {
       where: { id: childId },
       data: {
         username,
+      },
+    });
+
+    // Update account approval status (APA: manual approval for EBT)
+    await prisma.account.update({
+      where: { userId: childProfile.userId },
+      data: {
         isApproved: plan !== 'ebt',
       },
     });
@@ -94,6 +101,8 @@ export async function POST(req: Request) {
       await prisma.account.create({
         data: {
           userId: childProfile.userId,
+          role: 'Child',
+          isApproved: plan !== 'ebt',
           stripeStatus: plan,
           plan: plan === 'paid' ? 'premium' : 'basic'
         }

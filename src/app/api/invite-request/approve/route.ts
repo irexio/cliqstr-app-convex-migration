@@ -41,8 +41,9 @@ export async function POST(req: NextRequest) {
     const profile = await prisma.profile.findUnique({
       where: { userId: user.id },
     });
+    const account = await prisma.account.findUnique({ where: { userId: user.id } });
 
-    if (!profile || profile.role === 'Child') {
+    if (!profile || !account || account.role === 'Child') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 

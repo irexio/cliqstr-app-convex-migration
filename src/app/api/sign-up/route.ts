@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     const ageDifMs = Date.now() - birthDateObj.getTime();
     const ageDate = new Date(ageDifMs);
     const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-    const isChild = age < 17;
+    const isChild = age < 18;
 
     if (isChild && !parentEmail && !inviteCode) {
       return NextResponse.json({ error: 'Children must include a parent email' }, { status: 403 });
@@ -80,9 +80,17 @@ export async function POST(req: Request) {
       data: {
         userId: newUser.id,
         birthdate: birthDateObj,
+
+        username: `user-${newUser.id}`, // ✅ temp placeholder
+      },
+    });
+
+    // Create Account with APA role/isApproved
+    await prisma.account.create({
+      data: {
+        userId: newUser.id,
         role: invitedRole ?? (isChild ? 'Child' : 'Adult'),
         isApproved: !isChild,
-        username: `user-${newUser.id}`, // ✅ temp placeholder
       },
     });
 

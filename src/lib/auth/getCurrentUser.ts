@@ -20,28 +20,45 @@ export async function getCurrentUser() {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
-        profile: true,
+        profile: {
+          select: {
+            id: true,
+            username: true,
+            image: true,
+            bannerImage: true,
+            about: true,
+          },
+        },
         account: {
           select: {
+            role: true,
+            isApproved: true,
             stripeStatus: true,
             plan: true,
             stripeCustomerId: true,
+            suspended: true, // APA: Needed for suspension enforcement
           },
         },
       },
     });
 
-    if (!user || !user.profile) {
-      console.warn('[APA] User or profile not found for session userId:', userId);
+    if (!user) {
+      console.warn('[APA] User not found for session userId:', userId);
+      return null;
+    }
+
+    // 🔐 APA: Block suspended users from accessing the app
+    if (user.account?.suspended) {
+      console.warn('[APA] Suspended user attempted access:', userId);
       return null;
     }
 
     return {
       id: user.id,
       email: user.email,
-      role: user.profile.role,
-      isApproved: user.profile.isApproved,
-      profile: user.profile,
+      role: user.account?.role ?? null,
+      isApproved: user.account?.isApproved ?? null,
+      profile: user.profile, // Only public fields
       account: user.account,
     };
   } catch (error) {
@@ -49,3 +66,4 @@ export async function getCurrentUser() {
     return null;
   }
 }
+

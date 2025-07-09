@@ -1,30 +1,32 @@
-'use client'
+'use client';
 
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 import {
   InformationCircleIcon,
   ShieldCheckIcon,
   QuestionMarkCircleIcon,
   BookOpenIcon,
-} from '@heroicons/react/24/outline'
+  UserGroupIcon,
+} from '@heroicons/react/24/outline';
 
 const navLinks = [
   { href: '/about', label: 'About', icon: InformationCircleIcon },
   { href: '/safety', label: 'Safety', icon: ShieldCheckIcon },
   { href: '/faqs', label: 'FAQs', icon: QuestionMarkCircleIcon },
   { href: '/how-it-works', label: 'How It Works', icon: BookOpenIcon },
-]
+  { href: '/for-parents', label: 'For Parents', icon: UserGroupIcon },
+];
 
 export default function SidebarNav() {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <nav className="space-y-2 text-sm font-medium">
       {navLinks.map(({ href, label, icon: Icon }) => {
-        const isActive = pathname === href
+        const isActive = pathname === href;
 
         return (
           <Link
@@ -42,13 +44,17 @@ export default function SidebarNav() {
                 isActive ? 'text-[#c032d1]' : 'text-white hover:text-[#c032d1]'
               )}
             />
-            <span className={cn(
-              'transition-colors',
-              isActive ? 'text-[#c032d1] font-semibold' : 'text-white hover:text-[#c032d1]'
-            )}>{label}</span>
+            <span
+              className={cn(
+                'transition-colors',
+                isActive ? 'text-[#c032d1] font-semibold' : 'text-white hover:text-[#c032d1]'
+              )}
+            >
+              {label}
+            </span>
           </Link>
-        )
+        );
       })}
     </nav>
-  )
+  );
 }

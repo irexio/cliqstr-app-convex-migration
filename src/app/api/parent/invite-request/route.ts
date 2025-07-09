@@ -7,7 +7,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET() {
   const user = await getCurrentUser();
 
-  if (!user || user.profile?.role !== 'Parent') {
+  if (!user || user.account?.role !== 'Parent') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

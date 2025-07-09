@@ -19,8 +19,6 @@ export async function GET() {
       select: {
         id: true,
         username: true,
-        role: true,
-        isApproved: true,
         image: true,
         birthdate: true,
       },
@@ -30,6 +28,8 @@ export async function GET() {
       where: { userId: user.id },
       select: {
         id: true,
+        role: true,
+        isApproved: true,
         stripeStatus: true,
         plan: true,
         stripeCustomerId: true
@@ -66,11 +66,12 @@ export async function GET() {
       },
     });
 
-    if (profile.role === 'Child' && !profile.isApproved) {
+    if (account?.role === 'Child' && account?.isApproved === false) {
       return NextResponse.json({
         id: user.id,
         email: user.email,
         profile,
+        account,
         isAwaitingApproval: true,
       });
     }

@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 export default async function VerifyCardPage() {
   const user = await getCurrentUser();
 
-  if (!user || user.profile?.role !== 'Parent') {
+  if (!user || user.account?.role !== 'Parent') {
     redirect('/sign-in');
   }
 

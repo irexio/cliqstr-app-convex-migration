@@ -44,7 +44,6 @@ export async function GET(
             select: {
               username: true,
               image: true,
-              role: true,
             },
           },
         },
