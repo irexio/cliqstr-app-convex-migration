@@ -13,22 +13,13 @@ const prisma = new PrismaClient();
  * Admin API to force password reset for a user
  * POST /api/admin/force-password-reset
  */
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+
 export async function POST(req: NextRequest) {
   try {
-    // 1. Verify admin authorization
-    const token = req.cookies.get('auth_token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Authentication required' },
-        { status: 401 }
-      );
-    }
-
-    // Verify and decode the token
-    const payload = verifyToken(token);
-    
-    if (!payload || payload.role !== 'Admin') {
+    // 1. Verify admin authorization (APA: use getCurrentUser)
+    const user = await getCurrentUser();
+    if (!user?.id || user.account?.role !== 'Admin') {
       return NextResponse.json(
         { message: 'Admin authorization required' },
         { status: 403 }
@@ -47,14 +38,14 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Find the user in the database
-    const user = await prisma.user.findUnique({
+    const targetUser = await prisma.user.findUnique({
       where: { email },
       include: {
         profile: true,
       },
     });
 
-    if (!user) {
+    if (!targetUser) {
       return NextResponse.json(
         { message: 'User not found' },
         { status: 404 }
@@ -67,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     // 5. Store the reset token in the database
     await prisma.user.update({
-      where: { id: user.id },
+      where: { id: targetUser.id },
       data: {
         resetToken,
         resetTokenExpires: resetTokenExpiry,
@@ -82,7 +73,7 @@ export async function POST(req: NextRequest) {
       To: ${email}
       Subject: Cliqstr Password Reset
       
-      Hello ${user.profile?.username || ''},
+      Hello ${targetUser.profile?.username || ''},
       
       Your password has been flagged for reset by an administrator.
       

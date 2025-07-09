@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth/jwt';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 export const dynamic = 'force-dynamic';
 
@@ -46,19 +46,11 @@ If you weren’t expecting this email, you can ignore it.
 // POST route handler for creating invites
 export async function POST(req: Request) {
   try {
-    // Get the authenticated user from the token
-    const cookieStore = await Promise.resolve(cookies());
-    const token = cookieStore.get('auth_token')?.value;
-    
-    if (!token) {
+    // APA: Use getCurrentUser() for session validation
+    const user = await getCurrentUser();
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
-    const payload = verifyToken(token);
-    if (!payload) {
-      return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
-    }
-    
     const { cliqId, email, senderName } = await req.json();
     
     if (!cliqId || !email) {
@@ -83,7 +75,7 @@ export async function POST(req: Request) {
         cliqId,
         invitedRole: 'Child', // Default role for invitees
         inviter: {
-          connect: { id: payload.userId } // Use the authenticated user's ID
+          connect: { id: user.id } // Use the authenticated user's ID
         }
       }
     });
