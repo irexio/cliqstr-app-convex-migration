@@ -120,7 +120,7 @@ export default async function MyCliqsDashboardPage() {
                     🧑‍🤝‍🧑 Members
                   </Link>
                   <Link
-                    href={`/cliqs/${cliq.id}/invite-request`}
+                    href={`/cliqs/${cliq.id}/invite`}
                     className="px-3 py-1 border rounded text-sm hover:text-[#c032d1]"
                   >
                     ✉️ Invite

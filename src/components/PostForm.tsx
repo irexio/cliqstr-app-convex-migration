@@ -10,9 +10,10 @@ import { fetchJson } from '@/lib/fetchJson';
 
 interface PostFormProps {
   cliqId: string;
+  onPostCreated?: (newPost: any) => void;
 }
 
-export default function PostForm({ cliqId }: PostFormProps) {
+export default function PostForm({ cliqId, onPostCreated }: PostFormProps) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,11 +27,24 @@ export default function PostForm({ cliqId }: PostFormProps) {
     setError('');
 
     try {
-      await fetchJson('/api/cliqs/feed', {
+      await fetchJson('/api/posts/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content, cliqId }),
       });
+
+      if (onPostCreated) {
+        onPostCreated({
+          content,
+          cliqId,
+          createdAt: new Date().toISOString(),
+          author: {
+            profile: {
+              username: 'You',
+            },
+          },
+        });
+      }
 
       setContent('');
       router.refresh();

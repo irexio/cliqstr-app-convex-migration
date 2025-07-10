@@ -34,11 +34,13 @@ export async function POST(req: Request) {
     
     // Only mark profile as approved for free/test plan
     if (plan === 'test') {
-      await prisma.account.update({
-        where: { userId: user.id },
-        data: { isApproved: true }
-      });
-    }
+  // Approve account
+  await prisma.account.update({
+    where: { userId: user.id },
+    data: { isApproved: true }
+  });
+
+}
     // For paid plans, profile will be approved after successful Stripe payment
     
     // Find existing account or create one

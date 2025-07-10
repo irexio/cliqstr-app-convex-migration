@@ -162,7 +162,7 @@ export default function SignInForm() {
       // Include a unique timestamp to force a fresh request
       setTimeout(() => {
         // Pass auth=true parameter to help debug the middleware token validation
-        window.location.href = `/my-cliqs?auth=true&t=${Date.now()}`;
+        window.location.href = `/my-cliqs-dashboard?auth=true&t=${Date.now()}`;
       }, 1500);
 
     } catch (err: any) {

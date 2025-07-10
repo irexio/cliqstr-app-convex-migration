@@ -121,19 +121,10 @@ export default function ChoosePlanForm() {
       
       // Special case for Test/Free Plan - apply immediately
       if (selectedPlan === 'test') {
-        console.log('Free Plan selected - applying immediately');
-        setStatus('success');
-        setMessage('Free plan selected! Redirecting to dashboard...');
-        
-        // Fix for session persistence issues - use direct full page navigation with auth parameter
-        // This ensures cookies are properly carried through the entire process
-        setTimeout(() => {
-          console.log('Free plan selected - redirecting to dashboard');
-          // Use window.location for a fresh page load with all cookies intact
-          window.location.href = `/my-cliqs?auth=true&t=${Date.now()}`;
-        }, 2000); // Extended time for backend processing
-        return;
-      }
+  // Instantly redirect to dashboard, no delay or message
+  window.location.href = `/my-cliqs-dashboard?auth=true&plan=test&t=${Date.now()}`;
+  return;
+}
       
       // For paid plans, we'll show a message about Stripe integration
       // In the future, this would redirect to Stripe checkout
