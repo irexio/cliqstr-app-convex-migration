@@ -64,7 +64,7 @@ model User {
   resetTokenExpires DateTime?
 
   profile   Profile?
-  account   Account?   // ✅ Now correctly linked to Account
+  account   Account?   
 
   invites        Invite[] @relation("UserToInvites")
   cliqs          Cliq[]   @relation("OwnedCliqs")
