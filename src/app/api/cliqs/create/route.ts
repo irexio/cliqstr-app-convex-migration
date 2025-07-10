@@ -42,6 +42,12 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    // Normalize privacy casing and default the coverImage field
+    body.privacy = body.privacy?.toLowerCase(); // ensures 'Private' becomes 'private'
+    if (!body.coverImage) body.coverImage = '';
+
+    // Validate input
     const parsed = schema.safeParse(body);
 
     if (!parsed.success) {
