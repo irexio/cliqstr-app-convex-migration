@@ -12,7 +12,7 @@
  *   - name: string
  *   - description?: string
  *   - privacy: 'private' | 'semi' | 'public'
- *   - coverImage?: string
+ *   - coverImage?: string (optional; uses default if blank)
  *
  * Returns:
  *   - 200 OK + new cliq
@@ -31,7 +31,7 @@ const schema = z.object({
   name: z.string().min(2),
   description: z.string().optional(),
   privacy: z.enum(['private', 'semi', 'public']),
-  coverImage: z.string().url().optional(),
+  coverImage: z.string().url().optional().or(z.literal('')),
 });
 
 export async function POST(req: NextRequest) {
@@ -50,7 +50,10 @@ export async function POST(req: NextRequest) {
 
     const { name, description, privacy, coverImage } = parsed.data;
 
-    // 🧼 Normalize legacy or form inputs to match Prisma enums
+    const DEFAULT_IMAGE = '/images/default-gradient.png';
+    const finalCoverImage =
+      coverImage && coverImage.length > 0 ? coverImage : DEFAULT_IMAGE;
+
     let finalPrivacy: 'private' | 'public' | 'semi_private' = privacy as any;
     if (privacy === 'semi') {
       finalPrivacy = 'semi_private';
@@ -61,12 +64,12 @@ export async function POST(req: NextRequest) {
         name,
         description,
         privacy: finalPrivacy,
-        coverImage,
+        coverImage: finalCoverImage,
         ownerId: user.id,
         memberships: {
           create: {
             userId: user.id,
-            role: 'Owner', // ✅ Matches Prisma enum
+            role: 'Owner',
           },
         },
       },
