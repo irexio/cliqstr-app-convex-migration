@@ -6,8 +6,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import BaseCard from '@/components/cards/BaseCard';
+// import CliqCard from '@/components/cliqs/CliqCard'; // Use if card wrapper is needed
 import { cn } from '@/lib/utils';
+import BaseCard from '@/components/cliqs/BaseCard';
 
 // Updated plan structure matching new specifications
 const PLANS = [

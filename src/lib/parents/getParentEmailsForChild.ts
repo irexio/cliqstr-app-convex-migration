@@ -9,5 +9,5 @@ export async function getParentEmailsForChild(childId: string): Promise<string[]
     select: { email: true },
   });
 
-  return links.map(link => link.email);
+  return links.map(link => link.email).filter((email): email is string => !!email);
 }

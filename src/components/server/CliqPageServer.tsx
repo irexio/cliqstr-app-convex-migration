@@ -1,9 +1,9 @@
 // 🔐 APA-SAFE — Loads cliq feed and verifies membership
 
 import { prisma } from '@/lib/prisma';
-import CliqProfileContent from '@/components/CliqProfileContent';
+import CliqProfileContent from '@/components/cliqs/CliqProfileContent';
 import PostForm from '@/components/PostForm';
-import CliqFeed from '@/components/CliqFeed';
+import CliqFeed from '@/components/cliqs/CliqFeed';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser'; // ✅ uses correct APA-safe session
 import { notFound } from 'next/navigation';
 import Image from 'next/image';

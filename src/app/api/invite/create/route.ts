@@ -11,6 +11,7 @@ type SendInviteEmailParams = {
   cliqName: string;
   inviterName: string;
   cliqId: string;
+  invitedRole: 'child' | 'adult' | 'parent';
 };
 
 // Function to send invite emails
@@ -19,25 +20,46 @@ async function sendInviteEmail({
   cliqName,
   inviterName,
   cliqId,
+  invitedRole,
 }: SendInviteEmailParams) {
-  const inviteLink = `https://cliqstr.com/invite/${cliqId}`; // Or your actual invite URL
+  const inviteLink = `https://cliqstr.com/invite/${cliqId}`;
 
-  const subject = `You're invited to join ${cliqName} on Cliqstr`;
+  let subject = `You're invited to join ${cliqName} on Cliqstr`;
+  let body = '';
 
-  const body = `
-Hi there,
+  if (invitedRole === 'adult') {
+    subject = `Invitation to join ${cliqName} on Cliqstr`;
+    body = `
+Greetings,
 
-${inviterName} has invited you to join the private Cliq "${cliqName}".
+${inviterName} has invited you to join their cliq on Cliqstr.
 
-Click below to approve and set up your child's access:
+Click below to accept the invite:
 ${inviteLink}
 
-This invite is specific to Cliq ID: ${cliqId}.
+This is a private site. To ensure only adults join private cliqs, a credit card is required for age verification (no charge will be made). This helps us protect our community and your privacy.
 
-If you weren’t expecting this email, you can ignore it.
+If you weren't expecting this invitation, you can safely ignore this email.
 
 — The Cliqstr Team
 `;
+  } else if (invitedRole === 'child' || invitedRole === 'parent') {
+    subject = `Parental Approval Needed: Invitation to ${cliqName} on Cliqstr`;
+    body = `
+Greetings,
+
+Your child has been invited by ${inviterName} to join a private cliq on Cliqstr.
+
+Click below to approve their invitation:
+${inviteLink}
+
+Your child may join the cliq for free, but must be authorized by an adult. A credit card is required for verification (no charge will be made). This is to confirm you are an adult and is designed to protect children while using Cliqstr.
+
+If you weren't expecting this invitation, you can safely ignore this email.
+
+— The Cliqstr Team
+`;
+  }
 
   // Replace with your real email logic
   console.log('[EMAIL SENT]', { to, subject, body });
@@ -51,15 +73,16 @@ export async function POST(req: Request) {
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const { cliqId, email, senderName } = await req.json();
+    const { cliqId, inviteeEmail, invitedRole = 'child', senderName } = await req.json();
     
-    if (!cliqId || !email) {
+    if (!cliqId || !inviteeEmail || !invitedRole) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
     
     // Get cliq details
-    const cliq = await prisma.cliq.findUnique({
-      where: { id: cliqId }
+    const cliq: { name: string } | null = await prisma.cliq.findUnique({
+      where: { id: cliqId },
+      select: { name: true }
     });
     
     if (!cliq) {
@@ -73,24 +96,30 @@ export async function POST(req: Request) {
         maxUses: 1,
         used: false,
         cliqId,
-        invitedRole: 'Child', // Default role for invitees
+        invitedRole,
+        inviteeEmail,
+        cliq: {
+          connect: { id: cliqId }
+        },
         inviter: {
-          connect: { id: user.id } // Use the authenticated user's ID
+          connect: { id: user.id }
         }
       }
     });
     
     // Send the email
     await sendInviteEmail({
-      to: email,
+      to: inviteeEmail,
       cliqName: cliq.name,
-      inviterName: senderName || 'A Cliqstr user',
-      cliqId: invite.code
+      inviterName: senderName || user.profile?.username || 'A Cliqstr user',
+      cliqId: invite.code,
+      invitedRole
     });
     
     return NextResponse.json({ 
       success: true, 
-      inviteCode: invite.code 
+      inviteCode: invite.code, 
+      type: invitedRole === 'adult' ? 'invite' : 'request'
     });
     
   } catch (error) {

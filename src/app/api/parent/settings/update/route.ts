@@ -32,6 +32,7 @@ const schema = z.object({
     canPostImages: z.boolean().optional(),
     canShareYouTube: z.boolean().optional(),
     visibilityLevel: z.enum(['summary', 'flagged', 'full']).optional(),
+    aiModerationLevel: z.enum(['strict', 'moderate', 'off']).optional(),
   }),
 });
 
@@ -63,17 +64,62 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // TEMPORARY SOLUTION: Store settings in about field as JSON
-    // This allows the build to succeed without schema changes
-    // TODO: Create proper fields in Prisma schema for these settings
-    await prisma.profile.update({
-      where: { id: childId },
-      data: { 
-        about: JSON.stringify({
-          parentSettings: settings,
-          updatedAt: new Date().toISOString()
-        })
-      },
+    // Fetch child profile (using childId as userId)
+    const childProfile = await prisma.profile.findUnique({ where: { userId: childId } });
+    if (!childProfile) {
+      return NextResponse.json({ error: 'Child profile not found' }, { status: 404 });
+    }
+    const profileId = childProfile.id;
+    const birthDate = new Date(childProfile.birthdate);
+    const ageDifMs = Date.now() - birthDate.getTime();
+    const ageDate = new Date(ageDifMs);
+    const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+    const isUnder15 = age < 15;
+
+    // Age-based enforcement
+    if (isUnder15) {
+      if (settings.aiModerationLevel && settings.aiModerationLevel !== 'strict') {
+        return NextResponse.json({ error: 'For children under 15, AI moderation must be set to strict.' }, { status: 403 });
+      }
+      // Block disabling critical protections (example: canPostImages, canAccessGames, canShareYouTube, canSendInvites, canCreatePublicCliqs)
+      // You can add more granular checks here if needed
+    }
+
+    // Fetch or create child settings
+    let childSettings = await prisma.childSettings.findUnique({ where: { profileId } });
+    if (!childSettings) {
+      childSettings = await prisma.childSettings.create({ data: { profileId } });
+    }
+
+    // Audit log: compare settings
+    const auditActions: any[] = [];
+    // Support both inviteRequiresApproval and legacy settings
+    for (const key of Object.keys(settings) as (keyof typeof settings)[]) {
+      const oldValue = childSettings[key as keyof typeof settings];
+      const newValue = settings[key as keyof typeof settings];
+      if (
+        newValue !== undefined &&
+        oldValue !== undefined &&
+        newValue !== oldValue
+      ) {
+        auditActions.push({
+          parentId: parent.id,
+          childId,
+          action: `update_${key}`,
+          oldValue: String(oldValue),
+          newValue: String(newValue),
+        });
+      }
+    }
+    // Write audit log entries
+    if (auditActions.length > 0) {
+      await prisma.parentAuditLog.createMany({ data: auditActions });
+    }
+
+    // Update child settings (support inviteRequiresApproval)
+    await prisma.childSettings.update({
+      where: { profileId },
+      data: settings,
     });
 
     return NextResponse.json({ success: true });

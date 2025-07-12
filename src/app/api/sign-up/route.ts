@@ -44,6 +44,13 @@ export async function POST(req: Request) {
     let invitedRole = null;
     let invitedCliqId = null;
 
+    // Calculate age and isChild before any invite logic
+    const birthDateObj = new Date(birthdate);
+    const ageDifMs = Date.now() - birthDateObj.getTime();
+    const ageDate = new Date(ageDifMs);
+    const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+    const isChild = age < 18;
+
     if (inviteCode) {
       const invite = await prisma.invite.findUnique({ where: { code: inviteCode } });
 
@@ -53,13 +60,15 @@ export async function POST(req: Request) {
 
       invitedRole = invite.invitedRole;
       invitedCliqId = invite.cliqId;
-    }
 
-    const birthDateObj = new Date(birthdate);
-    const ageDifMs = Date.now() - birthDateObj.getTime();
-    const ageDate = new Date(ageDifMs);
-    const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-    const isChild = age < 18;
+      // Fetch the cliq and check privacy if invitedCliqId is present
+      if (invitedCliqId) {
+        const invitedCliq = await prisma.cliq.findUnique({ where: { id: invitedCliqId }, select: { privacy: true } });
+        if (invitedCliq && invitedCliq.privacy === 'public' && isChild) {
+          return NextResponse.json({ error: 'Children under 18 cannot join public cliqs without parent approval.' }, { status: 403 });
+        }
+      }
+    }
 
     if (isChild && !parentEmail && !inviteCode) {
       return NextResponse.json({ error: 'Children must include a parent email' }, { status: 403 });
@@ -80,7 +89,6 @@ export async function POST(req: Request) {
       data: {
         userId: newUser.id,
         birthdate: birthDateObj,
-
         username: `user-${newUser.id}`, // ✅ temp placeholder
       },
     });

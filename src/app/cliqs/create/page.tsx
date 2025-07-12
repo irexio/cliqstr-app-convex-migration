@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { notFound } from 'next/navigation';
-import CreateCliqForm from '@/components/CreateCliqForm';
+import CreateCliqForm from '@/components/cliqs/CreateCliqForm';
 
 export default async function CreateCliqPage() {
   const user = await getCurrentUser();

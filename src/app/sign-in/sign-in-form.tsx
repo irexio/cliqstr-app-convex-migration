@@ -138,7 +138,7 @@ export default function SignInForm() {
 
       // 🧾 Plan check
       console.log('[Post-login] stripeStatus:', account?.stripeStatus);
-      const ACTIVE_STATUSES = ['active', 'verified', 'paid', 'trialing', 'test']; // TEMP: allow 'test' for free plan testing
+      const ACTIVE_STATUSES = ['active', 'verified', 'paid', 'trialing', 'test', 'test_basic', 'trial', 'mimi']; // Allow all test/fake plans for early access, including 'mimi'
       if (!account?.stripeStatus || !ACTIVE_STATUSES.includes(account.stripeStatus)) {
         console.log('No active plan — redirecting to /choose-plan');
         router.push('/choose-plan');

@@ -80,18 +80,40 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       </div>
 
       <div>
-        <Label htmlFor="invitedRole">Invite Role</Label>
-        <select
-          id="invitedRole"
-          value={invitedRole}
-          onChange={(e) => setInvitedRole(e.target.value as any)}
-          className="w-full border rounded px-3 py-2"
-        >
-          <option value="child">Child</option>
-          <option value="adult">Adult</option>
-          <option value="parent">Parent</option>
-        </select>
-      </div>
+  <Label>Invite Role</Label>
+  <div className="flex gap-4 mt-2">
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name="invitedRole"
+        value="child"
+        checked={invitedRole === 'child'}
+        onChange={() => setInvitedRole('child')}
+      />
+      Child
+    </label>
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name="invitedRole"
+        value="adult"
+        checked={invitedRole === 'adult'}
+        onChange={() => setInvitedRole('adult')}
+      />
+      Adult
+    </label>
+    <label className="flex items-center gap-2">
+      <input
+        type="radio"
+        name="invitedRole"
+        value="parent"
+        checked={invitedRole === 'parent'}
+        onChange={() => setInvitedRole('parent')}
+      />
+      Parent
+    </label>
+  </div>
+</div>
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
       {successType && (

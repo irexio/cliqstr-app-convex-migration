@@ -1,77 +1,39 @@
+// This schema is APA-hardened and includes child safety, parental linking, and moderation defaults.
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // or your actual provider
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  Parent
-  Child
-  Adult
-  Admin
-}
-
-enum MembershipRole {
-  Owner
-  Moderator
-  Member
-}
-
-enum InviteStatus {
-  pending
-  approved
-  used
-  expired
-}
-
-enum CliqPrivacy {
-  private
-  semi_private
-  public
-}
-
-model Invite {
-  id           String    @id @default(cuid())
-  code         String    @unique
-  createdAt    DateTime  @default(now())
-  expiresAt    DateTime?
-  used         Boolean   @default(false)
-  status       InviteStatus @default(pending)
-  invitedRole  Role
-  isApproved   Boolean   @default(false)
-  cliqId       String?
-  maxUses      Int       @default(1)
-  inviteeEmail String?
-  message      String?
-
-  inviter   User   @relation("UserToInvites", fields: [inviterId], references: [id])
-  inviterId String
+enum AIModerationLevel {
+  strict
+  moderate
+  relaxed
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  name      String?
-
+  id                String    @id @default(cuid())
+  email             String    @unique
+  password          String
   resetToken        String?
   resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  profile   Profile?
-  account   Account?   
-
-  invites        Invite[] @relation("UserToInvites")
-  cliqs          Cliq[]   @relation("OwnedCliqs")
-  memberships    Membership[]
-  posts          Post[]
-  replies        Reply[]
-  inviteRequests InviteRequest[] @relation("UserInviteRequests")
+  profile            Profile?
+  parentLinks        ParentLink[] // if this user is a parent
+  children           ParentLink[]    @relation("ChildLinks")
+  account            Account? // 🔐 APA system metadata
+  ownedCliqs         Cliq[]          @relation("CliqOwner")
+  memberships        Membership[]
+  Post               Post[]
+  Reply              Reply[]
+  invitesSent        Invite[]        @relation("SentInvites")
+  inviteRequestsSent InviteRequest[] @relation("InviteRequestsSent")
 }
 
 model Profile {
@@ -82,55 +44,82 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  ageGroup     String?
+  ageGroup          String?
+  aiModerationLevel AIModerationLevel @default(strict)
+  about             String?
+  image             String?
+  bannerImage       String?
 
-  about       String?
-  image       String?
-  bannerImage String?
-
-  user        User         @relation(fields: [userId], references: [id])
-  parentLinks ParentLink[]
+  user          User           @relation(fields: [userId], references: [id])
+  childSettings ChildSettings?
 }
 
 model ParentLink {
-  id        String   @id @default(cuid())
-  childId   String
-  email     String
-  createdAt DateTime @default(now())
+  id       String  @id @default(cuid())
+  parentId String?
+  childId  String
+  email    String?
 
-  child Profile @relation(fields: [childId], references: [id])
+  parent User? @relation(fields: [parentId], references: [id])
+  child  User  @relation("ChildLinks", fields: [childId], references: [id])
+
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ChildSettings {
+  id        String  @id @default(cuid())
+  profileId String  @unique
+  profile   Profile @relation(fields: [profileId], references: [id])
+
+  canCreatePublicCliqs Boolean @default(false)
+  canSendInvites       Boolean @default(false)
+  isSilentlyMonitored  Boolean @default(true)
+
+  canAccessGames    Boolean @default(false)
+  canPostImages     Boolean @default(false)
+  canShareYouTube   Boolean @default(false)
+  visibilityLevel   String?
+  aiModerationLevel String?
+}
+
+/// 🔐 APA — System-level metadata for each user
+model Account {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  role             String
+  isApproved       Boolean  @default(false)
+  stripeStatus     String?
+  plan             String?
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+  suspended        Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum CliqPrivacy {
+  private
+  semi_private
+  public
 }
 
 model Cliq {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String?
-  privacy     CliqPrivacy @default(private)
+  privacy     String    @default("private")
   coverImage  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  deleted     Boolean  @default(false)
+  createdAt   DateTime  @default(now())
+  deleted     Boolean   @default(false)
   deletedAt   DateTime?
-
   ownerId     String
-  owner       User   @relation("OwnedCliqs", fields: [ownerId], references: [id])
 
-  memberships    Membership[]
+  owner          User            @relation("CliqOwner", fields: [ownerId], references: [id])
   posts          Post[]
-  inviteRequests InviteRequest[]
-}
-
-model Membership {
-  id       String   @id @default(cuid())
-  userId   String
-  cliqId   String
-  role     MembershipRole @default(Member)
-  joinedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-  cliq Cliq @relation(fields: [cliqId], references: [id])
-
-  @@unique([userId, cliqId])
+  memberships    Membership[]
+  invites        Invite[]        @relation("CliqInvites")
+  inviteRequests InviteRequest[] @relation("CliqInviteRequests")
 }
 
 model Post {
@@ -138,14 +127,10 @@ model Post {
   content   String
   image     String?
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  editedAt  DateTime?
-  expiresAt DateTime?
   deleted   Boolean   @default(false)
-  deletedAt DateTime?
-
-  authorId String
-  cliqId   String
+  expiresAt DateTime?
+  authorId  String
+  cliqId    String
 
   author  User    @relation(fields: [authorId], references: [id])
   cliq    Cliq    @relation(fields: [cliqId], references: [id])
@@ -156,38 +141,66 @@ model Reply {
   id        String   @id @default(cuid())
   content   String
   createdAt DateTime @default(now())
-
-  postId   String
-  authorId String
+  postId    String
+  authorId  String
 
   post   Post @relation(fields: [postId], references: [id])
   author User @relation(fields: [authorId], references: [id])
 }
 
-model InviteRequest {
-  id           String   @id @default(cuid())
-  cliqId       String
-  inviterId    String
-  invitedRole  Role
-  inviteeEmail String
-  message      String?
-  status       InviteStatus
-  createdAt    DateTime @default(now())
+model Invite {
+  code          String    @unique
+  id            String    @id @default(cuid())
+  cliqId        String
+  invitedUserId String?
+  inviterId     String
+  invitedRole   String
+  inviteeEmail  String
+  status        String    @default("pending")
+  isApproved    Boolean   @default(false) // 🔐 APA: Required for membership control
+  createdAt     DateTime  @default(now())
+  expiresAt     DateTime?
+  maxUses       Int
+  used          Boolean   @default(false)
+  message       String?
 
-  cliq    Cliq @relation(fields: [cliqId], references: [id])
-  inviter User @relation("UserInviteRequests", fields: [inviterId], references: [id])
+  cliq    Cliq @relation("CliqInvites", fields: [cliqId], references: [id])
+  inviter User @relation("SentInvites", fields: [inviterId], references: [id])
 }
 
-model Account {
-  id               String   @id @default(cuid())
-  userId           String   @unique
-  role             Role
-  isApproved       Boolean @default(false)
-  suspended        Boolean @default(false) // 🔒 Added for APA-compliant parent suspension
-  stripeStatus     String?
-  plan             String?
-  stripeCustomerId String?
-  createdAt        DateTime @default(now())
+model InviteRequest {
+  id           String   @id @default(cuid())
+  email        String
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+  cliqId       String
+  invitedRole  String
+  inviteeEmail String
+  inviterId    String
+
+  cliq    Cliq @relation("CliqInviteRequests", fields: [cliqId], references: [id])
+  inviter User @relation("InviteRequestsSent", fields: [inviterId], references: [id])
+}
+
+model ParentAuditLog {
+  id        String   @id @default(cuid())
+  parentId  String
+  childId   String
+  action    String
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+}
+
+model Membership {
+  id       String   @id @default(cuid())
+  userId   String
+  cliqId   String
+  role     String   @default("Member")
+  joinedAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
+  cliq Cliq @relation(fields: [cliqId], references: [id])
+
+  @@unique([userId, cliqId])
 }

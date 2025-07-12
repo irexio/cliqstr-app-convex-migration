@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { notFound } from 'next/navigation';
-import CliqFeed from '@/components/CliqFeed';
+import CliqFeed from '@/components/cliqs/CliqFeed';
 
 export default async function FeedPage() {
   const user = await getCurrentUser();

@@ -10,7 +10,6 @@ export default async function ProfilePageServer({ username }: { username: string
     include: {
       user: {
         select: {
-          name: true,
           email: true,
         },
       },
@@ -20,7 +19,7 @@ export default async function ProfilePageServer({ username }: { username: string
   if (!profile) return notFound();
 
   const displayName = !profile?.username || profile.username.startsWith('user-')
-    ? profile.user?.name || profile.user?.email?.split('@')[0] || 'New User'
+    ? profile.user?.email?.split('@')[0] || 'New User'
     : profile.username;
 
   return (

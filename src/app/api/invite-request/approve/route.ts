@@ -71,6 +71,8 @@ export async function POST(req: NextRequest) {
         inviterId: inviteRequest.inviterId,
         status: 'pending',
         isApproved: true,
+        maxUses: 1,
+        used: false,
       },
     });
 
