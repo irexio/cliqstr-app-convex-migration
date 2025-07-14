@@ -205,6 +205,14 @@ model RedAlert {
   triggeredBy   User     @relation(fields: [triggeredById], references: [id])
 }
 
+model PasswordResetAudit {
+  id        String   @id @default(cuid())
+  email     String
+  ip        String?
+  event     String   // "requested" or "completed"
+  createdAt DateTime @default(now())
+}
+
 model Membership {
   id       String   @id @default(cuid())
   userId   String
