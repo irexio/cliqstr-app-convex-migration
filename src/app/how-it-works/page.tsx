@@ -26,7 +26,7 @@ export default function HowItWorksPage() {
                 <ul className="list-disc list-inside mt-2 space-y-1">
                   <li><strong>Private</strong>: Only approved members can view or join</li>
                   <li><strong>Semi-Private</strong>: Discoverable, but requires approval</li>
-                  <li><strong>Public</strong>: Anyone can see it, but only invited members can post</li>
+                  <li><strong>Public</strong>: Anyone can see and join, but joining may be restricted by age group. For example, a public book club cliq for ages 10–15 can only be joined by users within that age range; otherwise, anyone may join.</li>
                 </ul>
                 Every cliq includes privacy settings and customization so it reflects your purpose.
               </p>

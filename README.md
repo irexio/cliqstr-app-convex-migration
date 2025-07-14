@@ -5,29 +5,31 @@ Cliqstr is a private-first social platform built for families, kids, and communi
 
 ## Project Overview
 
-This repository contains the Cliqstr social platform codebase, built with Next.js 15 and custom APA (Aiden's Power Auth) authentication to provide COPAA-compliant safety for children.
+This repository contains the Cliqstr social platform codebase, built with Next.js 15 and custom APA (Aiden's Power Auth) authentication to provide APA-aligned safety and COPPA compliance for minors.
 
 ### Key Features
 
 - **Safe Cliqs**: Private groups built around trust
-- **APA-Hardened Auth**: Built-in protections for kids, verified parents, and consent-driven access
-- **Custom Feeds**: Expiring content (90-day max)
-- **Red Alert System**: Built-in panic/report feature for real-time safety
+- **APA-Hardened Auth**: Role-based access for kids, parents, and adults
+- **Custom Feeds**: Expiring posts (90-day lifecycle)
+- **Red Alert System**: Emergency escalation system tied to role, parent, and moderation logic
 
 ## Tech Stack
 
 - **Framework**: Next.js 15 App Router
-- **Database**: PostgreSQL (via Prisma)
+- **Database**: PostgreSQL (via Prisma on Neon)
 - **Styling**: TailwindCSS + Shadcn UI
-- **Authentication**: Custom APA with age validation and parental approval
+- **Authentication**: Custom APA logic (session-based)
 - **Payments**: Stripe
+- **Email**: Resend
+- **SMS**: Twilio (in development)
 
 ## Repository Structure
 
 - `/src` - Application source code
   - `/app` - Next.js application routes
   - `/components` - Reusable React components
-  - `/lib` - Utility functions including auth
+  - `/lib` - Utility functions including APA logic
 - `/scripts` - Utility scripts for development and maintenance
 - `/prisma` - Database schema and migrations
 - `/docs` - Project documentation
@@ -48,16 +50,3 @@ npx prisma generate
 
 # Run development server
 npm run dev
-```
-
-## Documentation
-
-For more detailed information, see the documentation files in the `/docs` directory:
-
-- [Cliqstr Overview](./docs/Cliqstr-Overview.md)
-- [Project Roadmap](./docs/TOBEADDED.md)
-- [Project Structure](./docs/STRUCTURE.md)
-
-## License
-
-Proprietary - All Rights Reserved
