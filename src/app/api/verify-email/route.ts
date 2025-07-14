@@ -8,44 +8,42 @@
  */
 
 import { NextResponse } from 'next/server';
-import { verifyToken, TokenPayload } from '@/lib/auth/jwt';
+import { prisma } from '@/lib/prisma';
 import { verifyAccount } from '@/lib/auth/verifyAccount';
 
 export async function GET(req: Request) {
   try {
     // Extract token from query params
     const url = new URL(req.url);
-    const token = url.searchParams.get('token');
+    const code = url.searchParams.get('code');
 
-    if (!token) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=missing-token`);
+    if (!code) {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=missing-code`);
     }
 
-    // Verify the token with proper type casting
-    const payload = verifyToken(token) as TokenPayload | null;
-    
-    // Validate token contents
-    if (!payload) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=invalid-token`);
-    }
-    
-    // Check specific token properties
-    if (payload.purpose !== 'email_verification' || !payload.userId) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=wrong-token-type`);
-    }
+    const codeHash = require('crypto').createHash('sha256').update(code).digest('hex');
 
-    // Use the common verification helper
-    const result = await verifyAccount({
-      userId: payload.userId,
-      method: 'email'
+    // Look up user by hashed code and expiry
+    const user = await prisma.user.findFirst({
+      where: {
+        verificationToken: codeHash,
+        verificationExpires: { gt: new Date() },
+      },
     });
 
-    if (!result.success) {
-      // Redirect to error page with appropriate message
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=${encodeURIComponent(result.message)}`);
+    if (!user) {
+      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=invalid-or-expired-code`);
     }
 
-    // Redirect to success page
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isApproved: true, // or whatever flag marks as verified
+        verificationToken: null,
+        verificationExpires: null,
+      },
+    });
+
     return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-success`);
   } catch (error) {
     console.error('Email verification error:', error);

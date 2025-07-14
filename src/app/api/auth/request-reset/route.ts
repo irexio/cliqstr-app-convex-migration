@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true });
   }
 
-  const user = await prisma.account.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     await prisma.passwordResetAudit.create({ data: { email, ip, event: 'requested' } });
     return NextResponse.json({ success: true }); // avoid leaking account existence
@@ -34,16 +34,11 @@ export async function POST(req: Request) {
   const resetToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-  await prisma.passwordReset.upsert({
-    where: { accountId: user.id },
-    update: {
-      tokenHash,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 30), // 30 mins
-    },
-    create: {
-      accountId: user.id,
-      tokenHash,
-      expiresAt: new Date(Date.now() + 1000 * 60 * 30),
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      resetToken: tokenHash,
+      resetTokenExpires: new Date(Date.now() + 1000 * 60 * 30),
     },
   });
 

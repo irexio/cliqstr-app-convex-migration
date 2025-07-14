@@ -1,5 +1,5 @@
 // Notification logic for parent alerts
-import prisma from './prisma';
+import { prisma } from './prisma';
 import { sendEmail } from './email';
 
 export async function sendParentAlert({ parentId, cliqId, triggeredById, reason }: { parentId: string, cliqId: string, triggeredById: string, reason?: string }) {

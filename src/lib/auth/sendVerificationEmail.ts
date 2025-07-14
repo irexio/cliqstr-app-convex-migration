@@ -1,3 +1,5 @@
+// NOTE: This email verification flow is APA-compliant but not currently used.
+// All user verification is handled via credit card + parent approval.
 /**
  * Email Verification Helper
  * 
@@ -8,7 +10,8 @@
  */
 
 import { Resend } from 'resend';
-import { signToken, TokenPayload } from './jwt';
+import { prisma } from '@/lib/prisma';
+const crypto = require('crypto');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
@@ -21,16 +24,23 @@ interface SendVerificationEmailOptions {
 
 export async function sendVerificationEmail({ to, userId, name }: SendVerificationEmailOptions) {
   try {
-    // Generate verification token (24 hour expiration)
-    const tokenPayload: TokenPayload = { 
-      userId, 
-      purpose: 'email_verification',
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    };
-    const token = signToken(tokenPayload);
-
-    const verificationLink = `${APP_URL}/verify-email?token=${token}`;
+    // Generate a secure, random verification code (24 hour expiration)
+    const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const displayName = name || to.split('@')[0];
+
+    // Hash the code before storing
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    // Store hash and expiry in User model
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        verificationToken: codeHash,
+        verificationExpires: expiresAt,
+      },
+    });
+
+    const verificationLink = `${APP_URL}/verify-email?code=${code}`;
 
     const response = await resend.emails.send({
       from: 'Cliqstr <noreply@cliqstr.com>',

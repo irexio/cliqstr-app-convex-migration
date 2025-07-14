@@ -2,7 +2,12 @@
 
 import React, { useState } from 'react';
 import { CalendarIcon, Gamepad2Icon, VideoIcon, BotIcon, AlertTriangleIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/alert-dialog';
+import {
+  AlertDialog as Dialog,
+  AlertDialogContent as DialogContent,
+  AlertDialogTitle as DialogTitle,
+  AlertDialogDescription as DialogDescription
+} from '@/components/ui/alert-dialog';
 import { toast } from '@/components/ui/use-toast';
 
 export default function CliqTools({ cliqId }: { cliqId: string }) {
