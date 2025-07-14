@@ -10,6 +10,7 @@
 
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { isValidPlan } from '@/lib/utils/planUtils';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +24,9 @@ export async function GET(
   const user = await getCurrentUser();
   if (!user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+    return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
   }
 
   const isMember = await prisma.membership.findFirst({

@@ -22,6 +22,7 @@
  */
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { isValidPlan } from '@/lib/utils/planUtils';
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -33,6 +34,13 @@ export default async function MyCliqsDashboardPage() {
 
   if (!user?.id) {
     return <div className="p-6 text-red-600 text-center">Unauthorized</div>;
+  }
+  if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+    return (
+      <div className="p-6 text-red-600 text-center">
+        Invalid or missing plan. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
+      </div>
+    );
   }
 
   const cliqs = await prisma.cliq.findMany({

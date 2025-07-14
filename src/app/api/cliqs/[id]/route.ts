@@ -15,6 +15,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { isValidPlan } from '@/lib/utils/planUtils';
 
 const ParamsSchema = z.object({
   id: z.string().cuid(),
@@ -35,6 +36,9 @@ export async function GET(
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+    }
 
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });
@@ -80,6 +84,9 @@ export async function PATCH(
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+    }
 
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });
@@ -122,6 +129,9 @@ export async function DELETE(
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+    }
 
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });

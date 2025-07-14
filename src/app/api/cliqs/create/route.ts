@@ -26,6 +26,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { z } from 'zod';
+import { isValidPlan } from '@/lib/utils/planUtils';
 
 const schema = z.object({
   name: z.string().min(2),
@@ -39,6 +40,9 @@ export async function POST(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
     }
 
     const body = await req.json();

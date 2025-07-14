@@ -27,6 +27,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { defineRoute } from '@/lib/utils/defineRoute';
+import { isValidPlan } from '@/lib/utils/planUtils';
 
 const ParamsSchema = z.object({
   id: z.string().cuid(),
@@ -44,6 +45,9 @@ export const POST = defineRoute<{ id: string }>(async (req, { params }) => {
     const user = await getCurrentUser();
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
     }
 
     const paramResult = ParamsSchema.safeParse({ id });

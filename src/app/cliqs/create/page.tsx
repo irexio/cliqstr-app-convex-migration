@@ -2,12 +2,13 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { isValidPlan } from '@/lib/utils/planUtils';
 import { notFound } from 'next/navigation';
 import CreateCliqForm from '@/components/cliqs/CreateCliqForm';
 
 export default async function CreateCliqPage() {
   const user = await getCurrentUser();
-  if (!user?.id) {
+  if (!user?.id || !user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
     notFound();
   }
 

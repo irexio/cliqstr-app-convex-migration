@@ -43,7 +43,7 @@ export async function GET() {
         legacyAccount: true,
         profile: {
           role: 'Adult',
-          isApproved: false,
+          approved: false,
           username: user.email.split('@')[0] || 'user',
         },
         account: {
@@ -81,7 +81,7 @@ export async function GET() {
       email: user.email,
       memberships,
       profile,
-      account,
+      account: account ? { ...account, approved: account.isApproved, isApproved: undefined } : null,
     });
   } catch (err) {
     console.error('❌ /api/auth/status error:', err);

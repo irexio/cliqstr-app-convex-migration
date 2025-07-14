@@ -34,6 +34,7 @@ model User {
   Reply              Reply[]
   invitesSent        Invite[]        @relation("SentInvites")
   inviteRequestsSent InviteRequest[] @relation("InviteRequestsSent")
+  redAlertsTriggered RedAlert[]
 }
 
 model Profile {
@@ -120,6 +121,7 @@ model Cliq {
   memberships    Membership[]
   invites        Invite[]        @relation("CliqInvites")
   inviteRequests InviteRequest[] @relation("CliqInviteRequests")
+  redAlerts      RedAlert[]
 }
 
 model Post {
@@ -190,6 +192,17 @@ model ParentAuditLog {
   oldValue  String?
   newValue  String?
   createdAt DateTime @default(now())
+}
+
+model RedAlert {
+  id            String   @id @default(cuid())
+  cliqId        String
+  triggeredById String
+  reason        String?
+  triggeredAt   DateTime @default(now())
+
+  cliq          Cliq     @relation(fields: [cliqId], references: [id])
+  triggeredBy   User     @relation(fields: [triggeredById], references: [id])
 }
 
 model Membership {

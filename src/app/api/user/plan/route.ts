@@ -23,41 +23,37 @@ export async function POST(req: Request) {
     }
     
     // Determine plan type and subscription status
-    let planType = 'basic';
-    if (plan === 'premium' || plan === 'family' || plan === 'group') {
-      planType = 'premium';
+    // Determine plan type and stripe status
+    let planToSave = plan;
+    let stripeStatus = 'pending';
+    let isApproved = false;
+
+    if (plan === 'test') {
+      planToSave = 'test';
+      stripeStatus = 'test';
+      isApproved = true;
+    } else if (plan === 'free') {
+      planToSave = 'free';
+      stripeStatus = 'free';
+      isApproved = true;
+    } else if (plan === 'premium' || plan === 'family' || plan === 'group') {
+      planToSave = plan; // Save as selected
+      stripeStatus = 'pending'; // Will be updated after Stripe
     }
-    
-    // For test/free plan, mark as active immediately and approve the profile
-    // For paid plans, they remain pending until payment is confirmed through Stripe
-    const stripeStatus = plan === 'test' ? 'test' : 'pending';
-    
-    // Only mark profile as approved for free/test plan
-    if (plan === 'test' || plan === 'free') {
-      await prisma.account.update({
-        where: { userId: user.id },
-        data: {
-          isApproved: true,
-          stripeStatus: 'test',
-          plan: 'free', // future-proof for plan checks
-        },
-      });
-    }
-    
-    // For paid plans, profile will be approved after successful Stripe payment
-    
+
     // Find existing account or create one
     const existingAccount = await prisma.account.findUnique({
       where: { userId: user.id }
     });
-    
+
     let account;
     if (existingAccount) {
       account = await prisma.account.update({
         where: { id: existingAccount.id },
         data: {
-          plan: planType,
-          stripeStatus
+          plan: planToSave,
+          stripeStatus,
+          isApproved
         }
       });
     } else {
@@ -65,8 +61,8 @@ export async function POST(req: Request) {
         data: {
           userId: user.id,
           role: user.account?.role || 'Child',
-          isApproved: plan === 'test',
-          plan: planType,
+          isApproved,
+          plan: planToSave,
           stripeStatus
         }
       });

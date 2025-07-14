@@ -58,7 +58,7 @@ export async function getCurrentUser() {
       email: user.email,
       plan: user.account?.plan ?? null,
       role: user.account?.role ?? null,
-      isApproved: user.account?.isApproved ?? null,
+      approved: user.account?.isApproved ?? null,
       profile: user.profile, // Only public fields
       account: user.account,
     };
