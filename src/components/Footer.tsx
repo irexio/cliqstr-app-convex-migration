@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h2 className="text-2xl font-bold lowercase text-white font-poppins">cliqstr</h2>
             <p className="text-sm text-neutral-300">
-              Cliqstr is a private social platform for families, friends, and safe online circles.
+              Cliqstr is a private social platform for families, friends, and safe online communities.
             </p>
 
             <p className="text-sm font-semibold text-[#c032d1] mt-6">
