@@ -21,8 +21,12 @@ export default function SignInForm() {
   // Check for security-related message in URL parameters
   useEffect(() => {
     const message = searchParams.get('message');
+    const resetSuccess = searchParams.get('reset');
+    
     if (message) {
       setSecurityMessage(decodeURIComponent(message));
+    } else if (resetSuccess === 'success') {
+      setSecurityMessage('Your password has been reset successfully. Please sign in with your new password.');
     }
   }, [searchParams]);
 
@@ -183,6 +187,21 @@ export default function SignInForm() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
             <p className="text-sm text-blue-800 font-medium">{securityMessage}</p>
+          </div>
+        </div>
+      )}
+      
+      {/* APA-compliant password reset success message */}
+      {searchParams.get('reset') === 'success' && (
+        <div className="p-3 rounded bg-green-50 border border-green-200 mb-4">
+          <div className="flex">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <div>
+              <p className="text-sm text-green-800 font-medium">Password reset successful!</p>
+              <p className="text-xs text-green-700">Please sign in with your new password.</p>
+            </div>
           </div>
         </div>
       )}

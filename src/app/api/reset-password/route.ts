@@ -1,9 +1,11 @@
 // 🔐 APA-HARDENED RESET PASSWORD ENDPOINT
 // Uses secure one-time reset codes (not persistent tokens) for password recovery
+// Enforces APA requirements for user authentication
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 
 export async function POST(req: Request) {
   try {
@@ -24,6 +26,9 @@ export async function POST(req: Request) {
         resetToken: token,
         resetTokenExpires: { gte: new Date() },
       },
+      include: {
+        account: true // Include account to check role and approval status
+      }
     });
 
     console.log('👤 User found with valid reset code:', !!user);
@@ -37,12 +42,18 @@ export async function POST(req: Request) {
 
       if (expiredUser) {
         console.log('🕐 Found expired reset code. Expires at:', expiredUser.resetTokenExpires);
-        console.log('📫 For email:', expiredUser.email);
+        console.log('📧 For email:', expiredUser.email);
       } else {
         console.log('❌ No user found with this reset code at all');
       }
 
       return NextResponse.json({ error: 'Invalid or expired reset code. Please request a new password reset.' }, { status: 400 });
+    }
+    
+    // APA protection: deny if unapproved child
+    if (user.account?.role?.toLowerCase() === 'child' && !user.account?.isApproved) {
+      console.log('🚫 Reset denied - child not approved:', user.email);
+      return NextResponse.json({ error: 'Password reset not allowed - account requires approval' }, { status: 403 });
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
@@ -52,16 +63,25 @@ export async function POST(req: Request) {
       where: { id: user.id },
       data: {
         password: hashed,
-        resetToken: null,
-        resetTokenExpires: null,
+        resetToken: null,        // Delete the reset code
+        resetTokenExpires: null, // Delete the expiration
       },
     });
     
     // Password is only stored on User model, not Profile
-
     console.log('✅ Password updated successfully');
-
-    return NextResponse.json({ success: true });
+    
+    // Create response with headers to clear any auth tokens
+    const headers = new Headers();
+    clearAuthTokens(headers);
+    
+    return NextResponse.json(
+      { 
+        success: true, 
+        message: 'Password successfully updated. Please log in.' 
+      }, 
+      { headers }
+    );
   } catch (err) {
     console.error('❌ Reset password error:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

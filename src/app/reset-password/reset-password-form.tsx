@@ -1,8 +1,9 @@
 'use client';
 
-// 🔐 APA-HARDENED by Aiden — Reset Password Form Component
-// Secure reset logic using token from email. No client-side role logic.
+// 🔐 APA-HARDENED — Reset Password Form Component
+// Secure reset logic using one-time code from email. No client-side role logic.
 // All validation and persistence are handled server-side.
+// No automatic login after password reset - enforces manual login.
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -39,7 +40,9 @@ export default function ResetPasswordForm() {
       });
 
       setSuccess(true);
-      setTimeout(() => router.push('/sign-in'), 2000);
+      // APA requirement: No automatic login after password reset
+      // User must manually log in to pass role and approval checks
+      setTimeout(() => router.push('/sign-in?reset=success'), 3000);
     } catch (err: any) {
       console.error('❌ Reset error:', err);
       setError(err.message || 'Something went wrong.');
@@ -63,7 +66,13 @@ export default function ResetPasswordForm() {
       />
 
       {error && <p className="text-red-500 mt-3">{error}</p>}
-      {success && <p className="text-green-600 mt-3">Password updated. Redirecting…</p>}
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mt-3">
+          <p className="font-medium">Password successfully updated!</p>
+          <p className="text-sm">For security reasons, you'll need to sign in with your new password.</p>
+          <p className="text-sm mt-1">Redirecting to sign-in page...</p>
+        </div>
+      )}
 
       <Button
         onClick={handleSubmit}

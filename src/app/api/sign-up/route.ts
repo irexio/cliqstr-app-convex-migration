@@ -1,11 +1,12 @@
 // 🔐 APA-HARDENED — Sign-Up API Route
-// Final Fixes: added username, fixed email helper param, cleaned all type errors
+// Enforces APA requirements: no tokens, session-based auth only, role validation
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
+import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -137,7 +138,34 @@ export async function POST(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, userId: newUser.id });
+    // Create response with headers to clear any legacy tokens
+    const headers = new Headers();
+    clearAuthTokens(headers);
+    
+    // For child accounts, return success but don't set session
+    // The client will handle redirecting to awaiting approval page
+    if (isChild) {
+      return NextResponse.json(
+        { 
+          success: true, 
+          userId: newUser.id,
+          isChild: true,
+          requiresApproval: true
+        },
+        { headers }
+      );
+    }
+    
+    // For adult accounts, return success
+    // The client will handle the sign-in flow separately
+    return NextResponse.json(
+      { 
+        success: true, 
+        userId: newUser.id,
+        isChild: false
+      },
+      { headers }
+    );
   } catch (error) {
     console.error('Sign-up route error:', error);
     // More detailed error logging

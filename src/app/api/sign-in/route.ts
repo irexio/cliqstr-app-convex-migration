@@ -3,11 +3,12 @@
  *
  * Authenticates user with email/password,
  * verifies child approval,
- * issues secure auth_token cookie via NextResponse headers.
+ * issues secure session cookie via NextResponse headers.
  *
- * ✅ No .set() usage (fixes error)
- * ✅ Secure cookie
- * ✅ Works with getCurrentUser
+ * ✅ No persistent tokens used
+ * ✅ Role and approval validation
+ * ✅ Secure session-based auth only
+ * ✅ Legacy tokens cleared
  */
 
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
+import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 
 export async function POST(req: Request) {
   try {
@@ -42,10 +44,16 @@ export async function POST(req: Request) {
     }
 
     // 🔒 Block unapproved children (APA: check Account, not Profile)
-    if (user.account?.role === 'Child' && !user.account?.isApproved) {
+    if (user.account?.role?.toLowerCase() === 'child' && !user.account?.isApproved) {
+      console.log('🚫 Sign-in denied - child not approved:', user.email);
+      
+      // Create response with headers to clear any legacy tokens
+      const headers = new Headers();
+      clearAuthTokens(headers);
+      
       return NextResponse.json(
-        { error: 'Awaiting parent approval' },
-        { status: 403 }
+        { error: 'Awaiting parent approval', redirectUrl: '/awaiting-approval' },
+        { status: 403, headers }
       );
     }
 
@@ -57,6 +65,9 @@ export async function POST(req: Request) {
         role: user.account?.role || 'Adult',
       },
     });
+    
+    // Clear any legacy tokens that might exist
+    clearAuthTokens(response.headers);
 
     response.cookies.set({
       name: 'session',
