@@ -35,10 +35,21 @@ export default async function MyCliqsDashboardPage() {
   if (!user?.id) {
     return <div className="p-6 text-red-600 text-center">Unauthorized</div>;
   }
-  if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+  
+  // Check if account exists first
+  if (!user.account) {
     return (
       <div className="p-6 text-red-600 text-center">
-        Invalid or missing plan. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
+        Account setup incomplete. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
+      </div>
+    );
+  }
+  
+  // More permissive plan check - if account has any plan, consider it valid
+  if (!user.account.plan) {
+    return (
+      <div className="p-6 text-red-600 text-center">
+        No plan selected. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
       </div>
     );
   }
