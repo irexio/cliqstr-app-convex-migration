@@ -1,4 +1,4 @@
-# Cliqstr Living Model Spec
+ Cliqstr Living Model Spec
 
 ## Overview & Vision
 
@@ -85,16 +85,73 @@ SMS invites are now a core part of Cliqstr's invite-based onboarding flow. Their
 
 ---
 
-## POST + CLIQ LIMITS (Plan-Based)
 
-| Plan        | Max Posts     | Post Expiry | Max Cliqs    |
-| ----------- | ------------- | ----------- | ------------ |
-| Free Trial  | 25            | 90 days     | 1            |
-| Premium     | 50            | 90 days     | 5            |
-| Group Plan  | 100           | 90 days     | 10           |
-| Family Plan | 25 per member | 90 days     | 3 per member |
+### 📌 Post Behavior (Unlimited + Expiring)
+
+#### Posting Rules
+All users may post freely within any cliq they are a member of. There are no per-user or per-cliq post limits. However, all posts auto-expire after 90 days unless explicitly pinned.
+
+| Rule                         | Value |
+|------------------------------|-------|
+| Max Posts per user/cliq      | **Unlimited**  
+| Post Expiration              | **90 days** (auto-delete unless pinned)  
+| Pinned Posts                 | `pinned = true` posts are preserved indefinitely  
+| Visibility                   | See breakdown below  
+| Post Countdown UI (Planned)  | Subtle message: “Expires in X days”  
+| Feed Pagination              | 15–20 posts at a time, lazy-loaded  
 
 ---
+
+### 🔒 Visibility Rules
+
+| Cliq Type        | Who Can View Posts                           |
+|------------------|----------------------------------------------|
+| **Private Cliq** | Invite-only. Only approved members may view or post.  
+| **Semi-Private** | Access via invite or **approval by cliq admin**  
+| **Public Cliq**  | Visible only to **approved cliq members** — even in public cliqs, full content is not open to non-members or global search.  
+
+> 🔐 **Note:** There is no global feed, trending feed, or directory. All access is explicitly governed by APA and user roles.
+
+
+
+---
+
+## 🔐 APA Access Control: Privacy Enforcement
+
+Cliqstr enforces strict cliq-level access boundaries to ensure that private, semi-private, and public cliqs honor their intended visibility settings. The following measures are enforced platform-wide:
+
+### 🛡 requireCliqMembership Helper
+
+All API routes that retrieve or modify cliq-specific data must call the `requireCliqMembership(userId, cliqId)` helper. This function checks that the user is:
+
+- Authenticated
+- An active, approved member of the specified cliq
+
+If the user fails this check, the request is denied.
+
+### 👁 Profile Access Controls
+
+- `/profile/[handle]` only renders a profile if the requesting user shares an approved cliq with the profile owner.
+- If no shared cliq exists, the route returns `not-authorized`.
+
+### 🧵 Feed + Post Visibility
+
+- Feed queries are filtered by cliq membership.
+- Users only see posts from cliqs they are part of.
+- Pinned and expired posts are still subject to membership rules.
+
+### 🔎 Search Restrictions (Planned)
+
+- No user or cliq discovery will reveal private or semi-private cliqs to non-members.
+- Any future search features must include strict filters to exclude data a user is not authorized to see.
+
+### 🪪 Membership Status Checks
+
+- All checks validate not only `userId` presence in a cliq, but also `isApproved: true`.
+- Pending or removed members have no access.
+
+These rules are non-negotiable under APA. All developers, contributors, and AI agents must enforce them across all routes and features.
+
 
 ## PARENT HQ POWERS
 
@@ -198,7 +255,7 @@ SMS invites are now a core part of Cliqstr's invite-based onboarding flow. Their
 
 Cliqstr enforces strict internal safeguards and public terms, including:
 
-- **Terms of Use include age-based legal responsibilities** (e.g., COPPA, GDPR - exceeding age 13 covering through 17)
+- **Terms of Use include age-based legal responsibilities** (e.g., COPPA, GDPR)
 - **SMS invites** are logged and filtered for potential abuse, and cannot bypass APA gates
 - **Data is never shared or sold**. Posts auto-delete after 90 days to minimize long-term exposure
 

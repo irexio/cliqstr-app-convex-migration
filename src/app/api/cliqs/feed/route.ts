@@ -32,6 +32,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { isValidPlan } from '@/lib/utils/planUtils';
 import { prisma } from '@/lib/prisma';
+import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 
 export async function GET(req: NextRequest) {
   try {
@@ -50,15 +51,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
     }
 
-    const isMember = await prisma.membership.findFirst({
-      where: {
-        cliqId,
-        userId: user.id,
-      },
-    });
-
-    if (!isMember) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // APA-compliant access control: Verify user is a member of this cliq
+    try {
+      await requireCliqMembership(user.id, cliqId);
+    } catch (error) {
+      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
     }
 
     const posts = await prisma.post.findMany({

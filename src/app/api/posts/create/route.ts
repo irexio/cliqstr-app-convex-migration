@@ -26,6 +26,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -51,6 +52,13 @@ export async function POST(req: Request) {
 
   if (!content && !image) {
     return new NextResponse('Post must include content or an image.', { status: 400 });
+  }
+  
+  // APA-compliant access control: Verify user is a member of this cliq
+  try {
+    await requireCliqMembership(user.id, cliqId);
+  } catch (error) {
+    return new NextResponse('Not authorized to post in this cliq', { status: 403 });
   }
 
   const expiresAt = new Date();

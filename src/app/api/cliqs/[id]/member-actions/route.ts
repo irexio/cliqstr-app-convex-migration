@@ -28,6 +28,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { defineRoute } from '@/lib/utils/defineRoute';
 import { isValidPlan } from '@/lib/utils/planUtils';
+import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 
 const ParamsSchema = z.object({
   id: z.string().cuid(),
@@ -64,13 +65,17 @@ export const POST = defineRoute<{ id: string }>(async (req, { params }) => {
     const { targetUserId, action } = bodyResult.data;
     const cliqId = id;
 
+    // APA-compliant access control: Verify user is a member of this cliq
+    try {
+      await requireCliqMembership(user.id, cliqId);
+    } catch (error) {
+      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
+    }
+    
+    // Get membership details for role-based permissions
     const actingMembership = await prisma.membership.findFirst({
       where: { userId: user.id, cliqId },
     });
-
-    if (!actingMembership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
 
     switch (action) {
       case 'remove':

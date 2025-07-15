@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
+import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,15 +26,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    const isMember = await prisma.membership.findFirst({
-      where: {
-        cliqId: post.cliqId,
-        userId: user.id,
-      },
-    });
-
-    if (!isMember) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    // APA-compliant access control: Verify user is a member of this cliq
+    try {
+      await requireCliqMembership(user.id, post.cliqId);
+    } catch (error) {
+      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
     }
 
     const reply = await prisma.reply.create({

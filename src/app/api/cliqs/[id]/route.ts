@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { isValidPlan } from '@/lib/utils/planUtils';
+import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 
 const ParamsSchema = z.object({
   id: z.string().cuid(),
@@ -42,6 +43,13 @@ export async function GET(
 
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });
+    
+    // APA-compliant access control: Verify user is a member of this cliq
+    try {
+      await requireCliqMembership(user.id, parsed.data.id);
+    } catch (error) {
+      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
+    }
 
     const cliq = await prisma.cliq.findUnique({
       where: { id: parsed.data.id },
@@ -90,6 +98,13 @@ export async function PATCH(
 
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });
+    
+    // APA-compliant access control: Verify user is a member of this cliq
+    try {
+      await requireCliqMembership(user.id, id);
+    } catch (error) {
+      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
+    }
 
     const cliq = await prisma.cliq.findUnique({ where: { id } });
     if (!cliq) return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
@@ -135,6 +150,13 @@ export async function DELETE(
 
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });
+    
+    // APA-compliant access control: Verify user is a member of this cliq
+    try {
+      await requireCliqMembership(user.id, id);
+    } catch (error) {
+      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
+    }
 
     const cliq = await prisma.cliq.findUnique({ where: { id } });
     if (!cliq) return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
