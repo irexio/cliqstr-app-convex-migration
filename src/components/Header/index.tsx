@@ -26,6 +26,7 @@ type UserData = {
 
 export function HeaderComponent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isApproved, setIsApproved] = useState(false); // Track APA approval status
   const [hasCliqs, setHasCliqs] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
@@ -46,6 +47,7 @@ export function HeaderComponent() {
       
       // Always clean up state regardless of response
       setIsLoggedIn(false);
+      setIsApproved(false); // Reset APA approval status
       setUserData(null);
       
       // Redirect to home page
@@ -54,6 +56,7 @@ export function HeaderComponent() {
       console.error('Sign out failed:', error);
       // Even if API call fails, clear client state for safety
       setIsLoggedIn(false);
+      setIsApproved(false); // Reset APA approval status
       setUserData(null);
       window.location.href = '/';
     }
@@ -138,6 +141,12 @@ export function HeaderComponent() {
         if (data?.id) {
           console.log('[Header] User authenticated:', data.id);
           setIsLoggedIn(true);
+          
+          // Set APA approval status based on account.isApproved
+          const isUserApproved = data.account?.isApproved === true;
+          setIsApproved(isUserApproved);
+          console.log('[Header] User approval status:', isUserApproved);
+          
           setHasCliqs(Array.isArray(data.memberships) && data.memberships.length > 0);
           setUserData({
             id: data.id,
@@ -175,7 +184,7 @@ export function HeaderComponent() {
           </Link>
 
           {/* Desktop Navigation */}
-          <DesktopNav isLoggedIn={isLoggedIn} />
+          <DesktopNav isLoggedIn={isLoggedIn} isApproved={isApproved} />
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 text-sm">
