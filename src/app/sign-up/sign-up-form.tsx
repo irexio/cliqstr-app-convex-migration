@@ -67,7 +67,27 @@ export default function SignUpForm() {
       if (isChild) {
         router.push('/sign-in'); // Children still go to sign-in
       } else {
-        router.push('/choose-plan'); // Adults go to plan selection per APA rules
+        // For adults, sign in automatically after sign-up
+        try {
+          const signInRes = await fetchJson('/api/sign-in', {
+            method: 'POST',
+            body: JSON.stringify({
+              email,
+              password
+            }),
+          });
+          
+          // Wait briefly for session cookie to be set
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          
+          // Redirect to plan selection
+          console.log('Adult user registered, redirecting to choose plan');
+          window.location.href = '/choose-plan';
+        } catch (signInErr) {
+          console.error('Auto sign-in failed after registration:', signInErr);
+          // If auto sign-in fails, redirect to sign-in page
+          router.push('/sign-in?message=' + encodeURIComponent('Account created successfully. Please sign in.'));
+        }
       }
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
