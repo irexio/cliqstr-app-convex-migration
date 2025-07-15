@@ -3,11 +3,11 @@
  *
  * Purpose:
  *   - Sends a secure password reset email to the provided user
- *   - Includes a unique reset token as part of a reset link
+ *   - Includes a unique secure reset code as part of a reset link
  *   - Uses Resend API for delivery (resend.com)
  *
  * Notes:
- *   - Token is embedded in a clickable URL
+ *   - Secure code is embedded in a clickable URL
  *   - Email content is friendly, APA-safe, and non-invasive
  *   - Logs success or failure for internal monitoring
  *
@@ -25,9 +25,9 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
-export async function sendResetEmail(email: string, resetToken: string) {
+export async function sendResetEmail(email: string, resetCode: string) {
   // Using NEXT_PUBLIC_SITE_URL which is the standard URL env var throughout the app
-  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?code=${resetCode}`;
 
   try {
     const data = await resend.emails.send({
@@ -45,9 +45,21 @@ export async function sendResetEmail(email: string, resetToken: string) {
     });
 
     console.log('[✅] Password reset email sent successfully');
-    return { success: true };
+    return { success: true, data };
   } catch (err: any) {
     console.error('❌ Failed to send reset email:', err);
-    return { success: false, error: err.message };
+    const errorMessage = err.message || 'Unknown email service error';
+    console.error('Detailed error:', { message: errorMessage, code: err.code, statusCode: err.statusCode });
+    return { 
+      success: false, 
+      error: errorMessage,
+      details: {
+        code: err.code,
+        statusCode: err.statusCode,
+        service: 'Resend',
+        apiKeyExists: !!process.env.RESEND_API_KEY,
+        apiKeyLength: process.env.RESEND_API_KEY?.length || 0
+      }
+    };
   }
 }

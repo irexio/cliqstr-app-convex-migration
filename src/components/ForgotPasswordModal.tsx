@@ -21,7 +21,7 @@ export default function ForgotPasswordModal({
 
   const handleSubmit = async () => {
     try {
-      const res = await fetch('/auth/reset-password', {
+      const res = await fetch('/api/send-reset-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),

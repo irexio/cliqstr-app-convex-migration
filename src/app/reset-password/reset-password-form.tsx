@@ -14,7 +14,7 @@ import { fetchJson } from '@/lib/fetchJson';
 export default function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token');
+  const code = searchParams.get('code') || searchParams.get('token'); // Support both new code param and legacy token param
 
   const [newPassword, setNewPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,8 +25,8 @@ export default function ResetPasswordForm() {
     setError('');
     setLoading(true);
 
-    if (!newPassword || !token) {
-      setError('Password and token are required.');
+    if (!newPassword || !code) {
+      setError('Password and reset code are required.');
       setLoading(false);
       return;
     }
@@ -35,7 +35,7 @@ export default function ResetPasswordForm() {
       const res = await fetchJson('/api/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword }),
+        body: JSON.stringify({ token: code, newPassword }),
       });
 
       setSuccess(true);

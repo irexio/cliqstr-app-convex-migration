@@ -1,4 +1,5 @@
 // 🔐 APA-HARDENED RESET PASSWORD ENDPOINT
+// Uses secure one-time reset codes (not persistent tokens) for password recovery
 
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
@@ -9,15 +10,15 @@ export async function POST(req: Request) {
     const { token, newPassword } = await req.json();
 
     console.log('🔍 Reset password request received');
-    console.log('🎫 Token provided:', !!token);
+    console.log('🎫 Reset code provided:', !!token);
     console.log('🔐 Password provided:', !!newPassword);
 
     if (!token || !newPassword) {
-      console.log('❌ Missing token or password');
-      return NextResponse.json({ error: 'Missing token or password' }, { status: 400 });
+      console.log('❌ Missing reset code or password');
+      return NextResponse.json({ error: 'Missing reset code or password' }, { status: 400 });
     }
 
-    console.log('🔍 Looking for user with token...');
+    console.log('🔍 Looking for user with reset code...');
     const user = await prisma.user.findFirst({
       where: {
         resetToken: token,
@@ -25,7 +26,7 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log('👤 User found with valid token:', !!user);
+    console.log('👤 User found with valid reset code:', !!user);
     console.log('⏰ Current time:', new Date().toISOString());
 
     if (!user) {
@@ -35,13 +36,13 @@ export async function POST(req: Request) {
       });
 
       if (expiredUser) {
-        console.log('🕐 Found expired token. Expires at:', expiredUser.resetTokenExpires);
-        console.log('📧 For email:', expiredUser.email);
+        console.log('🕐 Found expired reset code. Expires at:', expiredUser.resetTokenExpires);
+        console.log('📫 For email:', expiredUser.email);
       } else {
-        console.log('❌ No user found with this token at all');
+        console.log('❌ No user found with this reset code at all');
       }
 
-      return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
+      return NextResponse.json({ error: 'Invalid or expired reset code. Please request a new password reset.' }, { status: 400 });
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);

@@ -38,28 +38,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No account found' }, { status: 404 });
     }
 
-    console.log('🎫 Generating reset token...');
-    // Generate a secure random token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    console.log('🎫 Generating secure reset code...');
+    // Generate a secure random reset code
+    const resetCode = crypto.randomBytes(32).toString('hex');
+    const resetCodeExpires = new Date(Date.now() + 60 * 60 * 1000); // 60 minutes (increased from 15 minutes)
 
-    // Store token in database
+    // Store secure code in database
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        resetToken,
-        resetTokenExpires,
+        resetToken: resetCode, // Using existing database field
+        resetTokenExpires: resetCodeExpires,
       },
     });
 
-    const resetLink = `https://cliqstr.com/reset-password?token=${resetToken}`;
+    const resetLink = `https://cliqstr.com/reset-password?code=${resetCode}`;
     console.log('🔗 Reset link generated');
 
     console.log('📬 Attempting to send email via sendResetEmail utility...');
     // Use the dedicated utility that has its own Resend instance
-    const emailResult = await sendResetEmail(email, resetToken);
+    const emailResult = await sendResetEmail(email, resetCode);
 
     console.log('✅ Send email response:', emailResult);
+    
+    if (!emailResult.success) {
+      console.error('💥 Email sending failed with details:', emailResult.details);
+      return NextResponse.json({ 
+        error: "Failed to send reset email. Please try again later.",
+        details: emailResult.details 
+      }, { status: 500 });
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {
@@ -68,6 +76,9 @@ export async function POST(req: Request) {
       message: err instanceof Error ? err.message : 'Unknown error',
       stack: err instanceof Error ? err.stack : undefined
     });
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to process password reset request. Please try again later.',
+      message: err instanceof Error ? err.message : 'Unknown server error'
+    }, { status: 500 });
   }
 }
