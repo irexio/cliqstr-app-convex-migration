@@ -23,10 +23,9 @@ export async function POST(req: Request) {
     }
     
     // Determine plan type and subscription status
-    // Determine plan type and stripe status
     let planToSave = plan;
-    let stripeStatus = 'pending';
-    let isApproved = false;
+    let stripeStatus = 'active'; // Default to active for all plans
+    let isApproved = true; // Default to approved for all plans
 
     if (plan === 'test') {
       planToSave = 'test';
@@ -36,9 +35,13 @@ export async function POST(req: Request) {
       planToSave = 'free';
       stripeStatus = 'free';
       isApproved = true;
+    } else if (plan === 'basic') {
+      planToSave = 'basic';
+      stripeStatus = 'active'; // Mark as active to ensure it persists
+      isApproved = true;
     } else if (plan === 'premium' || plan === 'family' || plan === 'group') {
       planToSave = plan; // Save as selected
-      stripeStatus = 'pending'; // Will be updated after Stripe
+      stripeStatus = 'active'; // Mark as active instead of pending
     }
 
     // Find existing account or create one
