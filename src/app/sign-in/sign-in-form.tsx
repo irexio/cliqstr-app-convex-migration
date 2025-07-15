@@ -164,10 +164,9 @@ export default function SignInForm() {
       
       // Use direct navigation for more reliable session handling
       // Include a unique timestamp to force a fresh request
-      setTimeout(() => {
-        // Pass auth=true parameter to help debug the middleware token validation
-        window.location.href = `/my-cliqs-dashboard?auth=true&t=${Date.now()}`;
-      }, 1500);
+      // Immediately redirect approved users to My Cliqs dashboard
+      // Pass auth=true parameter to help debug the middleware token validation
+      window.location.href = `/my-cliqs-dashboard?auth=true&t=${Date.now()}`;
 
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
