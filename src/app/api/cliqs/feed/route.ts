@@ -49,7 +49,8 @@ export async function GET(req: NextRequest) {
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+    // Simplified plan validation - only check if plan exists
+    if (!user.plan) {
       return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
     }
 

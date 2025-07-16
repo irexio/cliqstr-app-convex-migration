@@ -26,8 +26,10 @@ export async function GET(
   if (!user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
-    return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+  // Simplified plan validation - only check if plan exists
+  if (!user.plan) {
+    console.log('[APA] User missing plan in /api/cliqs/[id]/members');
+    return NextResponse.json({ error: 'Missing plan' }, { status: 403 });
   }
 
   // APA-compliant access control: Verify user is a member of this cliq

@@ -11,7 +11,7 @@ export async function GET() {
     const user = await getCurrentUser();
 
     if (!user) {
-      return NextResponse.json({ id: null }, { status: 200 });
+      return NextResponse.json({ user: null }, { status: 200 });
     }
 
     const profile = await prisma.profile.findUnique({
@@ -37,18 +37,25 @@ export async function GET() {
     });
 
     if (!profile) {
+      // Standardized user shape for legacy accounts
       return NextResponse.json({
-        id: user.id,
-        email: user.email,
-        legacyAccount: true,
-        profile: {
+        user: {
+          id: user.id,
+          email: user.email,
+          plan: null,
           role: 'Adult',
           approved: false,
-          username: user.email.split('@')[0] || 'user',
-        },
-        account: {
-          stripeStatus: 'incomplete',
-          plan: null
+          // Legacy account specific fields
+          legacyAccount: true,
+          profile: {
+            role: 'Adult',
+            approved: false,
+            username: user.email.split('@')[0] || 'user',
+          },
+          account: {
+            stripeStatus: 'incomplete',
+            plan: null
+          }
         }
       });
     }
@@ -67,26 +74,40 @@ export async function GET() {
     });
 
     if (account?.role === 'Child' && account?.isApproved === false) {
+      // Standardized user shape for awaiting approval accounts
       return NextResponse.json({
-        id: user.id,
-        email: user.email,
-        profile,
-        account,
-        isAwaitingApproval: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          plan: account?.plan ?? null,
+          role: account?.role ?? null,
+          approved: false,
+          // Awaiting approval specific fields
+          profile,
+          account,
+          isAwaitingApproval: true,
+        }
       });
     }
 
+    // Standardized user shape for consistent client-side handling
     return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      memberships,
-      profile,
-      account: account ? { ...account, approved: account.isApproved, isApproved: undefined } : null,
+      user: {
+        id: user.id,
+        email: user.email,
+        plan: account?.plan ?? null,
+        role: account?.role ?? null,
+        approved: account?.isApproved ?? null,
+        // Include these for backward compatibility but they're not part of the standard shape
+        memberships,
+        profile,
+        account: account ? { ...account, approved: account.isApproved, isApproved: undefined } : null,
+      }
     });
   } catch (err) {
     console.error('❌ /api/auth/status error:', err);
     return NextResponse.json(
-      { id: null, error: 'Session verification failed' },
+      { user: null, error: 'Session verification failed' },
       { status: 200 }
     );
   }

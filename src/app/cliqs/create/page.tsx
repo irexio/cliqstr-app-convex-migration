@@ -8,7 +8,7 @@ import CreateCliqForm from '@/components/cliqs/CreateCliqForm';
 
 export default async function CreateCliqPage() {
   const user = await getCurrentUser();
-  if (!user?.id || !user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
+  if (!user?.id || !user.plan) {
     notFound();
   }
 

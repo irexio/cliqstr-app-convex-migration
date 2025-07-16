@@ -82,7 +82,9 @@ export default function SignUpForm() {
           
           // Redirect to plan selection
           console.log('Adult user registered, redirecting to choose plan');
-          window.location.href = '/choose-plan';
+          // Use hard navigation to session-ping to ensure fresh session data
+          console.log('[APA] Redirecting to session-ping after successful sign-up');
+          window.location.replace('/session-ping?t=' + Date.now());
         } catch (signInErr) {
           console.error('Auto sign-in failed after registration:', signInErr);
           // If auto sign-in fails, redirect to sign-in page

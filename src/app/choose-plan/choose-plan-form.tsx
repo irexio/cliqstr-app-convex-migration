@@ -79,15 +79,20 @@ export default function ChoosePlanForm() {
         console.error('Session refresh error:', refreshErr);
       }
 
+      // Show success message for any plan
       setStatus('success');
       setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to your dashboard...`);
-
-      // 🔁 Force hard reload to trigger new session on server
-      console.log('[APA] Forcing hard reload to dashboard after plan set.');
-      const timestamp = Date.now();
-      const url = `/my-cliqs-dashboard?plan=${selectedPlan}&t=${timestamp}`;
-      window.location.replace(url);
-
+      
+      // Refresh Next.js router cache before redirect
+      router.refresh();
+      
+      // For all plans, use a consistent redirect approach with a short delay
+      // This gives time for the session to be properly updated
+      setTimeout(() => {
+        console.log('[APA] Redirecting to session-ping to confirm session is settled');
+        const url = `/session-ping?t=${Date.now()}`;
+        window.location.replace(url);
+      }, 2000);
     } catch (err) {
       console.error('Plan selection error:', err);
       setStatus('error');

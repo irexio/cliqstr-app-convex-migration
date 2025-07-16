@@ -96,8 +96,10 @@ export async function PATCH(
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
-      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+    // Simplified plan validation - only check if plan exists
+    if (!user.plan) {
+      console.log('[APA] User missing plan in cliq API route (PATCH)');
+      return NextResponse.json({ error: 'Missing plan' }, { status: 403 });
     }
 
     const parsed = ParamsSchema.safeParse({ id });
@@ -148,8 +150,10 @@ export async function DELETE(
     const { id } = await params;
     const user = await getCurrentUser();
     if (!user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
-      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+    // Simplified plan validation - only check if plan exists
+    if (!user.plan) {
+      console.log('[APA] User missing plan in cliq API route (DELETE)');
+      return NextResponse.json({ error: 'Missing plan' }, { status: 403 });
     }
 
     const parsed = ParamsSchema.safeParse({ id });

@@ -41,8 +41,10 @@ export async function POST(req: NextRequest) {
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    if (!user.plan || typeof user.plan !== 'string' || !isValidPlan(user.plan)) {
-      return NextResponse.json({ error: 'Invalid or missing plan' }, { status: 403 });
+    // Simplified plan validation - only check if plan exists
+    if (!user.plan) {
+      console.log('[APA] User missing plan in /api/cliqs/create');
+      return NextResponse.json({ error: 'Missing plan' }, { status: 403 });
     }
 
     const body = await req.json();

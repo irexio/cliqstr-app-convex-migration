@@ -158,11 +158,11 @@ export default function SignInForm() {
       console.log(`✅ User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
 
       // 🎉 Final redirect: Track the redirect with console logs
-      console.log('Authentication successful - redirecting to /my-cliqs');
-      console.log('Session cookie length:', document.cookie.length);
+      console.log('[APA] Authentication successful - redirecting to session-ping');
+      console.log('[APA] Session cookie length:', document.cookie.length);
       
       // APA-compliant session refresh to ensure up-to-date plan information
-      console.log('Explicitly refreshing session before navigation');
+      console.log('[APA] Explicitly refreshing session before navigation');
       try {
         const refreshResponse = await fetch('/api/auth/refresh-session', { 
           method: 'GET',
@@ -172,19 +172,22 @@ export default function SignInForm() {
         
         if (refreshResponse.ok) {
           const refreshData = await refreshResponse.json();
-          console.log('Session refreshed successfully:', refreshData.user?.account?.plan);
+          console.log('[APA] Session refreshed successfully:', refreshData.user?.account?.plan);
         } else {
-          console.warn('Session refresh failed, proceeding with navigation anyway');
+          console.warn('[APA] Session refresh failed, proceeding with navigation anyway');
         }
       } catch (refreshErr) {
-        console.error('Error during session refresh:', refreshErr);
+        console.error('[APA] Error during session refresh:', refreshErr);
       }
       
       // Force Next.js to rehydrate with updated state
       router.refresh();
       
-      // Navigate internally with correct session context
-      router.push('/my-cliqs-dashboard');
+      // Add a short delay to ensure session cookie is processed
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // Use hard navigation through session-ping to ensure fresh session
+      window.location.replace('/session-ping?t=' + Date.now());
 
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);

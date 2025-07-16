@@ -11,5 +11,14 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  return NextResponse.json({ user });
+  // Standardized user shape for consistent client-side handling
+  return NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      plan: user.account?.plan ?? null,
+      role: user.account?.role ?? null,
+      approved: user.account?.isApproved ?? null,
+    }
+  });
 }
