@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
-    "docs:routes": "node scripts/route-analyzer.js"
+    "docs:routes": "node scripts/route-analyzer.js",
+    "docs:notion": "node scripts/notion-route-analyzer.js"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
