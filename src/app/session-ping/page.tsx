@@ -14,10 +14,37 @@ export default async function SessionPingPage() {
     redirect('/sign-in');
   }
   
+  // Log full user state for debugging
+  console.log('[APA] User state in session-ping:', {
+    id: user.id,
+    email: user.email,
+    plan: user.plan,
+    approved: user.approved,
+    role: user.role,
+    accountApproval: user.account?.isApproved
+  });
+
+  // If user is approved (check both user.approved and account.isApproved), send them directly to dashboard
+  if (user.approved === true || user.account?.isApproved === true) {
+    console.log('[APA] User is approved. Redirecting directly to dashboard.');
+    redirect('/my-cliqs-dashboard');
+  }
+  
+  // For test plan users, always proceed to dashboard regardless of approval status
+  if (user.plan === 'test') {
+    console.log('[APA] Test plan user detected. Bypassing approval check and redirecting to dashboard.');
+    redirect('/my-cliqs-dashboard');
+  }
+  
+  // If user has no plan, redirect to choose-plan
   if (!user.plan) {
     console.log('[APA] User missing plan. Redirecting to choose-plan.');
     redirect('/choose-plan');
   }
+  
+  // For non-test plans with no explicit approval, redirect to choose-plan
+  console.log('[APA] User not approved. Redirecting to choose-plan.');
+  redirect('/choose-plan');
   
   console.log('[APA] Session confirmed. Redirecting to dashboard.');
   redirect('/my-cliqs-dashboard');
