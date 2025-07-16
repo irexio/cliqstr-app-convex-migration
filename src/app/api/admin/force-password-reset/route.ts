@@ -1,11 +1,10 @@
-export const dynamic = 'force-dynamic';
-
 // 🔐 APA-HARDENED - Admin Force Password Reset API
 // Only accessible by admin users, triggers password reset emails
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { randomBytes } from 'crypto';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 // Initialize Prisma client
 const prisma = new PrismaClient();
@@ -14,7 +13,8 @@ const prisma = new PrismaClient();
  * Admin API to force password reset for a user
  * POST /api/admin/force-password-reset
  */
-import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {

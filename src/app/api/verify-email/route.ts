@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 /**
  * Email Verification API Endpoint
  * 
@@ -12,6 +10,8 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAccount } from '@/lib/auth/verifyAccount';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: Request) {
   try {

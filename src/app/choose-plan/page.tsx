@@ -1,10 +1,10 @@
-export const dynamic = 'force-dynamic';
-
 // src/app/choose-plan/page.tsx
 
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import ChoosePlanForm from './choose-plan-form';
+
+export const dynamic = 'force-dynamic';
 
 export default async function ChoosePlanPage() {
   const user = await getCurrentUser();
