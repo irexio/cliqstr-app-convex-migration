@@ -161,11 +161,12 @@ export default function SignInForm() {
       console.log('Authentication successful - redirecting to /my-cliqs');
       console.log('Session cookie length:', document.cookie.length);
       
-      // Use direct navigation for more reliable session handling
-      // Include a unique timestamp to force a fresh request
-      // Immediately redirect approved users to My Cliqs dashboard
-      // Pass auth=true parameter to help debug the middleware token validation
-      window.location.href = `/my-cliqs-dashboard?auth=true&t=${Date.now()}`;
+      // Use Next.js router for better session handling
+      // First refresh the router to ensure session state is updated
+      // Then navigate to the dashboard with the updated session
+      // This prevents stale session/plan loop issues
+      router.refresh();
+      router.push('/my-cliqs-dashboard');
 
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
