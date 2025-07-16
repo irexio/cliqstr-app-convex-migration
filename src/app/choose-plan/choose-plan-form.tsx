@@ -113,19 +113,32 @@ export default function ChoosePlanForm() {
     setMessage(null);
 
     try {
-      // Save the plan selection (mocked)
+      // Save the plan selection
       const result = await savePlanToProfile(selectedPlan);
       
       if (!result.success) {
         throw new Error('Failed to save plan selection');
       }
       
+      // Force a session refresh by calling the auth status endpoint
+      // This ensures the updated plan is reflected in the session
+      try {
+        await fetch('/api/auth/refresh-session', {
+          method: 'POST',
+          credentials: 'include',
+        });
+      } catch (refreshErr) {
+        console.error('Session refresh error:', refreshErr);
+        // Continue anyway, as the plan was saved
+      }
+      
       // Special case for Test/Free Plan - apply immediately
       if (selectedPlan === 'test') {
-  // Instantly redirect to dashboard, no delay or message
-  window.location.href = `/my-cliqs-dashboard?auth=true&plan=test&t=${Date.now()}`;
-  return;
-}
+        // Refresh session and redirect to dashboard
+        router.refresh(); // Refresh Next.js router cache
+        router.push(`/my-cliqs-dashboard?auth=true&plan=test&t=${Date.now()}`);
+        return;
+      }
       
       // For paid plans, we'll show a message about Stripe integration
       // In the future, this would redirect to Stripe checkout
@@ -135,8 +148,10 @@ export default function ChoosePlanForm() {
       // Redirect after showing message briefly
       setTimeout(() => {
         console.log('Paid plan selected - redirecting to dashboard');
-        // Use window.location for a fresh page load with all cookies intact
-        window.location.href = `/my-cliqs-dashboard?auth=true&plan=${selectedPlan}&t=${Date.now()}`;
+        // Refresh Next.js router cache before redirect
+        router.refresh();
+        // Use router.push for better session handling
+        router.push(`/my-cliqs-dashboard?auth=true&plan=${selectedPlan}&t=${Date.now()}`);
       }, 3500);
       
     } catch (err) {
