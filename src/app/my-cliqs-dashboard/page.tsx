@@ -38,6 +38,7 @@ export default async function MyCliqsDashboardPage() {
   
   // Check if account exists first
   if (!user.account) {
+    console.log('No account found for user, redirecting to choose plan');
     return (
       <div className="p-6 text-red-600 text-center">
         Account setup incomplete. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
@@ -45,9 +46,11 @@ export default async function MyCliqsDashboardPage() {
     );
   }
   
-  // Accept any plan value, even empty string, to avoid redirect loops
+  // Be extremely permissive with plan validation to avoid redirect loops
   // Only redirect if plan is explicitly null or undefined
+  // Accept ANY string value including empty string as valid
   if (user.account.plan === null || user.account.plan === undefined) {
+    console.log('Plan is null or undefined, redirecting to choose plan');
     return (
       <div className="p-6 text-red-600 text-center">
         No plan selected. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
@@ -56,7 +59,7 @@ export default async function MyCliqsDashboardPage() {
   }
   
   // Log the plan for debugging
-  console.log('User plan:', user.account.plan);
+  console.log('User plan accepted:', user.account.plan);
 
   const cliqs = await prisma.cliq.findMany({
     where: {

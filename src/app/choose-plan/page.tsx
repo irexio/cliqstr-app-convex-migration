@@ -1,5 +1,3 @@
-// src/app/choose-plan/page.tsx
-
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import ChoosePlanForm from './choose-plan-form';
@@ -12,6 +10,11 @@ export default async function ChoosePlanPage() {
   if (!user) {
     redirect('/sign-in');
   }
+
+  // ✅ Debug: Log user and plan
+  console.log('🧭 Reached /choose-plan');
+  console.log('User:', user?.email);
+  console.log('Plan:', user?.plan);
 
   // Allow both Parents and Adults to select plans per APA guidelines
   if (user.account?.role !== 'Parent' && user.account?.role !== 'Adult') {

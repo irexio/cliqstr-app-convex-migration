@@ -1,13 +1,14 @@
+// lib/auth/getCurrentUser.ts
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 /**
  * 🔐 APA-HARDENED: Retrieves the current user from a secure session cookie.
- * Requires Next.js 15+ with async cookies().
+ * Requires Next.js 13+ App Router.
  */
 export async function getCurrentUser() {
   try {
-    const cookieStore = await cookies(); // ✅ YOUR version requires await
+    const cookieStore = cookies(); // ✅ NO await here — it's sync in latest Next.js
     const sessionCookie = cookieStore.get('session');
 
     if (!sessionCookie) {
@@ -36,7 +37,7 @@ export async function getCurrentUser() {
             stripeStatus: true,
             plan: true,
             stripeCustomerId: true,
-            suspended: true, // APA: Needed for suspension enforcement
+            suspended: true,
           },
         },
       },
@@ -47,11 +48,17 @@ export async function getCurrentUser() {
       return null;
     }
 
-    // 🔐 APA: Block suspended users from accessing the app
     if (user.account?.suspended) {
       console.warn('[APA] Suspended user attempted access:', userId);
       return null;
     }
+
+    console.log('[APA] Authenticated user loaded:', {
+      email: user.email,
+      plan: user.account?.plan,
+      role: user.account?.role,
+      approved: user.account?.isApproved,
+    });
 
     return {
       id: user.id,
@@ -59,7 +66,7 @@ export async function getCurrentUser() {
       plan: user.account?.plan ?? null,
       role: user.account?.role ?? null,
       approved: user.account?.isApproved ?? null,
-      profile: user.profile, // Only public fields
+      profile: user.profile,
       account: user.account,
     };
   } catch (error) {
@@ -67,4 +74,3 @@ export async function getCurrentUser() {
     return null;
   }
 }
-
