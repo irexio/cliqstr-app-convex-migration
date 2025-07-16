@@ -9,16 +9,25 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import BaseCard from '@/components/cliqs/BaseCard';
 
+// TEMPORARY: Only showing Test Plan during pre-Stripe beta phase
 const PLANS = [
+  { key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] }
+];
+
+// Commented out plans for future use after Stripe integration
+/*
+const ALL_PLANS = [
   { key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] },
   { key: 'basic', label: 'Basic Plan', price: '$5', period: 'mo', recommended: true, features: ['5 cliqs', '25 posts per cliq', 'Auto-expire after 90 days'] },
   { key: 'premium', label: 'Premium Plan', price: '$10', period: 'mo', recommended: false, features: ['10 cliqs', '50 posts per cliq', '1 GB storage'] },
   { key: 'family', label: 'Family Plan', price: '$12', period: 'mo', recommended: false, features: ['3–5 users shared', '25 posts per cliq', '500 MB storage'] },
   { key: 'group', label: 'Group/Org', price: '$25+', period: 'mo', recommended: false, features: ['50 cliqs', '100 posts per cliq', '5 GB+ storage'] }
 ];
+*/
 
 export default function ChoosePlanForm() {
-  const [selectedPlan, setSelectedPlan] = useState('basic');
+  // Default to test plan during pre-Stripe beta phase
+  const [selectedPlan, setSelectedPlan] = useState('test');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
