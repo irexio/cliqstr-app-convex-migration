@@ -1,6 +1,6 @@
-export const dynamic = 'force-dynamic';
-
 'use client';
+
+export const dynamic = 'force-dynamic';
 
 // 🔐 APA-HARDENED — Edit your profile (private, not public-facing)
 
