@@ -161,11 +161,29 @@ export default function SignInForm() {
       console.log('Authentication successful - redirecting to /my-cliqs');
       console.log('Session cookie length:', document.cookie.length);
       
-      // Use Next.js router for better session handling
-      // First refresh the router to ensure session state is updated
-      // Then navigate to the dashboard with the updated session
-      // This prevents stale session/plan loop issues
+      // APA-compliant session refresh to ensure up-to-date plan information
+      console.log('Explicitly refreshing session before navigation');
+      try {
+        const refreshResponse = await fetch('/api/auth/refresh-session', { 
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'include'
+        });
+        
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          console.log('Session refreshed successfully:', refreshData.user?.account?.plan);
+        } else {
+          console.warn('Session refresh failed, proceeding with navigation anyway');
+        }
+      } catch (refreshErr) {
+        console.error('Error during session refresh:', refreshErr);
+      }
+      
+      // Force Next.js to rehydrate with updated state
       router.refresh();
+      
+      // Navigate internally with correct session context
       router.push('/my-cliqs-dashboard');
 
     } catch (err: any) {

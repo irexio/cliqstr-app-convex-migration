@@ -123,10 +123,16 @@ export default function ChoosePlanForm() {
       // Force a session refresh by calling the auth status endpoint
       // This ensures the updated plan is reflected in the session
       try {
-        await fetch('/api/auth/refresh-session', {
-          method: 'POST',
+        const refreshResponse = await fetch('/api/auth/refresh-session', {
+          method: 'GET',
+          cache: 'no-store',
           credentials: 'include',
         });
+        
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          console.log('Session refreshed successfully:', refreshData.user?.account?.plan);
+        }
       } catch (refreshErr) {
         console.error('Session refresh error:', refreshErr);
         // Continue anyway, as the plan was saved
