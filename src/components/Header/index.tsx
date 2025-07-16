@@ -112,34 +112,52 @@ export function HeaderComponent() {
     async function fetchUser() {
       try {
         console.log('[Header] Attempting to fetch auth status');
-        const res = await fetch('/auth/status', {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'no-store',
-          credentials: 'include',
-        });
-
-        // Handle failure cases explicitly
-        if (!res.ok) {
-          console.log('[Header] Auth status response not OK, setting as logged out');
-          setIsLoggedIn(false);
-          setUserData(null);
-          return;
-        }
-
-        // Parse response with error handling
+        
+        // Try the primary endpoint first
+        let res;
         let data;
+        let endpointUsed = '';
+        
         try {
-          data = await res.json();
-        } catch (err) {
-          console.error('[Header] Error parsing auth status response:', err);
-          setIsLoggedIn(false);
-          setUserData(null);
-          return;
+          res = await fetch('/auth/status', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+            credentials: 'include',
+          });
+          
+          if (res.ok) {
+            data = await res.json();
+            endpointUsed = '/auth/status';
+          }
+        } catch (primaryErr) {
+          console.warn('[Header] Primary auth endpoint failed:', primaryErr);
+          // Continue to fallback
+        }
+        
+        // If primary endpoint failed, try the fallback API endpoint
+        if (!data) {
+          try {
+            console.log('[Header] Trying fallback API endpoint');
+            res = await fetch('/api/auth/status', {
+              method: 'GET',
+              headers: { 'Content-Type': 'application/json' },
+              cache: 'no-store',
+              credentials: 'include',
+            });
+            
+            if (res.ok) {
+              data = await res.json();
+              endpointUsed = '/api/auth/status';
+            }
+          } catch (fallbackErr) {
+            console.error('[Header] Fallback auth endpoint also failed:', fallbackErr);
+          }
         }
 
+        // Process the data if we got it from either endpoint
         if (data?.id) {
-          console.log('[Header] User authenticated:', data.id);
+          console.log(`[Header] User authenticated via ${endpointUsed}:`, data.id);
           setIsLoggedIn(true);
           
           // Set APA approval status based on account.isApproved
@@ -152,20 +170,32 @@ export function HeaderComponent() {
             id: data.id,
             name: data.profile?.name || undefined,
             email: data.email || '',
-            role: data.role || '',
+            role: data.account?.role || data.role || '',
             avatarUrl: data.profile?.image || undefined,
             account: data.account || undefined,
             profile: {
               username: data.profile?.username || data.email?.split('@')[0] || 'user',
             },
           });
+          
+          // Force a refresh of the session to ensure we have the latest data
+          try {
+            await fetch('/api/auth/refresh-session', {
+              method: 'GET',
+              cache: 'no-store',
+              credentials: 'include',
+            });
+          } catch (refreshErr) {
+            console.warn('[Header] Session refresh failed:', refreshErr);
+            // Continue anyway
+          }
         } else {
           console.log('[Header] No user ID in response, setting as logged out');
           setIsLoggedIn(false);
           setUserData(null);
         }
       } catch (err) {
-        console.error('Error fetching /auth/status:', err);
+        console.error('[Header] Error in auth flow:', err);
         setIsLoggedIn(false);
         setUserData(null);
       }

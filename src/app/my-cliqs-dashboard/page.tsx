@@ -45,14 +45,18 @@ export default async function MyCliqsDashboardPage() {
     );
   }
   
-  // More permissive plan check - if account has any plan, consider it valid
-  if (!user.account.plan) {
+  // Accept any plan value, even empty string, to avoid redirect loops
+  // Only redirect if plan is explicitly null or undefined
+  if (user.account.plan === null || user.account.plan === undefined) {
     return (
       <div className="p-6 text-red-600 text-center">
         No plan selected. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
       </div>
     );
   }
+  
+  // Log the plan for debugging
+  console.log('User plan:', user.account.plan);
 
   const cliqs = await prisma.cliq.findMany({
     where: {
