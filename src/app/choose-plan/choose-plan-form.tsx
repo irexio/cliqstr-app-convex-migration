@@ -110,10 +110,10 @@ export default function ChoosePlanForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+    <form onSubmit={handleSubmit} className="w-full mx-auto px-2 sm:px-0">
+      <div className="flex justify-center mb-6 sm:mb-8">
         {PLANS.map((plan) => (
-          <div key={plan.key} className="relative">
+          <div key={plan.key} className="relative w-full max-w-md">
             <BaseCard
               onClick={() => setSelectedPlan(plan.key)}
               className={cn(
@@ -127,14 +127,14 @@ export default function ChoosePlanForm() {
                   Most Popular
                 </span>
               )}
-              <div className="mb-4">
-                <h3 className="text-xl font-semibold">{plan.label}</h3>
+              <div className="mb-3 sm:mb-4">
+                <h3 className="text-lg sm:text-xl font-semibold">{plan.label}</h3>
                 <div className="mt-1 flex items-baseline">
-                  <span className="text-2xl font-bold">{plan.price}</span>
-                  <span className="text-gray-500 ml-1">/{plan.period}</span>
+                  <span className="text-xl sm:text-2xl font-bold">{plan.price}</span>
+                  <span className="text-gray-500 ml-1 text-sm sm:text-base">/{plan.period}</span>
                 </div>
               </div>
-              <ul className="space-y-2 mb-6">
+              <ul className="space-y-1 sm:space-y-2 mb-4 sm:mb-6 text-sm sm:text-base">
                 {plan.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start">
                     <span className="text-black mr-2">•</span>
@@ -146,7 +146,7 @@ export default function ChoosePlanForm() {
                 type="button"
                 onClick={() => setSelectedPlan(plan.key)}
                 className={cn(
-                  'w-full mt-auto py-2 rounded transition-colors',
+                  'w-full mt-auto py-2.5 sm:py-3 rounded transition-colors text-sm sm:text-base',
                   'bg-black text-white hover:bg-gray-800',
                   selectedPlan === plan.key && 'bg-black',
                   selectedPlan !== plan.key && 'bg-gray-800'
@@ -162,7 +162,7 @@ export default function ChoosePlanForm() {
       <button
         type="submit"
         disabled={status === 'loading'}
-        className="w-full max-w-md mx-auto block py-3 px-6 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-70 transition-colors"
+        className="w-full max-w-md mx-auto block py-3 px-6 rounded bg-black text-white hover:bg-gray-800 disabled:opacity-70 transition-colors text-sm sm:text-base font-medium"
       >
         {status === 'loading' ? 'Processing...' : 'Confirm Selection'}
       </button>
