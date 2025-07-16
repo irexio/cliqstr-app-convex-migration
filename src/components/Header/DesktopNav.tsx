@@ -8,8 +8,8 @@ type DesktopNavProps = {
 };
 
 export function DesktopNav({ isLoggedIn, isApproved }: DesktopNavProps) {
-  // APA-compliant check: only show My Cliqs for approved users
-  const showMyCliqs = isLoggedIn && isApproved;
+  // Show My Cliqs for any logged-in user
+  const showMyCliqs = isLoggedIn;
   
   return (
     <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#202020]">
@@ -26,7 +26,7 @@ export function DesktopNav({ isLoggedIn, isApproved }: DesktopNavProps) {
         FAQs
       </Link>
 
-      {/* Only show My Cliqs for approved users (APA-compliant) */}
+      {/* Show My Cliqs for all logged-in users */}
       {showMyCliqs && (
         <Link href="/my-cliqs-dashboard" className="font-semibold hover:underline transition">
           My Cliqs
