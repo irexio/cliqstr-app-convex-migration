@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Check if any files in src/app directory were changed
+if git diff-tree --no-commit-id --name-only -r HEAD | grep -q "^src/app/"; then
+  echo "Changes detected in src/app directory. Updating API routes and flows documentation..."
+  npm run docs:routes
+  
+  # Check if documentation was updated
+  if git diff --quiet docs/API-Routes-Flows.md; then
+    echo "No changes to documentation."
+  else
+    echo "Documentation updated. Committing changes..."
+    git add docs/API-Routes-Flows.md
+    git commit -m "docs: update API routes and flows documentation [automated]" --no-verify
+  fi
+fi
