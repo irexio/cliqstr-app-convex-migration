@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // src/app/choose-plan/page.tsx
 
 import { redirect } from 'next/navigation';

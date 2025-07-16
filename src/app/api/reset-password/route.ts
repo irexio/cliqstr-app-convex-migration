@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // 🔐 APA-HARDENED RESET PASSWORD ENDPOINT
 // Uses secure one-time reset codes (not persistent tokens) for password recovery
 // Enforces APA requirements for user authentication

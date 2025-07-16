@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * 🔐 APA-HARDENED ROUTE: POST /api/parent/settings/update
  *

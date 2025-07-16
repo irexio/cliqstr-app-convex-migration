@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 'use client';
 /**
  * 🛠️ Cliq Builder Page — /cliqs/build

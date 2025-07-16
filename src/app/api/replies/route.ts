@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // 🔐 APA-HARDENED — Create a reply to a post
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';

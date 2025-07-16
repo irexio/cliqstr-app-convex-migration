@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // GET /api/parent/pending-children
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';

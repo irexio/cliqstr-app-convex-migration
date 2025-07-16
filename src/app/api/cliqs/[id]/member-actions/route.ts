@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * 🔐 APA-HARDENED ROUTE: POST /api/cliqs/[id]/member-actions
  *

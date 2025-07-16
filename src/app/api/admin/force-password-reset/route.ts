@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 // 🔐 APA-HARDENED - Admin Force Password Reset API
 // Only accessible by admin users, triggers password reset emails
 
