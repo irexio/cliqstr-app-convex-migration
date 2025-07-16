@@ -4,6 +4,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { fetchJson } from '@/lib/fetchJson';
+import PostCardBubble from '@/components/PostCardBubble';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface Profile {
   username?: string;
@@ -17,6 +19,7 @@ interface User {
 interface Reply {
   id: string;
   content: string;
+  createdAt: string;
   author: User;
 }
 
@@ -28,6 +31,20 @@ interface Post {
   expiresAt?: string;
   author: User;
   replies: Reply[];
+}
+
+// Interface matching PostCardBubble requirements
+interface FormattedPost {
+  id: string;
+  content?: string;
+  image?: string;
+  createdAt: string;
+  author: {
+    profile: {
+      username: string;
+      image?: string;
+    };
+  };
 }
 
 interface FeedProps {
@@ -78,51 +95,92 @@ export default function CliqFeed({ cliqId }: FeedProps) {
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="flex gap-2 items-center mb-4">
+    <div className="space-y-6 max-w-lg mx-auto">
+      <h2 className="text-2xl font-bold mb-2">Cliq Feed</h2>
+      
+      {/* Post creation form */}
+      <form onSubmit={handleSubmit} className="flex gap-2 items-center mb-6 bg-white rounded-lg p-3 shadow-sm border">
+        <Avatar className="h-10 w-10">
+          <AvatarImage src="" alt="Profile" />
+          <AvatarFallback className="bg-gray-200 text-gray-400">
+            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6"><circle cx="12" cy="8" r="4" fill="#ccc"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4" fill="#ccc"/></svg>
+          </AvatarFallback>
+        </Avatar>
         <input
           type="text"
           value={content}
           onChange={e => setContent(e.target.value)}
           placeholder="Share something with your cliq..."
-          className="flex-1 border rounded px-3 py-2"
+          className="flex-1 border-b border-gray-200 px-3 py-2 focus:outline-none focus:border-gray-400"
           disabled={submitting}
         />
-        <button type="submit" className="bg-black text-white px-4 py-2 rounded" disabled={submitting || !content.trim()}>
-          {submitting ? 'Posting...' : 'Post'}
+        <button 
+          type="submit" 
+          className="bg-black text-white px-4 py-2 rounded-full text-sm" 
+          disabled={submitting || !content.trim()}
+        >
+          {submitting ? '...' : 'Send'}
         </button>
       </form>
-      {loading && <div>Loading feed...</div>}
-      {error && <div className="text-red-600">{error}</div>}
-      <ul className="space-y-4">
-        {posts.map(post => (
-          <li key={post.id} className="border rounded p-4 bg-white">
-            <div className="flex gap-3 items-start">
-              {post.author?.profile?.image && post.author?.profile?.username ? (
-                <a href={`/profile/${post.author.profile.username}`}>
-                  <img
-                    src={post.author.profile.image}
-                    alt={post.author.profile.username}
-                    className="w-10 h-10 rounded-full border object-cover hover:ring-2 hover:ring-primary transition"
-                  />
-                </a>
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-200 border flex items-center justify-center text-gray-400">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6"><circle cx="12" cy="8" r="4" fill="#ccc"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4" fill="#ccc"/></svg>
+      
+      {loading && <div className="text-center py-4">Loading feed...</div>}
+      {error && <div className="text-red-600 text-center py-2">{error}</div>}
+      
+      {/* Messages feed using PostCardBubble component */}
+      <div className="space-y-4">
+        {posts.map(post => {
+          // Ensure post has the required structure for PostCardBubble
+          const formattedPost: FormattedPost = {
+            id: post.id,
+            content: post.content,
+            image: post.image,
+            createdAt: post.createdAt,
+            author: {
+              profile: {
+                username: post.author?.profile?.username || 'Unknown',
+                image: post.author?.profile?.image
+              }
+            }
+          };
+          
+          return (
+            <div key={post.id} className="mb-4">
+              <PostCardBubble post={formattedPost} />
+              
+              {post.replies && post.replies.length > 0 && (
+                <div className="ml-8 mt-2 space-y-2">
+                  {post.replies.map(reply => {
+                    // Format reply for PostCardBubble
+                    const formattedReply: FormattedPost = {
+                      id: reply.id,
+                      content: reply.content,
+                      createdAt: reply.createdAt,
+                      author: {
+                        profile: {
+                          username: reply.author?.profile?.username || 'Unknown',
+                          image: reply.author?.profile?.image
+                        }
+                      }
+                    };
+                    
+                    return (
+                      <div key={reply.id} className="pl-4 border-l-2 border-gray-200">
+                        <PostCardBubble post={formattedReply} />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-              <div className="flex-1">
-                <div className="font-semibold text-sm mb-1">{post.author?.profile?.username || 'Unknown'}</div>
-                <div className="rounded-2xl border border-black bg-white px-4 py-2 shadow-sm text-base">
-                  {post.content}
-                </div>
-                <div className="text-xs text-gray-400 mt-1">{new Date(post.createdAt).toLocaleString()}</div>
-              </div>
             </div>
-          </li>
-        ))}
-      </ul>
-      {!loading && posts.length === 0 && <div className="text-gray-500">No posts yet.</div>}
+          );
+        })}
+      </div>
+      
+      {!loading && posts.length === 0 && (
+        <div className="text-gray-500 text-center py-8 border border-dashed rounded-lg">
+          No messages yet. Start a conversation!
+        </div>
+      )}
     </div>
   );
 }
