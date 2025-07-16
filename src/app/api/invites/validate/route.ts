@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 /**
  * Invite Code Validation API
  * 

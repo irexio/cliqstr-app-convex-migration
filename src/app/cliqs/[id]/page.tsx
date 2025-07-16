@@ -1,4 +1,5 @@
 // 🔐 APA-Hardened: View Cliq Feed — /cliqs/[id]/page.tsx
+export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';

@@ -1,4 +1,5 @@
 // 🔐 APA-HARDENED PAGE: /cliqs/[id]/members
+export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
