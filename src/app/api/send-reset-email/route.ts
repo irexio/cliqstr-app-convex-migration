@@ -1,11 +1,19 @@
 // 🔐 APA-HARDENED EMAIL UTILITY — Sends Reset Password Link via Resend
 
+import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+
+export const dynamic = 'force-dynamic';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
-export async function sendResetEmail(email: string, token: string) {
+export async function POST(req: Request) {
   try {
+    const { email, token } = await req.json();
+    
+    if (!email || !token) {
+      return NextResponse.json({ error: 'Missing email or token' }, { status: 400 });
+    }
     const resetUrl = `https://cliqstr.com/reset-password?code=${token}`;
 
     const data = await resend.emails.send({
@@ -24,13 +32,16 @@ export async function sendResetEmail(email: string, token: string) {
     console.log('📤 Resend response:', data);
 
     if (data.error) {
-      console.error('📛 Resend failed:', data.error);
-      return { success: false, details: data.error };
+      console.error('💣 Resend failed:', data.error);
+      return NextResponse.json({ success: false, details: data.error }, { status: 500 });
     }
 
-    return { success: true };
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error('💥 Resend exception thrown:', err);
-    return { success: false, details: err };
+    return NextResponse.json({ 
+      success: false, 
+      error: err instanceof Error ? err.message : 'Unknown error' 
+    }, { status: 500 });
   }
 }
