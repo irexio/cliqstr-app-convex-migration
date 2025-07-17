@@ -37,6 +37,19 @@ export async function POST(req: Request) {
     if (plan === 'test') {
       planToSave = 'test';
       stripeStatus = 'test';
+      isApproved = true; // Explicitly ensure test plan is approved
+      console.log(`[PLAN_API] Setting test plan with approved status for user ${user.id}`);
+      
+      // Force update the user's approval status in the database
+      try {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { isApproved: true } // Set the User.isApproved field to true
+        });
+        console.log(`[PLAN_API] Updated user ${user.id} approval status to true`);
+      } catch (userUpdateError) {
+        console.error(`[PLAN_API] Failed to update user approval status:`, userUpdateError);
+      }
     } else if (plan === 'free') {
       planToSave = 'free';
       stripeStatus = 'free';
@@ -58,7 +71,7 @@ export async function POST(req: Request) {
 
     let account;
     if (existingAccount) {
-      console.log(`[PLAN_API] Updating existing account for user ${user.id}`);
+      console.log(`[PLAN_API] Updating existing account for user ${user.id}, setting isApproved=${isApproved}`);
       account = await prisma.account.update({
         where: { id: existingAccount.id },
         data: {
@@ -67,8 +80,9 @@ export async function POST(req: Request) {
           isApproved
         }
       });
+      console.log(`[PLAN_API] Account updated, new values: plan=${account.plan}, isApproved=${account.isApproved}, stripeStatus=${account.stripeStatus}`);
     } else {
-      console.log(`[PLAN_API] Creating new account for user ${user.id}`);
+      console.log(`[PLAN_API] Creating new account for user ${user.id}, setting isApproved=${isApproved}`);
       account = await prisma.account.create({
         data: {
           userId: user.id,
@@ -78,6 +92,7 @@ export async function POST(req: Request) {
           stripeStatus
         }
       });
+      console.log(`[PLAN_API] Account created, values: plan=${account.plan}, isApproved=${account.isApproved}, stripeStatus=${account.stripeStatus}`);
     }
     
     console.log(`[PLAN_API] Plan ${planToSave} successfully saved for user ${user.id}`);
