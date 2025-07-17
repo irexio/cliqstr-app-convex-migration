@@ -33,7 +33,7 @@ export async function sendResetEmail(email: string, resetCode: string) {
 
   try {
     const data = await resend.emails.send({
-      from: 'Cliqstr <support@cliqstr.com>',
+      from: 'Cliqstr <noreply@email.cliqstr.com>',
       to: email,
       subject: 'Reset Your Cliqstr Password',
       html: `
