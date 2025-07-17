@@ -1,29 +1,37 @@
 /**
  * 🔐 APA-SAFE UTILITY: sendResetEmail
  *
- * Sends a secure password reset email using Resend.
- * Now includes full diagnostic logging to help troubleshoot delivery issues.
+ * Purpose:
+ *   - Sends a secure password reset email to the provided user
+ *   - Uses Resend API (resend.com) for email delivery
  */
 
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
-
 export async function sendResetEmail(email: string, resetCode: string) {
-  console.log('[📨] sendResetEmail was called with:', email, resetCode);
+  const apiKey = process.env.RESEND_API_KEY;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  // Use configured site URL for building reset link
-  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?code=${resetCode}`;
-  console.log('[🔗] Generated reset URL:', resetUrl);
-
-  // Check environment config
-  if (!process.env.RESEND_API_KEY) {
-    console.error('❌ RESEND_API_KEY is missing from environment');
-    throw new Error('Missing RESEND_API_KEY');
+  if (!apiKey) {
+    console.error('❌ RESEND_API_KEY is missing. Cannot send password reset email.');
+    return {
+      success: false,
+      error: 'Missing RESEND_API_KEY in environment variables',
+    };
   }
 
+  if (!baseUrl) {
+    console.error('❌ NEXT_PUBLIC_SITE_URL is missing. Cannot construct reset URL.');
+    return {
+      success: false,
+      error: 'Missing NEXT_PUBLIC_SITE_URL in environment variables',
+    };
+  }
+
+  const resend = new Resend(apiKey);
+  const resetUrl = `${baseUrl}/reset-password?code=${resetCode}`;
+
   try {
-    console.log('[📨] Attempting to send email using Resend...');
     const data = await resend.emails.send({
       from: 'Cliqstr <support@cliqstr.com>',
       to: email,
@@ -42,27 +50,14 @@ export async function sendResetEmail(email: string, resetCode: string) {
     return { success: true, data };
   } catch (err: any) {
     console.error('❌ Failed to send reset email:', err);
-    const errorMessage = err.message || 'Unknown email service error';
-
-    console.error('📋 Diagnostic Details:', {
-      message: errorMessage,
-      code: err.code,
-      statusCode: err.statusCode,
-      service: 'Resend',
-      apiKeyExists: !!process.env.RESEND_API_KEY,
-      apiKeyLength: process.env.RESEND_API_KEY?.length || 0
-    });
-
-    return { 
-      success: false, 
-      error: errorMessage,
+    return {
+      success: false,
+      error: err.message || 'Unknown error',
       details: {
         code: err.code,
-        statusCode: err.statusCode,
-        service: 'Resend',
-        apiKeyExists: !!process.env.RESEND_API_KEY,
-        apiKeyLength: process.env.RESEND_API_KEY?.length || 0
-      }
+        status: err.statusCode,
+        context: 'Resend API failure',
+      },
     };
   }
 }
