@@ -18,6 +18,7 @@ export async function POST(req: Request) {
     }
     
     // Use the consolidated helper function that handles everything
+    console.log('📣 Route handler reached, about to call sendResetEmail...');
     const result = await sendResetEmail(email);
     
     if (!result.success) {
