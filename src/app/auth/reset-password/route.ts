@@ -26,7 +26,7 @@ export async function POST(req: Request) {
     
     // Use the consolidated helper function that handles everything
     // This will check if user exists, generate token, and send email
-    const result = await sendResetEmail(email, true);
+    const result = await sendResetEmail(email);
     
     // Always return success (even if user doesn't exist) for security
     return NextResponse.json({ success: true });
