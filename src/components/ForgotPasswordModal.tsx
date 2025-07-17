@@ -20,20 +20,33 @@ export default function ForgotPasswordModal({
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
+    if (!email || !email.includes('@')) {
+      setStatus('error');
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    setStatus('idle');
+    setError(null);
+    
     try {
       const res = await fetch('/api/send-reset-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-
-      if (!res.ok) throw new Error(await res.text());
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to send reset email');
+      }
 
       setStatus('success');
     } catch (err: any) {
       console.error('❌ Reset email error:', err);
       setStatus('error');
-      setError(err.message || 'Something went wrong.');
+      setError(err.message || 'Something went wrong. Please try again.');
     }
   };
 
