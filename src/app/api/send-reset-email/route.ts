@@ -2,6 +2,8 @@
 
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,11 +11,35 @@ const resend = new Resend(process.env.RESEND_API_KEY!);
 
 export async function POST(req: Request) {
   try {
-    const { email, token } = await req.json();
+    const { email } = await req.json();
     
-    if (!email || !token) {
-      return NextResponse.json({ error: 'Missing email or token' }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: 'Missing email' }, { status: 400 });
     }
+    
+    // Find the user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+    
+    // Don't reveal if the user exists or not for security
+    if (!user) {
+      console.log(`Reset request for non-existent email: ${email}`);
+      return NextResponse.json({ success: true });
+    }
+    
+    // Generate a secure random reset token
+    const token = crypto.randomBytes(32).toString('hex');
+    const tokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    
+    // Save the token to the user record
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken: token,
+        resetTokenExpires: tokenExpires,
+      },
+    });
     const resetUrl = `https://cliqstr.com/reset-password?code=${token}`;
 
     const data = await resend.emails.send({
@@ -35,7 +61,10 @@ export async function POST(req: Request) {
       console.error('💣 Resend failed:', data.error);
       return NextResponse.json({ success: false, details: data.error }, { status: 500 });
     }
+    
+    console.log(`✅ Reset email sent to ${email} with token expiry: ${tokenExpires}`);
 
+    // Always return success even if the email doesn't exist (security best practice)
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error('💥 Resend exception thrown:', err);
