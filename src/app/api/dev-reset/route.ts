@@ -1,4 +1,4 @@
-import { sendResetEmail } from '../../../lib/auth'
+import { sendResetEmail } from '@/lib/auth/sendResetEmail'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
