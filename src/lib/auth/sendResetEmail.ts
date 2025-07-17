@@ -36,8 +36,12 @@ export async function sendResetEmail(
   generateNewToken: boolean = true,
   existingToken?: string
 ): Promise<SendResetEmailResponse> {
+  console.log('📨 [sendResetEmail] Invoked');
+  console.log('📧 Email:', email);
+  
   // 1. Validate environment variables
   const apiKey = process.env.RESEND_API_KEY;
+  console.log('🔑 API key exists:', !!apiKey);
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cliqstr.com';
 
   if (!apiKey) {
