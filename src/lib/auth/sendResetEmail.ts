@@ -85,7 +85,7 @@ export async function sendResetEmail(
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Acme <onboarding@resend.dev>',
+      from: 'Cliqstr <noreply@email.cliqstr.com>',
       to: email,
       subject: 'Reset Your Cliqstr Password',
       html: `
