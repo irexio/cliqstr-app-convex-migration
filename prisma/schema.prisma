@@ -154,11 +154,13 @@ model Reply {
 }
 
 model Invite {
-  code          String    @unique
   id            String    @id @default(cuid())
+  code          String    @unique
+  cliq          Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
   cliqId        String
-  invitedUserId String?
+  inviter       User      @relation("SentInvites", fields: [inviterId], references: [id])
   inviterId     String
+  invitedUserId String?
   invitedRole   String
   inviteeEmail  String
   status        String    @default("pending")
@@ -168,9 +170,6 @@ model Invite {
   maxUses       Int
   used          Boolean   @default(false)
   message       String?
-
-  cliq    Cliq @relation("CliqInvites", fields: [cliqId], references: [id])
-  inviter User @relation("SentInvites", fields: [inviterId], references: [id])
 }
 
 model InviteRequest {
