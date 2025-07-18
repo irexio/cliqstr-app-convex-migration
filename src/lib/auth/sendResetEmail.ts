@@ -38,8 +38,15 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
       },
     })
 
-    const resend = new Resend(process.env.RESEND_API_KEY)
-    const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/reset-password?code=${token}`
+    // Log environment variables (without exposing full API key)
+    const apiKey = process.env.RESEND_API_KEY
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+    
+    console.log('🔑 RESEND_API_KEY exists:', !!apiKey)
+    console.log('🌐 NEXT_PUBLIC_SITE_URL:', baseUrl)
+    
+    const resend = new Resend(apiKey)
+    const resetUrl = `${baseUrl}/reset-password?code=${token}`
 
     console.log('🔗 Reset URL:', resetUrl)
 
@@ -59,9 +66,13 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
 
     if (error) {
       console.error('❌ Resend error:', error)
+      console.error('📧 Email details - From:', 'Cliqstr <noreply@email.cliqstr.com>')
+      console.error('📧 Email details - To:', email)
+      console.error('📧 Email details - Subject:', 'Reset Your Cliqstr Password')
+      
       return {
         success: false,
-        error: 'Email service failed',
+        error: 'Email service failed: ' + (error.message || JSON.stringify(error)),
         details: error,
       }
     }
