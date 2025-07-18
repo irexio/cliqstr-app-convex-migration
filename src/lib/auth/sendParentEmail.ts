@@ -1,8 +1,6 @@
 'use server';
 
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail, BASE_URL } from '@/lib/email';
 
 type SendParentEmailParams = {
   to: string;
@@ -21,11 +19,13 @@ export async function sendParentEmail({
   subject,
   html,
 }: SendParentEmailParams) {
-  const defaultSubject = 'Approve Your Child’s Cliqstr Account';
+  console.log(`📨 [sendParentEmail] Sending parent approval email to: ${to} for child: ${childName}`);
+  
+  const defaultSubject = 'Approve Your Child\'s Cliqstr Account';
 
   const approvalLink = inviteCode
-    ? `https://cliqstr.com/parent-approval?inviteCode=${inviteCode}&childId=${childId}`
-    : `https://cliqstr.com/parent-approval?childId=${childId}`;
+    ? `${BASE_URL}/parent-approval?inviteCode=${inviteCode}&childId=${childId}`
+    : `${BASE_URL}/parent-approval?childId=${childId}`;
 
   const defaultHtml = `
     <p>Hello!</p>
@@ -36,12 +36,15 @@ export async function sendParentEmail({
     <p>If you did not request this, you can safely ignore it.</p>
   `;
 
-  const response = await resend.emails.send({
-    from: 'Cliqstr <no-reply@cliqstr.com>',
+  const result = await sendEmail({
     to,
     subject: subject || defaultSubject,
     html: html || defaultHtml,
   });
-
-  return response;
+  
+  if (!result.success) {
+    console.error(`❌ [sendParentEmail] Failed to send parent approval email to ${to}:`, result.error);
+  }
+  
+  return result;
 }

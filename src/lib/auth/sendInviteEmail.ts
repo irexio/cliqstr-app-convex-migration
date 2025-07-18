@@ -1,8 +1,6 @@
 // 🔐 APA-SAFE — Centralized Invite Email Sender
 
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { sendEmail, BASE_URL } from '@/lib/email';
 
 export async function sendInviteEmail({
   to,
@@ -15,9 +13,11 @@ export async function sendInviteEmail({
   inviterName: string;
   inviteLink: string;
 }) {
+  console.log(`📨 [sendInviteEmail] Sending invite to: ${to} for cliq: ${cliqName}`);
+  
   const subject = `${inviterName} invited you to join ${cliqName} on Cliqstr!`;
 
-  const body = `
+  const html = `
     <div style="font-family: sans-serif; line-height: 1.6;">
       <h2>You're invited to join <strong>${cliqName}</strong> on Cliqstr!</h2>
       <p>${inviterName} thinks you'd love it.</p>
@@ -34,10 +34,15 @@ export async function sendInviteEmail({
     </div>
   `;
 
-  await resend.emails.send({
-    from: 'Cliqstr <noreply@cliqstr.com>',
+  const result = await sendEmail({
     to,
     subject,
-    html: body,
+    html
   });
+  
+  if (!result.success) {
+    console.error(`❌ [sendInviteEmail] Failed to send invite email to ${to}:`, result.error);
+  }
+  
+  return result;
 }
