@@ -1,4 +1,4 @@
-// Invite acceptance route handler
+// Invite acceptance route handler - Trigger redeploy
 import { NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
 
