@@ -26,6 +26,7 @@ import { isValidPlan } from '@/lib/utils/planUtils';
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
+import CliqCard from '@/components/cliqs/CliqCard';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,9 @@ export default async function MyCliqsDashboardPage() {
   
   // Log the plan for debugging
   console.log('User plan accepted:', user.account.plan);
+  console.log('User ID for cliq query:', user.id);
 
+  // Query both owned cliqs and memberships
   const cliqs = await prisma.cliq.findMany({
     where: {
       OR: [
@@ -79,81 +82,48 @@ export default async function MyCliqsDashboardPage() {
       coverImage: true,
     },
   });
+  
+  console.log(`Found ${cliqs.length} cliqs for user ${user.id}:`, cliqs.map(c => c.name));
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">My Cliqs</h1>
+        <div>
+          <h1 className="text-3xl font-bold">My Cliqs</h1>
+          <p className="text-gray-600 mt-1">Manage your cliqs and invite friends to join.</p>
+        </div>
         
+        <Link 
+          href="/cliqs/build"
+          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Create New Cliq
+        </Link>
       </div>
 
       {cliqs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <h2 className="text-2xl font-bold mb-6">Welcome to Cliqstr — Beta</h2>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              href="/cliqs/build"
-              className="bg-black text-white px-6 py-3 rounded-md text-lg font-semibold hover:text-[#c032d1] transition"
-            >
-              ➕ Create a Cliq
-            </Link>
-            <Link
-              href="/profile"
-              className="bg-black text-white px-6 py-3 rounded-md text-lg font-semibold hover:text-[#c032d1] transition"
-            >
-              👤 Create Your Profile
-            </Link>
-          </div>
+        <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border border-gray-200">
+          <h2 className="text-2xl font-bold mb-4">Welcome to Cliqstr</h2>
+          <p className="text-gray-600 mb-8 max-w-md text-center">Create your first cliq to start sharing with family and friends in a private, safe space.</p>
+          <Link
+            href="/cliqs/build"
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-md font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Your First Cliq
+          </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cliqs.map((cliq) => (
-            <div
-              key={cliq.id}
-              className="border rounded-lg overflow-hidden bg-white shadow-sm flex flex-col"
-            >
-              <div className="relative w-full h-28">
-                {cliq.coverImage ? (
-                  <Image
-                    src={cliq.coverImage}
-                    alt={`${cliq.name} banner`}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-r from-[#7F56D9] to-[#C032D1]" />
-                )}
-              </div>
-
-              <div className="p-4 flex flex-col gap-2">
-                <h2 className="text-lg font-semibold">{cliq.name}</h2>
-                <p className="text-xs text-gray-500 capitalize">{cliq.privacy} Cliq</p>
-                <p className="text-sm text-gray-700">
-                  {cliq.description || 'No description yet.'}
-                </p>
-
-                <div className="flex flex-wrap gap-2 pt-4 mt-auto">
-                  <Link
-                    href={`/cliqs/${cliq.id}`}
-                    className="px-3 py-1 border rounded text-sm hover:text-[#c032d1]"
-                  >
-                    👁️ View
-                  </Link>
-                  <Link
-                    href={`/cliqs/${cliq.id}/members`}
-                    className="px-3 py-1 border rounded text-sm hover:text-[#c032d1]"
-                  >
-                    🧑‍🤝‍🧑 Members
-                  </Link>
-                  <Link
-                    href={`/cliqs/${cliq.id}/invite`}
-                    className="px-3 py-1 border rounded text-sm hover:text-[#c032d1]"
-                  >
-                    ✉️ Invite
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <CliqCard key={cliq.id} cliq={cliq} />
           ))}
         </div>
       )}

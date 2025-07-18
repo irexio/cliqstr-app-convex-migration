@@ -66,8 +66,9 @@ export default function PlanBanner() {
   if (!needsPlan || isOnDashboard) return null;
 
   return (
-    <div className="w-full bg-red-50 text-center py-2 px-4 text-red-700">
-      No plan selected. <Link href="/choose-plan" className="underline font-medium">Choose a plan</Link>.
+    <div className="w-full bg-red-50 text-center py-3 px-4 text-red-700">
+      <span className="font-medium">Oops! It looks like you haven't selected a plan yet.</span>{' '}
+      <Link href="/choose-plan" className="underline font-medium">Please click here to choose your plan</Link>.
     </div>
   );
 }
