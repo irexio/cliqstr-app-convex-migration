@@ -21,6 +21,11 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
       return { success: true } // hide whether the user exists
     }
 
+    // ✅ Allow password reset even if not approved
+    if (!user.isApproved) {
+      console.log(`[🕊️] User not approved — allowing reset so they can complete signup: ${email}`)
+    }
+
     const token = crypto.randomBytes(32).toString('hex')
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
     const tokenExpires = new Date(Date.now() + 60 * 60 * 1000)

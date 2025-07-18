@@ -56,6 +56,36 @@ export async function POST(req: Request) {
         { status: 403, headers }
       );
     }
+    
+    // Redirect unapproved users to complete signup
+    if (!user.isApproved) {
+      console.log(`[⚠️] Unapproved user login — redirecting to onboarding: ${user.email}`);
+      
+      // Set session cookie to maintain authentication
+      const response = NextResponse.json({
+        success: true,
+        redirectUrl: '/choose-plan',
+        user: {
+          id: user.id,
+          role: user.account?.role || 'Adult',
+        },
+      });
+      
+      // Clear any legacy tokens
+      clearAuthTokens(response.headers);
+      
+      response.cookies.set({
+        name: 'session',
+        value: user.id,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      });
+      
+      return response;
+    }
 
     //  Set secure session cookie with user.id (APA-compliant)
     const response = NextResponse.json({
