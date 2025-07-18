@@ -10,15 +10,12 @@ import { cn } from '@/lib/utils';
 import BaseCard from '@/components/cliqs/BaseCard';
 
 // TEMPORARY: Only showing Test Plan during pre-Stripe beta phase
+// Force hardcode the plan to ensure it always displays
 const PLANS = [
   { key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] }
 ];
 
-// Ensure PLANS is always defined and has at least one item
-if (!PLANS || PLANS.length === 0) {
-  console.error('PLANS array is empty or undefined - adding default test plan');
-  PLANS.push({ key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] });
-}
+console.log('Plans initialized:', PLANS);
 
 // Commented out plans for future use after Stripe integration
 /*

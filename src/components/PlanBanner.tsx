@@ -28,11 +28,21 @@ export default function PlanBanner() {
           console.log('[PlanBanner] User data:', data);
           
           // Check if user is logged in and needs a plan
-          if (data.isAuthenticated && 
-             (!data.user?.account?.plan || data.user?.account?.plan === null || data.user?.account?.plan === undefined)) {
-            console.log('[PlanBanner] User needs to select a plan');
-            setNeedsPlan(true);
+          if (data.user) {
+            // Check both user.plan and user.account.plan
+            const hasPlan = 
+              (data.user.plan && data.user.plan !== null) || 
+              (data.user.account && data.user.account.plan && data.user.account.plan !== null);
+              
+            if (!hasPlan) {
+              console.log('[PlanBanner] User needs to select a plan');
+              setNeedsPlan(true);
+            } else {
+              console.log('[PlanBanner] User has a plan:', data.user.plan || data.user.account?.plan);
+              setNeedsPlan(false);
+            }
           } else {
+            // Not logged in
             setNeedsPlan(false);
           }
         }
@@ -49,8 +59,11 @@ export default function PlanBanner() {
   // Don't render anything while loading to avoid flash of content
   if (loading) return null;
   
-  // Only show banner if user needs to select a plan
-  if (!needsPlan) return null;
+  // Check if we're on the My Cliqs dashboard page
+  const isOnDashboard = typeof window !== 'undefined' && window.location.pathname.includes('/my-cliqs-dashboard');
+  
+  // Don't show banner on dashboard or if user doesn't need a plan
+  if (!needsPlan || isOnDashboard) return null;
 
   return (
     <div className="w-full bg-red-50 text-center py-2 px-4 text-red-700">

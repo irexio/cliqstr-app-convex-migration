@@ -25,17 +25,17 @@ export default async function ChoosePlanPage() {
     redirect('/sign-in');
   }
   
-  // If user is already approved, redirect them to the dashboard
-  if (user.approved === true || user.account?.isApproved === true) {
-    console.log('[APA] User is already approved. Redirecting to dashboard.');
+  // If user is already approved AND has a plan, redirect them to the dashboard
+  if ((user.approved === true || user.account?.isApproved === true) && 
+      (user.plan === 'test' || user.account?.plan === 'test')) {
+    console.log('[APA] User is already approved and has a plan. Redirecting to dashboard.');
     redirect('/my-cliqs-dashboard');
   }
   
-  // If user already has a test plan, redirect them to the dashboard
-  if (user.plan === 'test') {
-    console.log('[APA] User already has test plan. Redirecting to dashboard.');
-    redirect('/my-cliqs-dashboard');
-  }
+  // Don't redirect if they need to select a plan
+  console.log('[APA] User needs to select a plan or complete setup');
+  console.log('[APA] User plan:', user.plan);
+  console.log('[APA] Account plan:', user.account?.plan);
 
   // Allow both Parents and Adults to select plans per APA guidelines
   if (user.account?.role !== 'Parent' && user.account?.role !== 'Adult') {
