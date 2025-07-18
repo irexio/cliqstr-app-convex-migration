@@ -40,7 +40,7 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
 
     // Log environment variables (without exposing full API key)
     const apiKey = process.env.RESEND_API_KEY
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cliqstr.com'
     
     console.log('🔑 RESEND_API_KEY exists:', !!apiKey)
     console.log('🌐 NEXT_PUBLIC_SITE_URL:', baseUrl)
