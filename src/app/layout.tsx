@@ -10,6 +10,7 @@ import type { Metadata } from 'next';
 import { Header } from '@/components/Header';
 import Footer from '@/components/Footer';
 import SessionProvider from '@/components/SessionProvider';
+import PlanBanner from '@/components/PlanBanner';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body className="bg-white text-[#202020] font-poppins antialiased min-h-screen flex flex-col">
         <SessionProvider>
           <Header />
+          <PlanBanner />
           <main className="flex-1">{children}</main>
           <Footer />
         </SessionProvider>

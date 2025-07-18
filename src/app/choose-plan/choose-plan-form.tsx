@@ -14,6 +14,12 @@ const PLANS = [
   { key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] }
 ];
 
+// Ensure PLANS is always defined and has at least one item
+if (!PLANS || PLANS.length === 0) {
+  console.error('PLANS array is empty or undefined - adding default test plan');
+  PLANS.push({ key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] });
+}
+
 // Commented out plans for future use after Stripe integration
 /*
 const ALL_PLANS = [
