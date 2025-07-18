@@ -42,6 +42,8 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
     setLoading(true);
 
     try {
+      console.log('Sending invite request:', { cliqId, inviteeEmail, invitedRole });
+      
       const res = await fetch(`/api/invite/create`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,18 +51,42 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       });
 
       const json = await res.json();
+      console.log('Invite response:', json);
 
-      if (!res.ok) throw new Error(json?.error || 'Unexpected response');
+      // Handle different response status codes with user-friendly messages
+      if (!res.ok) {
+        if (res.status === 400) {
+          throw new Error(json?.error || 'Please check the email and role selection');
+        } else if (res.status === 401) {
+          throw new Error('Your session has expired. Please sign in again.');
+        } else if (res.status === 403) {
+          throw new Error('You don\'t have permission to invite to this cliq.');
+        } else if (res.status === 404) {
+          throw new Error('This cliq could not be found. It may have been deleted.');
+        } else if (res.status === 409) {
+          // This is actually a success case - the invite already exists
+          setSuccessType(json?.type || 'invite');
+          setInviteeEmail('');
+          return;
+        } else {
+          throw new Error(json?.error || 'Unexpected error. Please try again later.');
+        }
+      }
 
-      if (json?.type === 'request' || json?.type === 'invite') {
+      // Handle success responses
+      if (json?.message === 'Invite already exists') {
+        setSuccessType(json.type);
+        setInviteeEmail('');
+        setError('This person has already been invited to this cliq.');
+      } else if (json?.type === 'request' || json?.type === 'invite') {
         setSuccessType(json.type);
         setInviteeEmail('');
       } else {
         throw new Error('Unexpected response from server.');
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Something went wrong.');
+      console.error('Invite error:', err);
+      setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

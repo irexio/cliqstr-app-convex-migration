@@ -19,6 +19,7 @@ export default function MembersModal({ cliqId, open, onClose }: MembersModalProp
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -35,23 +36,64 @@ export default function MembersModal({ cliqId, open, onClose }: MembersModalProp
   }, [cliqId, open]);
 
   const handleRoleChange = async (memberId: string, newRole: string) => {
-    // PATCH/PUT to your API endpoint for updating member roles
-    await fetch(`/api/cliqs/${cliqId}/member-actions`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ memberId, role: newRole }),
-    });
-    setMembers(members =>
-      members.map(m => (m.id === memberId ? { ...m, role: newRole } : m))
-    );
+    try {
+      // Determine the correct action based on the new role
+      let action = '';
+      if (newRole === 'Moderator') {
+        action = 'promote';
+      } else if (newRole === 'Member') {
+        action = 'demote';
+      } else if (newRole === 'remove') {
+        action = 'remove';
+      }
+      
+      if (!action) {
+        throw new Error(`Unsupported role change: ${newRole}`);
+      }
+      
+      const response = await fetch(`/api/cliqs/${cliqId}/member-actions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          targetUserId: memberId, 
+          action: action 
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update member role');
+      }
+      
+      if (action === 'remove') {
+        // Remove the member from the list
+        setMembers(members => members.filter(m => m.id !== memberId));
+      } else {
+        // Update the member's role in the list
+        setMembers(members =>
+          members.map(m => (m.id === memberId ? { ...m, role: newRole } : m))
+        );
+      }
+      
+      // Show success message
+      setFeedback({ type: 'success', message: `Member ${action === 'remove' ? 'removed' : 'updated'} successfully` });
+    } catch (err: any) {
+      console.error('Error updating member:', err);
+      setFeedback({ type: 'error', message: err.message || 'Failed to update member' });
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-lg w-full p-6 rounded-lg bg-white">
         <DialogTitle className="text-xl font-bold mb-2">Members</DialogTitle>
-        {loading && <div>Loading...</div>}
-        {error && <div className="text-red-500">{error}</div>}
+        {loading && <div className="py-4 text-center text-gray-500">Loading members...</div>}
+        {error && <div className="py-4 text-center text-red-500">{error}</div>}
+        {feedback && (
+          <div className={`mb-4 p-3 rounded ${feedback.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+            {feedback.message}
+          </div>
+        )}
         {!loading && !error && (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -71,15 +113,22 @@ export default function MembersModal({ cliqId, open, onClose }: MembersModalProp
                     </td>
                     <td className="py-2 pr-4">{member.role}</td>
                     <td className="py-2">
-                      <select
-                        className="border rounded px-2 py-1"
-                        value={member.role}
-                        onChange={e => handleRoleChange(member.id, e.target.value)}
-                      >
-                        <option value="member">Member</option>
-                        <option value="moderator">Moderator</option>
-                        <option value="admin">Admin</option>
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          className="border rounded px-2 py-1"
+                          value={member.role}
+                          onChange={e => handleRoleChange(member.id, e.target.value)}
+                        >
+                          <option value="Member">Member</option>
+                          <option value="Moderator">Moderator</option>
+                        </select>
+                        <button 
+                          onClick={() => handleRoleChange(member.id, 'remove')} 
+                          className="text-xs text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
