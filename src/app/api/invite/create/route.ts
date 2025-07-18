@@ -146,7 +146,6 @@ export async function POST(req: Request) {
         code: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         maxUses: 1,
         used: false,
-        cliqId,
         invitedRole,
         inviteeEmail,
         cliq: {
