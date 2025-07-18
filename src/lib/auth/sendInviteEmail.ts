@@ -13,7 +13,16 @@ export async function sendInviteEmail({
   inviterName: string;
   inviteLink: string;
 }) {
-  console.log(`📨 [sendInviteEmail] Sending invite to: ${to} for cliq: ${cliqName}`);
+  // Extra detailed logging for debugging
+  console.log(`📨 [sendInviteEmail] STARTING - Sending invite to: ${to}`);
+  console.log(`[EMAIL DEBUG] Invite details: cliq=${cliqName}, inviter=${inviterName}`);
+  console.log(`[EMAIL DEBUG] Using invite link: ${inviteLink}`);
+  
+  // Validate required parameters
+  if (!to || !cliqName || !inviterName || !inviteLink) {
+    console.error(`❌ [sendInviteEmail] Missing required parameters:`, { to, cliqName, inviterName, inviteLink });
+    return { success: false, error: 'Missing required parameters for invite email' };
+  }
   
   const subject = `${inviterName} invited you to join ${cliqName} on Cliqstr!`;
 
@@ -34,15 +43,24 @@ export async function sendInviteEmail({
     </div>
   `;
 
-  const result = await sendEmail({
-    to,
-    subject,
-    html
-  });
+  console.log(`[EMAIL DEBUG] Attempting to send email to ${to} with subject "${subject}"`);
   
-  if (!result.success) {
-    console.error(`❌ [sendInviteEmail] Failed to send invite email to ${to}:`, result.error);
+  try {
+    const result = await sendEmail({
+      to,
+      subject,
+      html
+    });
+    
+    if (!result.success) {
+      console.error(`❌ [sendInviteEmail] Failed to send invite email to ${to}:`, result.error);
+      return result;
+    }
+    
+    console.log(`✅ [sendInviteEmail] Successfully sent invite email to ${to} with messageId: ${result.messageId}`);
+    return result;
+  } catch (error) {
+    console.error(`❌ [sendInviteEmail] Exception while sending invite email to ${to}:`, error);
+    return { success: false, error };
   }
-  
-  return result;
 }

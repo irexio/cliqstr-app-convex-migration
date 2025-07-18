@@ -3,67 +3,12 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { sendInviteEmail } from '@/lib/auth/sendInviteEmail';
+import { BASE_URL } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
 
-type SendInviteEmailParams = {
-  to: string;
-  cliqName: string;
-  inviterName: string;
-  cliqId: string;
-  invitedRole: 'child' | 'adult' | 'parent';
-};
-
-// Function to send invite emails
-async function sendInviteEmail({
-  to,
-  cliqName,
-  inviterName,
-  cliqId,
-  invitedRole,
-}: SendInviteEmailParams) {
-  const inviteLink = `https://cliqstr.com/invite/${cliqId}`;
-
-  let subject = `You're invited to join ${cliqName} on Cliqstr`;
-  let body = '';
-
-  if (invitedRole === 'adult') {
-    subject = `Invitation to join ${cliqName} on Cliqstr`;
-    body = `
-Greetings,
-
-${inviterName} has invited you to join their cliq on Cliqstr.
-
-Click below to accept the invite:
-${inviteLink}
-
-This is a private site. To ensure only adults join private cliqs, a credit card is required for age verification (no charge will be made). This helps us protect our community and your privacy.
-
-If you weren't expecting this invitation, you can safely ignore this email.
-
-— The Cliqstr Team
-`;
-  } else if (invitedRole === 'child' || invitedRole === 'parent') {
-    subject = `Parental Approval Needed: Invitation to ${cliqName} on Cliqstr`;
-    body = `
-Greetings,
-
-Your child has been invited by ${inviterName} to join a private cliq on Cliqstr.
-
-Click below to approve their invitation:
-${inviteLink}
-
-Your child may join the cliq for free, but must be authorized by an adult. A credit card is required for verification (no charge will be made). This is to confirm you are an adult and is designed to protect children while using Cliqstr.
-
-If you weren't expecting this invitation, you can safely ignore this email.
-
-— The Cliqstr Team
-`;
-  }
-
-  // Replace with your real email logic
-  console.log('[EMAIL SENT]', { to, subject, body });
-}
+// POST route handler for creating invites
 
 // POST route handler for creating invites
 export async function POST(req: Request) {
@@ -129,49 +74,62 @@ export async function POST(req: Request) {
       }
     });
     
+    // If an invite already exists, we'll use it but still send the email
+    // This allows for testing email sending with the same email address
+    let inviteCode;
+    let inviteRole;
+    
     if (existingInvite) {
-      console.log('[INVITE_INFO] Invite already exists', { inviteeEmail, cliqId });
-      return NextResponse.json({ 
-        success: true, 
-        inviteCode: existingInvite.code, 
-        type: existingInvite.invitedRole === 'adult' ? 'invite' : 'request',
-        message: 'Invite already exists'
+      console.log('[INVITE_INFO] Invite already exists - will resend email', { inviteeEmail, cliqId });
+      inviteCode = existingInvite.code;
+      inviteRole = existingInvite.invitedRole;
+    } else {
+      // Create an invite code
+      console.log('[INVITE_DEBUG] Creating new invite', { cliqId, inviteeEmail, invitedRole });
+      const invite = await prisma.invite.create({
+        data: {
+          code: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          maxUses: 1,
+          used: false,
+          invitedRole,
+          inviteeEmail,
+          cliq: {
+            connect: { id: cliqId }
+          },
+          inviter: {
+            connect: { id: user.id }
+          }
+        }
       });
+      
+      console.log('[INVITE_DEBUG] Invite created successfully', { inviteCode: invite.code });
+      inviteCode = invite.code;
+      inviteRole = invitedRole;
     }
     
-    // Create an invite code
-    console.log('[INVITE_DEBUG] Creating new invite', { cliqId, inviteeEmail, invitedRole });
-    const invite = await prisma.invite.create({
-      data: {
-        code: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-        maxUses: 1,
-        used: false,
-        invitedRole,
-        inviteeEmail,
-        cliq: {
-          connect: { id: cliqId }
-        },
-        inviter: {
-          connect: { id: user.id }
-        }
-      }
-    });
+    // Construct the invite link with the correct base URL
+    const inviteLink = `${BASE_URL}/invite/${inviteCode}`;
     
-    console.log('[INVITE_DEBUG] Invite created successfully', { inviteCode: invite.code });
+    console.log('[EMAIL DEBUG] Sending invite email to', inviteeEmail);
     
-    // Send the email
-    await sendInviteEmail({
+    // Send the email using our standardized email utility
+    const emailResult = await sendInviteEmail({
       to: inviteeEmail,
       cliqName: cliq.name,
       inviterName: senderName || user.profile?.username || 'A Cliqstr user',
-      cliqId: invite.code,
-      invitedRole
+      inviteLink
     });
+    
+    if (!emailResult.success) {
+      console.error('[EMAIL ERROR] Invite email failed:', emailResult.error);
+    } else {
+      console.log('[EMAIL SUCCESS] Invite email sent to', inviteeEmail, 'with messageId:', emailResult.messageId);
+    }
     
     return NextResponse.json({ 
       success: true, 
-      inviteCode: invite.code, 
-      type: invitedRole === 'adult' ? 'invite' : 'request'
+      inviteCode: inviteCode, 
+      type: inviteRole === 'adult' ? 'invite' : 'request'
     });
     
   } catch (error: any) {
