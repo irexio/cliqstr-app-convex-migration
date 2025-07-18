@@ -109,6 +109,23 @@ export default function ChoosePlanForm() {
     }
   };
 
+  // If no plans are available, show a message
+  if (!PLANS || PLANS.length === 0) {
+    return (
+      <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200">
+        <p className="text-gray-700 mb-4">No plans are currently available. Please try again later.</p>
+        <button
+          onClick={() => router.refresh()}
+          className="py-2 px-4 bg-black text-white rounded hover:bg-gray-800"
+        >
+          Refresh Page
+        </button>
+      </div>
+    );
+  }
+
+  console.log('Available plans:', PLANS);
+
   return (
     <form onSubmit={handleSubmit} className="w-full mx-auto px-2 sm:px-0">
       <div className="flex justify-center mb-6 sm:mb-8">

@@ -17,6 +17,13 @@ export default async function ChoosePlanPage() {
   console.log('Plan:', user?.plan);
   console.log('Approved:', user?.approved);
   console.log('Account approved:', user?.account?.isApproved);
+  console.log('Full user object:', JSON.stringify(user, null, 2));
+  
+  // Ensure we have a valid user object with necessary properties
+  if (!user) {
+    console.error('[APA] User object is null or undefined');
+    redirect('/sign-in');
+  }
   
   // If user is already approved, redirect them to the dashboard
   if (user.approved === true || user.account?.isApproved === true) {
