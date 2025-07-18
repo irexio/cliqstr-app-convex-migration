@@ -60,6 +60,12 @@ export async function POST(req: Request) {
       select: { name: true }
     });
     
+    // Get inviter details for better email personalization
+    const inviter = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { email: true, profile: { select: { username: true } } }
+    });
+    
     if (!cliq) {
       console.log('[INVITE_ERROR] Cliq not found', { cliqId });
       return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
@@ -107,16 +113,29 @@ export async function POST(req: Request) {
       inviteRole = invitedRole;
     }
     
-    // Construct the invite link with the correct base URL
-    const inviteLink = `${BASE_URL}/invite/${inviteCode}`;
+    // We'll update the invite link format later
     
     console.log('[EMAIL DEBUG] Sending invite email to', inviteeEmail);
+    
+    // Get the best available inviter name for personalization
+    const inviterName = senderName || 
+                       inviter?.profile?.username || 
+                       inviter?.email?.split('@')[0] || 
+                       'Someone';
+    
+    console.log('[EMAIL DEBUG] Using inviter name:', inviterName);
+    
+    // Construct the invite link with the correct base URL and path
+    // Update to use /invite/accept instead of just /invite/
+    const inviteLink = `${BASE_URL}/invite/accept?code=${inviteCode}`;
+    
+    console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
     
     // Send the email using our standardized email utility
     const emailResult = await sendInviteEmail({
       to: inviteeEmail,
       cliqName: cliq.name,
-      inviterName: senderName || user.profile?.username || 'A Cliqstr user',
+      inviterName,
       inviteLink
     });
     
