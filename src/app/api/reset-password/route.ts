@@ -7,25 +7,37 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 
 export async function POST(req: Request) {
   try {
-    const { token, newPassword } = await req.json();
+    // Extract token from URL if present
+    const { searchParams } = new URL(req.url);
+    const codeFromUrl = searchParams.get('code');
+    
+    // Get token and password from request body
+    const body = await req.json();
+    const rawToken = body.token || codeFromUrl;
+    const { newPassword } = body;
 
     console.log('🔍 Reset password request received');
-    console.log('🎫 Reset code provided:', !!token);
+    console.log('🎫 Reset code provided:', !!rawToken);
     console.log('🔐 Password provided:', !!newPassword);
 
-    if (!token || !newPassword) {
+    if (!rawToken || !newPassword) {
       console.log('❌ Missing reset code or password');
       return NextResponse.json({ error: 'Missing reset code or password' }, { status: 400 });
     }
+    
+    // Hash the token before querying the database
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    console.log('🔒 Hashed token for database lookup');
 
-    console.log('🔍 Looking for user with reset code...');
+    console.log('🔍 Looking for user with hashed reset code...');
     const user = await prisma.user.findFirst({
       where: {
-        resetToken: token,
+        resetToken: hashedToken,
         resetTokenExpires: { gte: new Date() },
       },
       include: {
@@ -38,7 +50,7 @@ export async function POST(req: Request) {
 
     if (!user) {
       const expiredUser = await prisma.user.findFirst({
-        where: { resetToken: token },
+        where: { resetToken: hashedToken },
         select: { resetTokenExpires: true, email: true },
       });
 
@@ -49,7 +61,7 @@ export async function POST(req: Request) {
         console.log('❌ No user found with this reset code at all');
       }
 
-      return NextResponse.json({ error: 'Invalid or expired reset code. Please request a new password reset.' }, { status: 400 });
+      return NextResponse.json({ error: 'Reset code invalid or expired. Please request a new password reset.' }, { status: 400 });
     }
     
     // APA protection: deny if unapproved child
