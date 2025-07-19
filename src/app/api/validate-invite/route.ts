@@ -47,6 +47,24 @@ export async function GET(req: NextRequest) {
       inviterId: true,
       status: true,
       expiresAt: true,
+      inviteType: true,
+      friendFirstName: true,
+      cliq: {
+        select: {
+          name: true
+        }
+      },
+      inviter: {
+        select: {
+          name: true,
+          email: true,
+          profile: {
+            select: {
+              username: true
+            }
+          }
+        }
+      }
     },
   });
 
@@ -62,11 +80,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ valid: false, error: 'Invite expired' }, { status: 410 });
   }
 
+  // Use type assertion to access fields that TypeScript doesn't know about yet
+  const typedInvite = invite as any;
+  
+  // Get cliq name from the related cliq
+  const cliqName = typedInvite.cliq?.name || 'Unknown Cliq';
+  
+  // Get inviter information from the related user
+  const inviter = typedInvite.inviter || {};
+  const inviterName = inviter.name || 
+                     inviter.profile?.username || 
+                     (inviter.email ? inviter.email.split('@')[0] : 'Someone');
+  
+  // Get the invite type and child's name if available
+  const inviteType = typedInvite.inviteType || 'adult';
+  const friendFirstName = typedInvite.friendFirstName;
+  
   return NextResponse.json({
     valid: true,
     cliqId: invite.cliqId,
     role: invite.invitedRole,
     inviterId: invite.inviterId,
+    cliqName,
+    inviterName,
+    inviteType,
+    friendFirstName
   });
 }
 // 🔐 APA-HARDENED — Validate Invite Code from DB

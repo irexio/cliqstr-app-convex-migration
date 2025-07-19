@@ -78,6 +78,7 @@ model ChildSettings {
 
   canCreatePublicCliqs Boolean @default(false)
   canSendInvites       Boolean @default(false)
+  canInviteChildren    Boolean @default(false)  // New permission for teens 13+ to invite other children
   isSilentlyMonitored  Boolean @default(true)
 
   canAccessGames    Boolean @default(false)
@@ -154,22 +155,27 @@ model Reply {
 }
 
 model Invite {
-  id            String    @id @default(cuid())
-  code          String    @unique
-  cliq          Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
-  cliqId        String
-  inviter       User      @relation("SentInvites", fields: [inviterId], references: [id])
-  inviterId     String
-  invitedUserId String?
-  invitedRole   String
-  inviteeEmail  String
-  status        String    @default("pending")
-  isApproved    Boolean   @default(false) // 🔐 APA: Required for membership control
-  createdAt     DateTime  @default(now())
-  expiresAt     DateTime?
-  maxUses       Int
-  used          Boolean   @default(false)
-  message       String?
+  id                 String    @id @default(cuid())
+  code               String    @unique
+  cliq               Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
+  cliqId             String
+  inviter            User      @relation("SentInvites", fields: [inviterId], references: [id])
+  inviterId          String
+  invitedUserId      String?
+  invitedRole        String
+  inviteeEmail       String
+  status             String    @default("pending")
+  isApproved         Boolean   @default(false) // 🔐 APA: Required for membership control
+  createdAt          DateTime  @default(now())
+  expiresAt          DateTime?
+  maxUses            Int
+  used               Boolean   @default(false)
+  message            String?
+  // New fields for redesigned invite system
+  friendFirstName    String?   // Who the invite is for (required for child invites)
+  trustedAdultContact String?  // Email of parent/guardian (required for child invites)
+  inviteType         String?   // 'child' or 'adult'
+  inviteNote         String?   // Optional message to parent/guardian
 }
 
 model InviteRequest {

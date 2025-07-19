@@ -9,12 +9,9 @@
  * - Helps ensure account recovery in case of forgotten passwords
  */
 
-import { Resend } from 'resend';
+import { sendEmail, BASE_URL } from '@/lib/email';
 import { prisma } from '@/lib/prisma';
-const crypto = require('crypto');
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-const APP_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+import crypto from 'crypto';
 
 interface SendVerificationEmailOptions {
   to: string;
@@ -40,11 +37,12 @@ export async function sendVerificationEmail({ to, userId, name }: SendVerificati
       },
     });
 
-    const verificationLink = `${APP_URL}/verify-email?code=${code}`;
+    const verificationLink = `${BASE_URL}/verify-email?code=${code}`;
 
-    const response = await resend.emails.send({
-      from: 'Cliqstr <noreply@cliqstr.com>',
-      to: [to],
+    console.log(`📨 [sendVerificationEmail] Sending verification email to: ${to}`);
+    
+    const result = await sendEmail({
+      to,
       subject: 'Verify your Cliqstr account',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -64,12 +62,21 @@ export async function sendVerificationEmail({ to, userId, name }: SendVerificati
           <hr style="border: 1px solid #eee; margin: 30px 0;">
           <p style="color: #666; font-size: 12px;">© ${new Date().getFullYear()} Cliqstr - The private social platform for friends, family and safe online communities</p>
         </div>
-      `,
+      `
     });
 
+    if (!result.success) {
+      console.error(`❌ [sendVerificationEmail] Failed to send verification email to ${to}:`, result.error);
+      return { 
+        success: false, 
+        message: 'Failed to send verification email',
+        error: result.error
+      };
+    }
+    
     return { 
       success: true, 
-      messageId: response.data?.id || 'unknown',
+      messageId: result.messageId || 'unknown',
       message: 'Verification email sent successfully'
     };
   } catch (error) {

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { sendInviteEmail } from '@/lib/auth/sendInviteEmail';
+import { sendChildInviteEmail } from '@/lib/auth/sendChildInviteEmail';
 import { BASE_URL } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
@@ -24,22 +25,45 @@ export async function POST(req: Request) {
     const body = await req.json();
     console.log('[INVITE_DEBUG] Request payload:', body);
     
-    const { cliqId, inviteeEmail, invitedRole = 'child', senderName } = body;
+    // Extract fields from the request body
+    const { 
+      cliqId, 
+      inviteeEmail, 
+      invitedRole = 'child', 
+      senderName,
+      // New fields for redesigned invite system
+      inviteType = 'adult',
+      friendFirstName,
+      trustedAdultContact,
+      inviteNote
+    } = body;
     
     if (!cliqId) {
       console.log('[INVITE_ERROR] Missing cliqId');
       return NextResponse.json({ error: 'Missing cliq ID' }, { status: 400 });
     }
     
-    if (!inviteeEmail) {
-      console.log('[INVITE_ERROR] Missing inviteeEmail');
-      return NextResponse.json({ error: 'Email address is required' }, { status: 400 });
+    // Validate required fields based on invite type
+    if (inviteType === 'child') {
+      if (!friendFirstName) {
+        console.log('[INVITE_ERROR] Missing friendFirstName for child invite');
+        return NextResponse.json({ error: 'Child\'s first name is required' }, { status: 400 });
+      }
+      
+      if (!trustedAdultContact) {
+        console.log('[INVITE_ERROR] Missing trustedAdultContact for child invite');
+        return NextResponse.json({ error: 'Parent/guardian email is required' }, { status: 400 });
+      }
+    } else {
+      // Adult invite validation
+      if (!inviteeEmail) {
+        console.log('[INVITE_ERROR] Missing inviteeEmail for adult invite');
+        return NextResponse.json({ error: 'Email address is required' }, { status: 400 });
+      }
     }
     
-    if (!invitedRole) {
-      console.log('[INVITE_ERROR] Missing invitedRole');
-      return NextResponse.json({ error: 'Please select a role (child, adult, or parent)' }, { status: 400 });
-    }
+    // For child invites, the inviteeEmail is the trusted adult's email
+    const targetEmail = inviteType === 'child' ? trustedAdultContact : inviteeEmail;
     
     // Verify user is a member of the cliq
     const membership = await prisma.membership.findFirst({
@@ -75,7 +99,7 @@ export async function POST(req: Request) {
     const existingInvite = await prisma.invite.findFirst({
       where: {
         cliqId,
-        inviteeEmail,
+        inviteeEmail: targetEmail,
         used: false
       }
     });
@@ -86,36 +110,72 @@ export async function POST(req: Request) {
     let inviteRole;
     
     if (existingInvite) {
-      console.log('[INVITE_INFO] Invite already exists - will resend email', { inviteeEmail, cliqId });
+      console.log('[INVITE_INFO] Invite already exists - will resend email', { email: targetEmail, cliqId });
       inviteCode = existingInvite.code;
       inviteRole = existingInvite.invitedRole;
+      
+      // Update the existing invite with the new fields if needed
+      if (inviteType === 'child') {
+        // Use type assertion to handle the new fields that TypeScript doesn't know about yet
+        const typedInvite = existingInvite as any;
+        if (typedInvite.friendFirstName !== friendFirstName || typedInvite.inviteNote !== inviteNote) {
+          await prisma.invite.update({
+            where: { id: existingInvite.id },
+            data: {
+              // Use Prisma's raw update to set fields that might not be in the TypeScript definitions yet
+              friendFirstName,
+              trustedAdultContact,
+              inviteType,
+              inviteNote
+            } as any
+          });
+          console.log('[INVITE_INFO] Updated existing invite with new child info');
+        }
+      }
     } else {
       // Create an invite code
-      console.log('[INVITE_DEBUG] Creating new invite', { cliqId, inviteeEmail, invitedRole });
-      const invite = await prisma.invite.create({
-        data: {
-          code: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-          maxUses: 1,
-          used: false,
-          invitedRole,
-          inviteeEmail,
-          cliq: {
-            connect: { id: cliqId }
-          },
-          inviter: {
-            connect: { id: user.id }
-          }
-        }
+      console.log('[INVITE_DEBUG] Creating new invite', { 
+        cliqId, 
+        email: targetEmail, 
+        inviteType,
+        invitedRole: inviteType === 'child' ? 'child' : 'adult'
       });
+      
+      // Prepare the invite data
+      const inviteData: any = {
+        code: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        maxUses: 1,
+        used: false,
+        invitedRole: inviteType === 'child' ? 'child' : 'adult',
+        inviteeEmail: targetEmail,
+        inviteType,
+        cliq: {
+          connect: { id: cliqId }
+        },
+        inviter: {
+          connect: { id: user.id }
+        }
+      };
+      
+      // Add child-specific fields if needed
+      if (inviteType === 'child') {
+        Object.assign(inviteData, {
+          friendFirstName,
+          trustedAdultContact,
+          inviteNote: inviteNote || undefined
+        });
+      }
+      
+      const invite = await prisma.invite.create({ data: inviteData });
       
       console.log('[INVITE_DEBUG] Invite created successfully', { inviteCode: invite.code });
       inviteCode = invite.code;
-      inviteRole = invitedRole;
+      inviteRole = invite.invitedRole;
     }
     
     // We'll update the invite link format later
     
-    console.log('[EMAIL DEBUG] Sending invite email to', inviteeEmail);
+    console.log('[EMAIL DEBUG] Sending invite email to', targetEmail);
     
     // Get the best available inviter name for personalization
     const inviterName = senderName || 
@@ -131,24 +191,39 @@ export async function POST(req: Request) {
     
     console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
     
-    // Send the email using our standardized email utility
-    const emailResult = await sendInviteEmail({
-      to: inviteeEmail,
-      cliqName: cliq.name,
-      inviterName,
-      inviteLink
-    });
+    // Send the appropriate email based on invite type
+    let emailResult;
+    
+    if (inviteType === 'child') {
+      // Send email to trusted adult for child invite
+      emailResult = await sendChildInviteEmail({
+        to: targetEmail,
+        cliqName: cliq.name,
+        inviterName,
+        inviteLink,
+        friendFirstName,
+        inviteNote
+      });
+    } else {
+      // Send regular invite email for adults
+      emailResult = await sendInviteEmail({
+        to: targetEmail,
+        cliqName: cliq.name,
+        inviterName,
+        inviteLink
+      });
+    }
     
     if (!emailResult.success) {
       console.error('[EMAIL ERROR] Invite email failed:', emailResult.error);
     } else {
-      console.log('[EMAIL SUCCESS] Invite email sent to', inviteeEmail, 'with messageId:', emailResult.messageId);
+      console.log('[EMAIL SUCCESS] Invite email sent to', targetEmail, 'with messageId:', emailResult.messageId);
     }
     
     return NextResponse.json({ 
       success: true, 
       inviteCode: inviteCode, 
-      type: inviteRole === 'adult' ? 'invite' : 'request'
+      type: inviteType === 'adult' ? 'invite' : 'request'
     });
     
   } catch (error: any) {
