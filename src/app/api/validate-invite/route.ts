@@ -47,8 +47,7 @@ export async function GET(req: NextRequest) {
       inviterId: true,
       status: true,
       expiresAt: true,
-      inviteType: true,
-      friendFirstName: true,
+      // Note: inviteType and friendFirstName will be accessed via type assertion
       cliq: {
         select: {
           name: true
@@ -56,7 +55,6 @@ export async function GET(req: NextRequest) {
       },
       inviter: {
         select: {
-          name: true,
           email: true,
           profile: {
             select: {
@@ -88,8 +86,7 @@ export async function GET(req: NextRequest) {
   
   // Get inviter information from the related user
   const inviter = typedInvite.inviter || {};
-  const inviterName = inviter.name || 
-                     inviter.profile?.username || 
+  const inviterName = inviter.profile?.username || 
                      (inviter.email ? inviter.email.split('@')[0] : 'Someone');
   
   // Get the invite type and child's name if available

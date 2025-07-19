@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 /**
@@ -28,7 +30,9 @@ interface InviteDetails {
 
 export default function AdultInvitePage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const sessionResult = useSession();
+  const session = sessionResult?.data;
+  const status = sessionResult?.status || 'loading';
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('code');
   const errorParam = searchParams?.get('error');

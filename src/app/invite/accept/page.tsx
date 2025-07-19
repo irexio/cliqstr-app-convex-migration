@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 'use client';
 
 /**
@@ -12,11 +14,11 @@
  * - Invite codes are validated server-side
  */
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
 
-export default function InviteAcceptPage() {
+function InviteAcceptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('code');
@@ -62,5 +64,18 @@ export default function InviteAcceptPage() {
       <LoadingSpinner size="lg" />
       <p className="mt-4 text-gray-600">Redirecting to your invitation...</p>
     </div>
+  );
+}
+
+export default function InviteAcceptPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+        <p className="mt-4 text-gray-600">Loading invitation...</p>
+      </div>
+    }>
+      <InviteAcceptContent />
+    </Suspense>
   );
 }
