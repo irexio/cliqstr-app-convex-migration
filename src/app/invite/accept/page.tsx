@@ -14,7 +14,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { LoadingSpinner } from '../../../components/LoadingSpinner';
 
 export default function InviteAcceptPage() {
   const router = useRouter();
@@ -44,13 +44,13 @@ export default function InviteAcceptPage() {
             router.push(`/invite/adult?code=${inviteCode}`);
           }
         } else {
-          // Invalid invite, go to generic invite page
-          router.push(`/invite?code=${inviteCode}`);
+          // Invalid invite, show error in adult page with error param
+          router.push(`/invite/adult?code=${inviteCode}&error=invalid`);
         }
       } catch (error) {
         console.error('Error checking invite type:', error);
-        // On error, go to generic invite page
-        router.push(`/invite?code=${inviteCode}`);
+        // On error, show error in adult page with error param
+        router.push(`/invite/adult?code=${inviteCode}&error=invalid`);
       }
     }
 

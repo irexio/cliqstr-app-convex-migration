@@ -1,4 +1,5 @@
 Route,Methods,Description,Tags,Status
+/accept-invite,POST,"🔐 APA-HARDENED ROUTE: POST /api/accept-invite Purpose: - Accepts an invite using the provided invite code - Adds the current user to the cliq - Marks the invite as used - Handles different invite types (adult vs child) Body Params: - inviteCode: string (required) Returns: - 200 OK with cliqId if successful - 400 if no code is provided - 401 if user is not authenticated - 404 if invite is not found - 410 if invite is already used or expired Security: - Requires user authentication - For child invites, requires adult verification - Enforces APA-compliant access control","APA-Hardened, Write",Active
 /admin/force-password-reset,POST,Admin API to force password reset for a user POST /api/admin/force-password-reset,"APA-Hardened, Auth-Required, Write",Active
 /auth/refresh-session,GET,🔄 APA-COMPLIANT SESSION REFRESH ENDPOINT,"Auth-Required, Read",Active
 /auth/request-reset,POST,Allow 1 reset request per 10 minutes per email,Write,Active
@@ -13,6 +14,7 @@ Route,Methods,Description,Tags,Status
 /complete-approval,POST,"now supports: 'free', 'paid', 'ebt'",Write,Active
 /create-checkout-session,POST,Check if Stripe secret key is available,Write,Active
 /create-setup-intent,POST,📦 Stripe SetupIntent API — used for adding payment methods,"Auth-Required, Write",Active
+/dev-reset,GET,No description available,Read,Active
 /get-child-info,POST,Check if Stripe secret key is available,"Auth-Required, Write",Active
 /invite/create,POST,🔐 APA-HARDENED — Invite Email Sender & Creator,"APA-Hardened, Auth-Required, Write",Active
 /invite-request/approve,POST,"🔐 APA-HARDENED ROUTE: POST /api/invite-request/approve Purpose: - Allows a verified parent or adult to approve a pending invite request (usually submitted by a child user or system-initiated invite) Features: - Authenticates the current user - Ensures only adults (non-child profiles) can approve - Fetches the original inviteRequest by ID - Creates a new invite with `isApproved: true` - Deletes the original pending request Used In: - Parent HQ or email approval flow for child invites - Admin dashboard (future: moderation review tools) Related Routes: - /api/invite/create → creates invite or inviteRequest depending on role - /api/validate-invite → used during sign-up Completion: ✅ Fully live and APA-compliant as of June 30, 2025","APA-Hardened, Auth-Required, Write",Active
@@ -29,10 +31,11 @@ Route,Methods,Description,Tags,Status
 /replies,POST,🔐 APA-HARDENED — Create a reply to a post,"APA-Hardened, Auth-Required, Write",Active
 /reset-password,POST,🔐 APA-HARDENED RESET PASSWORD ENDPOINT,"APA-Hardened, Write",Active
 /send-parent-email,POST,"🔐 APA-HARDENED ROUTE: DO NOT DELETE POST /api/parent/approval-complete Purpose: - Completes a child's signup after parental approval - Hashes password, sets username, sets plan - Creates ParentLink between parent + child - Updates invite status to 'used' - Creates or updates Account with stripeStatus + plan ⚠️ DO NOT IMPORT THIS FILE DIRECTLY","APA-Hardened, Write",Active
-/send-reset-email,POST,🔐 APA-HARDENED by Aiden — Password Reset Email Endpoint,"APA-Hardened, Write",Active
+/send-reset-email,POST,API route handler for sending password reset emails Uses the consolidated sendResetEmail helper from lib/auth,"APA-Hardened, Write",Active
 /sign-in,POST,"🔐 APA-SAFE LOGIN ROUTE — FINAL VERSION Authenticates user with email/password, verifies child approval, issues secure session cookie via NextResponse headers. ✅ No persistent tokens used ✅ Role and approval validation ✅ Secure session-based auth only ✅ Legacy tokens cleared",Write,Active
 /sign-out,POST,API Route for signing out users Clears auth_token cookie and any other session data,Write,Active
 /sign-up,POST,🔐 APA-HARDENED — Sign-Up API Route,"APA-Hardened, Write",Active
+/test-email,GET,Simple test endpoint to verify Resend API is working Access via: /api/test-email?email=your@email.com,Read,Active
 /uploadthing,Unknown,No description available,,Active
 /user/plan,POST,"API endpoint to save user's plan selection This is called from the choose-plan page For free/test plans, this directly updates the Account record For paid plans, this would normally redirect to Stripe","Auth-Required, Write",Active
 /validate-invite,GET,"🔐 APA-HARDENED ROUTE: GET /api/validate-invite Purpose: - Validates an invite code provided in the query string - Confirms the invite exists, is still pending, and is not expired Query Params: - code: string (invite code to validate) Returns: - 200 OK with cliqId, invitedRole, inviterId if valid - 400 if no code is provided - 404 if invite is not found - 410 if invite is already used or expired Used In: - Sign-up and onboarding flow to validate invite links - Early access or referral systems (optional future use) Related Routes: - /api/invite/create → issues new invite codes - /api/invite-request/approve → enables parent approval before invite creation Completion: ✅ Fully live and APA-compliant as of June 30, 2025","APA-Hardened, Read",Active

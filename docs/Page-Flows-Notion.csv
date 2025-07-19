@@ -4,7 +4,7 @@ Page,Redirects To,Description,Has Auth Check,Dynamic Rendering
 /admin,,Check if user is authenticated and has admin role,No,Yes
 /awaiting-approval,,No description available,No,No
 /child-account-created,,No description available,No,No
-/choose-plan,"/sign-in, /my-cliqs-dashboard, /my-cliqs-dashboard",✅ Debug: Log user and plan,Yes,Yes
+/choose-plan,"/sign-in, /sign-in, /my-cliqs-dashboard",✅ Debug: Log user and plan,Yes,Yes
 /cliqs/build,,"🛠️ Cliq Builder Page — /cliqs/build Purpose: - Allows users to create a new cliq (name, description, privacy, and banner) - Uses UploadThing for image upload - POSTs to /api/cliqs/create Notes: - Not in a dynamic route, so no ghost fix needed - APA safety is enforced in the backend route",No,Yes
 /cliqs/create,,🔐 APA-HARDENED — Create New Cliq Page,Yes,Yes
 /cliqs/feed,,🔐 APA-HARDENED PAGE: /cliqs/feed Purpose: - Renders the logged-in user’s cliq feed - Displays posts that already include author information Auth: - Requires a valid user session - Redirects to 404 if unauthenticated Notes: - Does NOT pass userId to CliqFeed (posts contain their own author info) - Dynamic rendering prevents static caching,Yes,Yes
@@ -19,6 +19,9 @@ Page,Redirects To,Description,Has Auth Check,Dynamic Rendering
 /for-parents,,No description available,No,No
 /forgot-password,,No description available,No,Yes
 /how-it-works,,No description available,No,No
+/invite/accept,,🔐 APA-HARDENED — Invite Acceptance Page This page handles invite acceptance redirects. It receives an invite code via URL query parameter and redirects to the invite page. Security notes: - No direct account creation happens here - This is just a redirect to the main invite page where proper verification happens - Invite codes are validated server-side,No,No
+/invite/adult,,🔐 APA-HARDENED — Adult Invite Landing Page This page handles the invite acceptance flow for adult invites. It receives an invite code via URL query parameter and validates it. Security notes: - Invite codes are validated server-side - Adult accounts require age verification - All sensitive operations use proper authentication,Yes,No
+/invite/parent,,🔐 APA-HARDENED — Parent Approval Invite Landing Page This page handles the invite acceptance flow for child invites requiring parental approval. It receives an invite code via URL query parameter and validates it. Security notes: - Invite codes are validated server-side - Parent/guardian approval is required for child accounts - Adult verification is enforced for creating child accounts - All sensitive operations use proper authentication,Yes,No
 /join,,"Join Page Purpose: - Landing page when users enter an invite code - Allows existing users to sign in and new users to sign up with pre-filled invite code - Automatically used for ""Join a Cliq"" flow - Server component that gets invite code from params and passes to client component",No,No
 /my-cliqs-dashboard,,"📂 MyCliqs Dashboard — /my-cliqs-dashboard 🔐 APA-Hardened: Accessible only to logged-in users (child or adult) What this page does: - Displays all cliqs the current user owns or is a member of - Queries both `cliqs` (ownerId) and `memberships` (joined) - Renders a responsive grid of cards (1 mobile • 2 tablet • 3 desktop) - Each card includes: - Banner image (if uploaded) or fallback gradient - Cliq name, privacy level, description - Action buttons: View Cliq • View Members • Invite Someone This page serves as the user's central dashboard and launchpad. It is the starting point for nearly all major actions after login. Used in flows: - Direct sign-up (adult or child) - Post-parent approval (child) - Invited user access",Yes,Yes
 /not-authorized,,No description available,No,No

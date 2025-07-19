@@ -31,6 +31,7 @@ export default function AdultInvitePage() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('code');
+  const errorParam = searchParams?.get('error');
   
   const [loading, setLoading] = useState(true);
   const [inviteDetails, setInviteDetails] = useState<InviteDetails | null>(null);
@@ -40,6 +41,13 @@ export default function AdultInvitePage() {
     async function validateInvite() {
       if (!inviteCode) {
         setInviteDetails({ valid: false, error: 'No invite code provided' });
+        setLoading(false);
+        return;
+      }
+      
+      // If error param is present, set error state directly
+      if (errorParam === 'invalid') {
+        setInviteDetails({ valid: false, error: 'Invalid or expired invite code' });
         setLoading(false);
         return;
       }

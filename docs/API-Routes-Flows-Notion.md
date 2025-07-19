@@ -1,6 +1,6 @@
 # Cliqstr API Routes and Flow Documentation
 
-*This file is formatted for Notion import. Last updated: 2025-07-16T21:27:55.354Z*
+*This file is formatted for Notion import. Last updated: 2025-07-19T17:45:48.444Z*
 
 ## How to Use This Documentation in Notion
 
@@ -22,14 +22,14 @@
 ## Recent Changes
 
 ```
-d21b935 - Improve choose-plan-form mobile responsiveness and center test plan (17 minutes ago)
-d453fc7 - Fix session flow to automatically redirect approved users and test plan users to dashboard (4 hours ago)
-1f3736f - Temp: Show only 'Test Plan' in choose-plan form during Stripe setup freeze (5 hours ago)
-c092758 - Fix session stability issues: implement hard navigations, standardize session data, loosen frontend plan validations, ensure dynamic rendering (5 hours ago)
-3f328c7 - Add diagnostic session check page for debugging authentication issues (6 hours ago)
-07728f2 - Fix plan redirect loop with hard reload and session refresh (6 hours ago)
-c374057 - Add logging to getCurrentUser to trace session and plan data for redirect debugging (7 hours ago)
-909bf43 - Fix client component directive order - move 'use client' before dynamic export (18 hours ago)
-6f5837f - Fix dynamic server usage errors by restructuring imports and dynamic exports (19 hours ago)
-e708f9a - Add global dynamic configuration to fix Vercel dynamic server usage errors (19 hours ago)
+e2f76d2 - Implement redesigned invite system with separate landing pages for adult and parent approval invites (7 minutes ago)
+a19202f - Trigger Vercel redeploy (24 hours ago)
+cc55fd1 - Fix invite email subject line and invite link issues (24 hours ago)
+ce782b4 - Fix invite email sending and allow resending to existing invites for testing (25 hours ago)
+d2276e3 - Fix invite creation by using correct Prisma schema structure (25 hours ago)
+3203132 - Fix invite API and improve member management with better error handling and feedback (25 hours ago)
+f7a6377 - Update My Cliqs Dashboard to match design with responsive grid layout and CliqCard component (26 hours ago)
+a6dd05f - fix: prevent plan banner from showing on dashboard and improve plan selection flow (26 hours ago)
+1fcf832 - fix: add PlanBanner component and fix plan selection page (26 hours ago)
+36ae504 - fix: ensure plans display on choose-plan page (26 hours ago)
 ```
