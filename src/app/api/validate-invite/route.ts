@@ -47,7 +47,10 @@ export async function GET(req: NextRequest) {
       inviterId: true,
       status: true,
       expiresAt: true,
-      // Note: inviteType and friendFirstName will be accessed via type assertion
+      inviteType: true,
+      friendFirstName: true,
+      trustedAdultContact: true,
+      inviteNote: true,
       cliq: {
         select: {
           name: true
@@ -79,19 +82,17 @@ export async function GET(req: NextRequest) {
   }
 
   // Use type assertion to access fields that TypeScript doesn't know about yet
-  const typedInvite = invite as any;
-  
   // Get cliq name from the related cliq
-  const cliqName = typedInvite.cliq?.name || 'Unknown Cliq';
+  const cliqName = invite.cliq?.name || 'Unknown Cliq';
   
   // Get inviter information from the related user
-  const inviter = typedInvite.inviter || {};
+  const inviter = invite.inviter || {};
   const inviterName = inviter.profile?.username || 
                      (inviter.email ? inviter.email.split('@')[0] : 'Someone');
   
   // Get the invite type and child's name if available
-  const inviteType = typedInvite.inviteType || 'adult';
-  const friendFirstName = typedInvite.friendFirstName;
+  const inviteType = invite.inviteType || 'adult';
+  const friendFirstName = invite.friendFirstName;
   
   return NextResponse.json({
     valid: true,
