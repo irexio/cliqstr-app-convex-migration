@@ -27,15 +27,14 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth/authOptions';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 export async function POST(req: NextRequest) {
   try {
-    // Get the current user session
-    const session = await getServerSession(authOptions);
+    // Get the current user session using APA-compliant auth
+    const user = await getCurrentUser();
     
-    if (!session?.user?.id) {
+    if (!user?.id) {
       return NextResponse.json({ error: 'You must be signed in to accept an invite' }, { status: 401 });
     }
     
@@ -81,7 +80,7 @@ export async function POST(req: NextRequest) {
     const existingMembership = await prisma.cliqMember.findFirst({
       where: {
         cliqId: invite.cliqId,
-        userId: session.user.id
+        userId: user.id
       }
     });
     
@@ -91,7 +90,7 @@ export async function POST(req: NextRequest) {
         where: { id: invite.id },
         data: {
           status: 'accepted',
-          invitedUserId: session.user.id
+          invitedUserId: user.id
         }
       });
       
@@ -105,7 +104,7 @@ export async function POST(req: NextRequest) {
     if (inviteType === 'child') {
       // Get the user's profile to check age verification status
       const userProfile = await prisma.profile.findUnique({
-        where: { userId: session.user.id },
+        where: { userId: user.id },
         select: { isAgeVerified: true }
       });
       
@@ -126,7 +125,7 @@ export async function POST(req: NextRequest) {
           connect: { id: invite.cliqId }
         },
         user: {
-          connect: { id: session.user.id }
+          connect: { id: user.id }
         },
         role: invite.invitedRole || 'member',
         status: 'active'
@@ -138,12 +137,12 @@ export async function POST(req: NextRequest) {
       where: { id: invite.id },
       data: {
         status: 'accepted',
-        invitedUserId: session.user.id
+        invitedUserId: user.id
       }
     });
     
     // Log the successful invite acceptance
-    console.log(`[INVITE_ACCEPTED] User ${session.user.id} accepted invite to cliq ${invite.cliqId}`);
+    console.log(`[INVITE_ACCEPTED] User ${user.id} accepted invite to cliq ${invite.cliqId}`);
     
     return NextResponse.json({
       message: 'Successfully joined cliq',
