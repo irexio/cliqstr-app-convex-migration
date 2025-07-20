@@ -39,6 +39,11 @@ const parentApprovalSchema = z.object({
   parentEmail: z.string().email('Valid parent email is required'),
 });
 
+// Simple GET handler for testing
+export async function GET() {
+  return NextResponse.json({ message: 'Parent approval API is working' });
+}
+
 export async function POST(req: NextRequest) {
   try {
     console.log('[PARENT_APPROVAL] Starting request processing');
