@@ -41,10 +41,15 @@ const parentApprovalSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    console.log('[PARENT_APPROVAL] Starting request processing');
     const body = await req.json();
+    console.log('[PARENT_APPROVAL] Request body:', body);
+    
     const parsed = parentApprovalSchema.safeParse(body);
+    console.log('[PARENT_APPROVAL] Schema validation result:', { success: parsed.success });
 
     if (!parsed.success) {
+      console.error('[PARENT_APPROVAL] Validation failed:', parsed.error.flatten());
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
@@ -84,14 +89,23 @@ export async function POST(req: NextRequest) {
     });
 
     // Send approval email to parent
-    await sendParentEmail({
+    console.log(`[PARENT_APPROVAL] Attempting to send email to ${parentEmail} for child ${childFirstName} ${childLastName}`);
+    
+    const emailResult = await sendParentEmail({
       to: parentEmail,
       childName: `${childFirstName} ${childLastName}`,
       childId: approvalCode, // Use approval code as temporary ID
       inviteCode: approvalCode,
     });
 
-    console.log(`[PARENT_APPROVAL] Request sent for child ${childFirstName} to parent ${parentEmail}`);
+    if (!emailResult.success) {
+      console.error(`[PARENT_APPROVAL] Email failed:`, emailResult.error);
+      return NextResponse.json({ 
+        error: `Failed to send email: ${emailResult.error?.message || emailResult.error || 'Unknown email error'}` 
+      }, { status: 500 });
+    }
+
+    console.log(`[PARENT_APPROVAL] Request sent successfully for child ${childFirstName} to parent ${parentEmail}`);
 
     return NextResponse.json({
       success: true,
@@ -100,6 +114,9 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('[PARENT_APPROVAL_ERROR]', error);
-    return NextResponse.json({ error: 'Failed to send parent approval request' }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    return NextResponse.json({ 
+      error: `Failed to send parent approval request: ${errorMessage}` 
+    }, { status: 500 });
   }
 }
