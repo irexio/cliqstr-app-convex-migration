@@ -1,5 +1,6 @@
 'use client';
 
+// Force fresh deployment - child button fix
 /**
  * 🔐 APA-HARDENED COMPONENT: InviteClient
  *
