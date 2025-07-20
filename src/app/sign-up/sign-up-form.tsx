@@ -18,12 +18,14 @@ export default function SignUpForm() {
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get('invite') || null;
 
+  const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [birthdate, setBirthdate] = useState('');
   const [parentEmail, setParentEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [childSignupSuccess, setChildSignupSuccess] = useState(false);
 
   const calculateAge = (dob: string) => {
     const birth = new Date(dob);
@@ -45,6 +47,7 @@ export default function SignUpForm() {
 
     try {
       const body: Record<string, string> = {
+        firstName,
         email,
         password,
         birthdate,
@@ -65,7 +68,8 @@ export default function SignUpForm() {
 
       // 👣 Redirect based on user role - adults go to plan selection
       if (isChild) {
-        router.push('/sign-in'); // Children still go to sign-in
+        // Show success message for children instead of redirecting
+        setChildSignupSuccess(true);
       } else {
         // For adults, sign in automatically after sign-up
         try {
@@ -99,8 +103,51 @@ export default function SignUpForm() {
     }
   };
 
+  // Show success message for child sign-ups
+  if (childSignupSuccess) {
+    return (
+      <div className="max-w-md mx-auto p-6 bg-green-50 border border-green-200 rounded-lg">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-green-800 mb-2">Account Request Sent!</h2>
+          <p className="text-green-700 mb-4">
+            Hi {firstName}! Your parent/guardian will approve your account and provide you with your username and password.
+          </p>
+          <p className="text-green-600 text-sm">
+            <strong>Be sure to ask them to check their email at:</strong><br />
+            <span className="font-mono bg-green-100 px-2 py-1 rounded">{parentEmail}</span>
+          </p>
+          <div className="mt-6">
+            <Button 
+              onClick={() => router.push('/')}
+              className="w-full"
+            >
+              Return to Home
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="firstName">First Name</Label>
+        <Input
+          id="firstName"
+          type="text"
+          required
+          autoComplete="given-name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+        />
+      </div>
+
       <div>
         <Label htmlFor="email">Email</Label>
         <Input

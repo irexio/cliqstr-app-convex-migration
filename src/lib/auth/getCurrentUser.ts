@@ -25,6 +25,7 @@ export async function getCurrentUser() {
           select: {
             id: true,
             username: true,
+            firstName: true,
             image: true,
             bannerImage: true,
             about: true,

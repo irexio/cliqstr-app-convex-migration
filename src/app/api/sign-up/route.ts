@@ -13,6 +13,7 @@ import { z } from 'zod';
 export const dynamic = 'force-dynamic';
 
 const signUpSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   birthdate: z.preprocess((val) => {
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { email, password, birthdate, inviteCode, parentEmail } = parsed.data;
+    const { firstName, email, password, birthdate, inviteCode, parentEmail } = parsed.data;
 
     // Check for existing user
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
     await prisma.profile.create({
       data: {
         userId: newUser.id,
+        firstName: firstName,
         birthdate: birthDateObj,
         username: `user-${newUser.id}`, // ✅ temp placeholder
       },
@@ -117,9 +119,10 @@ export async function POST(req: Request) {
 
     // Send parent approval email if child
     if (isChild && parentEmail) {
+      // Use the actual firstName provided during sign-up
       await sendParentEmail({
         to: parentEmail,
-        childName: email, // temporary fallback for now
+        childName: firstName,
         childId: newUser.id,
         inviteCode: inviteCode ?? undefined,
       });
