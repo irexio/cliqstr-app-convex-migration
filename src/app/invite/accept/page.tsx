@@ -32,27 +32,46 @@ function InviteAcceptContent() {
       }
 
       try {
-        // Check the invite type to determine where to redirect
-        const response = await fetch(`/api/validate-invite?code=${inviteCode}`);
-        const data = await response.json();
+        console.log('Validating invite code:', inviteCode);
         
-        if (response.ok && data.valid) {
+        // Create a timeout promise to prevent infinite hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
+        });
+        
+        // Race the fetch against the timeout
+        const fetchPromise = fetch(`/api/validate-invite?code=${inviteCode}`);
+        
+        const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+        
+        console.log('API response status:', response.status);
+        
+        if (!response.ok) {
+          console.error('API returned error status:', response.status);
+          throw new Error(`API returned ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('API response data:', data);
+        
+        if (data.valid) {
           // Redirect based on invite type
           if (data.inviteType === 'child') {
-            // Parent approval flow
+            console.log('Redirecting to parent flow');
             router.push(`/invite/parent?code=${inviteCode}`);
           } else {
-            // Adult invite flow
+            console.log('Redirecting to adult flow');
             router.push(`/invite/adult?code=${inviteCode}`);
           }
         } else {
-          // Invalid invite, show error in adult page with error param
+          console.log('Invalid invite, redirecting with error');
           router.push(`/invite/adult?code=${inviteCode}&error=invalid`);
         }
       } catch (error) {
         console.error('Error checking invite type:', error);
+        console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
         // On error, show error in adult page with error param
-        router.push(`/invite/adult?code=${inviteCode}&error=invalid`);
+        router.push(`/invite/adult?code=${inviteCode}&error=server`);
       }
     }
 
