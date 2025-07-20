@@ -162,9 +162,9 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
     setInviteNote('');
   };
 
-  // Determine if user can invite children based on age and permissions
-  const canShowChildInviteOption = userAge === null || userAge >= 13;
-  const canActuallyInviteChildren = userAge !== null && (userAge >= 13 && canInviteChildren);
+  // Determine if user can invite children based on age
+  const canShowChildInviteOption = userAge === null || userAge >= 18;
+  const canActuallyInviteChildren = userAge === null || userAge >= 18; // Allow adults to invite children
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -193,13 +193,19 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
             Child
           </label>
         </div>
-        {userAge !== null && userAge < 13 && (
-          <p className="text-amber-600 text-xs mt-1">Only users 13+ can invite children</p>
-        )}
-        {userAge !== null && userAge >= 13 && !canInviteChildren && (
-          <p className="text-amber-600 text-xs mt-1">Ask a parent to enable child invites in your settings</p>
+        {userAge !== null && userAge < 18 && (
+          <p className="text-amber-600 text-xs mt-1">Only adults (18+) can invite children</p>
         )}
       </div>
+
+      {inviteType === 'child' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+          <p className="text-sm text-blue-800">
+            💡 <strong>Note:</strong> Please enter the parent/guardian's email address. 
+            They will receive the invitation and can approve their child's participation.
+          </p>
+        </div>
+      )}
 
       {inviteType === 'adult' ? (
         <div>
@@ -236,7 +242,7 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
               type="email"
               value={trustedAdultContact}
               onChange={(e) => setTrustedAdultContact(e.target.value)}
-              placeholder="Their parent's email"
+              placeholder="parent@example.com"
               required
             />
             <p className="text-xs text-gray-500 mt-1">
