@@ -1,3 +1,5 @@
+'use client';
+
 // 🔐 APA-HARDENED PAGE: /child/onboarding
 // Child First Login - Nickname Setup Flow
 
