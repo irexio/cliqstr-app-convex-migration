@@ -181,9 +181,9 @@ export async function POST(req: Request) {
     console.log('[EMAIL DEBUG] Sending invite email to', targetEmail);
     
     // Get the best available inviter name for personalization
-    // Priority: username -> email prefix -> fallback
-    const inviterName = user?.profile?.username || 
-                       (user?.email ? user.email.split('@')[0] : null) || 
+    // Priority: email prefix -> username -> fallback (since username often contains user ID)
+    const inviterName = (user?.email ? user.email.split('@')[0] : null) ||
+                       user?.profile?.username || 
                        senderName || 
                        'Someone';
     
