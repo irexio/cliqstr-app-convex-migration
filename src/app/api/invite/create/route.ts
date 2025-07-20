@@ -83,11 +83,8 @@ export async function POST(req: Request) {
       select: { name: true }
     });
     
-    // Get inviter details for better email personalization
-    const inviter = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: { email: true, profile: { select: { username: true } } }
-    });
+    // Use the current user data (already includes profile with username)
+    // No need to fetch again since getCurrentUser() already includes profile
     
     if (!cliq) {
       console.log('[INVITE_ERROR] Cliq not found', { cliqId });
@@ -184,14 +181,15 @@ export async function POST(req: Request) {
     console.log('[EMAIL DEBUG] Sending invite email to', targetEmail);
     
     // Get the best available inviter name for personalization
-    const inviterName = inviter?.profile?.username || 
+    // Priority: username -> email prefix -> fallback
+    const inviterName = user?.profile?.username || 
+                       (user?.email ? user.email.split('@')[0] : null) || 
                        senderName || 
-                       (inviter?.email ? inviter.email.split('@')[0] : null) || 
                        'Someone';
     
     console.log('[EMAIL DEBUG] Inviter data:', {
-      username: inviter?.profile?.username,
-      email: inviter?.email,
+      username: user?.profile?.username,
+      email: user?.email,
       senderName,
       finalInviterName: inviterName
     });

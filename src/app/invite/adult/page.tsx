@@ -90,8 +90,8 @@ function AdultInviteContent() {
       const data = await response.json();
       
       if (response.ok) {
-        // Redirect to the cliq page after successful acceptance
-        router.push(`/cliqs/${data.cliqId}`);
+        // Redirect to My Cliqs dashboard after successful acceptance
+        router.push('/my-cliqs-dashboard');
       } else {
         setInviteDetails(prev => ({ ...prev!, error: data.error }));
         setLoading(false);

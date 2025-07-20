@@ -52,6 +52,11 @@ export default function CliqCard({ cliq }: CliqCardProps) {
       </Link>
       {/* Action Buttons */}
       <div className="flex gap-2 px-4 pb-4 mt-auto">
+        <Link href={`/cliqs/${cliq.id}`}>
+          <Button className="flex-1">
+            View
+          </Button>
+        </Link>
         <Button variant="outline" onClick={() => setMembersModalOpen(true)}>
           Members
         </Button>
