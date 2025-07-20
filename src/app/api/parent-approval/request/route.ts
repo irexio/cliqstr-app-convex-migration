@@ -73,8 +73,39 @@ export async function POST(req: NextRequest) {
     // Generate unique approval code
     const approvalCode = await generateInviteCode();
 
-    // Store pending approval in database
-    // We'll use the Invite table with a special type for parent approvals
+    // For child sign-ups, we need to create a temporary system user and cliq for the approval process
+    // First, let's find or create a system user for child approvals
+    let systemUser = await prisma.user.findFirst({
+      where: { email: 'system@cliqstr.com' }
+    });
+    
+    if (!systemUser) {
+      // Create system user if it doesn't exist
+      systemUser = await prisma.user.create({
+        data: {
+          email: 'system@cliqstr.com',
+          password: 'system-placeholder', // This won't be used for login
+        }
+      });
+    }
+
+    // Find or create a system cliq for child approvals
+    let systemCliq = await prisma.cliq.findFirst({
+      where: { name: 'Child Approval System' }
+    });
+    
+    if (!systemCliq) {
+      systemCliq = await prisma.cliq.create({
+        data: {
+          name: 'Child Approval System',
+          description: 'System cliq for child approval processes',
+          privacy: 'private',
+          ownerId: systemUser.id,
+        }
+      });
+    }
+
+    // Store pending approval in database using system placeholders
     await prisma.invite.create({
       data: {
         code: approvalCode,
@@ -82,14 +113,13 @@ export async function POST(req: NextRequest) {
         inviteType: 'parent-approval',
         friendFirstName: childFirstName,
         trustedAdultContact: parentEmail,
-        inviteeEmail: parentEmail, // Required field
-        inviteNote: `Child approval request for ${childFirstName}, age ${age}`,
+        inviteeEmail: parentEmail,
+        inviteNote: `Child approval request for ${childFirstName} ${childLastName}, age ${age}`,
         status: 'pending',
-        maxUses: 1, // Required field
+        maxUses: 1,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-        // We'll set inviterId and cliqId later when parent approves
-        inviterId: 'system', // placeholder
-        cliqId: 'pending', // placeholder
+        inviterId: systemUser.id, // Use system user as placeholder
+        cliqId: systemCliq.id, // Use system cliq as placeholder
       },
     });
 
