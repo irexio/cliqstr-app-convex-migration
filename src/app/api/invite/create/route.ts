@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { sendInviteEmail } from '@/lib/auth/sendInviteEmail';
 import { sendChildInviteEmail } from '@/lib/auth/sendChildInviteEmail';
+import { generateInviteCode } from '@/lib/auth/generateInviteCode';
 import { BASE_URL } from '@/lib/email';
 
 export const dynamic = 'force-dynamic';
@@ -148,7 +149,7 @@ export async function POST(req: Request) {
       
       // Prepare the invite data
       const inviteData: any = {
-        code: `INV-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        code: await generateInviteCode(),
         maxUses: 1,
         used: false,
         invitedRole: inviteType === 'child' ? 'child' : 'adult',

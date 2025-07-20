@@ -4,6 +4,7 @@
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,7 +33,7 @@ export async function POST(req: Request) {
 
     // ✅ Optional invite logic
     if (inviteCode) {
-      const invite = await prisma.invite.findUnique({ where: { code: inviteCode } });
+      const invite = await prisma.invite.findUnique({ where: { code: normalizeInviteCode(inviteCode) } });
 
       if (!invite || invite.status !== 'pending') {
         return NextResponse.json({ error: 'Invalid or used invite' }, { status: 400 });
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
       }
 
       await prisma.invite.update({
-        where: { code: inviteCode },
+        where: { code: normalizeInviteCode(inviteCode) },
         data: { status: 'used' },
       });
     }

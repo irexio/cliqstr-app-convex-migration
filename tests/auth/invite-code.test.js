@@ -9,6 +9,12 @@
 
 const { PrismaClient } = require('@prisma/client');
 const fetch = require('node-fetch');
+const { customAlphabet } = require('nanoid');
+
+// Generate test invite codes in the new format
+const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const generateTestCodeSuffix = customAlphabet(alphabet, 5);
+const generateTestInviteCode = () => `cliq-${generateTestCodeSuffix()}`;
 
 // Initialize test environment
 const prisma = new PrismaClient();
@@ -79,7 +85,7 @@ async function setupTestCliqAndInvites() {
   // Create invite codes for the cliq
   const singleUseInvite = await prisma.invite.create({
     data: {
-      code: `SINGLE-${timestamp}`,
+      code: generateTestInviteCode(),
       maxUses: 1,
       used: false,
       cliqId: cliq.id
@@ -88,7 +94,7 @@ async function setupTestCliqAndInvites() {
 
   const multiUseInvite = await prisma.invite.create({
     data: {
-      code: `MULTI-${timestamp}`,
+      code: generateTestInviteCode(),
       maxUses: 3,
       used: false,
       cliqId: cliq.id

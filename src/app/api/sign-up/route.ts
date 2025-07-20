@@ -7,6 +7,7 @@ import { hash } from 'bcryptjs';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
     const isChild = age < 18;
 
     if (inviteCode) {
-      const invite = await prisma.invite.findUnique({ where: { code: inviteCode } });
+      const invite = await prisma.invite.findUnique({ where: { code: normalizeInviteCode(inviteCode) } });
 
       if (!invite) {
         return NextResponse.json({ error: 'Invalid invite code' }, { status: 400 });

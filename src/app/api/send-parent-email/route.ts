@@ -1,19 +1,20 @@
 /**
- * 🔐 APA-HARDENED ROUTE: DO NOT DELETE POST /api/parent/approval-complete
+ * 🔐 APA-HARDENED ROUTE: POST /api/send-parent-email
+ * 🛠️ INTERNAL USE ONLY
  *
  * Purpose:
- *   - Completes a child's signup after parental approval
- *   - Hashes password, sets username, sets plan
- *   - Creates ParentLink between parent + child
- *   - Updates invite status to 'used'
- *   - Creates or updates Account with stripeStatus + plan
+ *   - Sends parent approval emails for child account creation
+ *   - Internal helper route for invite flow
+ *   - Not intended for direct external API calls
  *
- * ⚠️ DO NOT IMPORT THIS FILE DIRECTLY
+ * Tags: Internal, Helper, Email
+ * ⚠️ This is an internal helper route - use invite/create instead
  */
 
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     // 🧪 Step 1: Validate invite
-    const invite = await prisma.invite.findUnique({ where: { code: inviteCode } });
+    const invite = await prisma.invite.findUnique({ where: { code: normalizeInviteCode(inviteCode) } });
     if (!invite || invite.status !== 'pending') {
       return NextResponse.json({ error: 'Invalid or used invite' }, { status: 400 });
     }
@@ -116,7 +117,7 @@ export async function POST(req: Request) {
 
     // 📌 Step 6: Mark invite as used
     await prisma.invite.update({
-      where: { code: inviteCode },
+      where: { code: normalizeInviteCode(inviteCode) },
       data: { status: 'used' }
     });
 

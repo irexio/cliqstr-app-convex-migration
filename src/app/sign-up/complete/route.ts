@@ -2,6 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -46,7 +47,7 @@ export async function POST(req: Request) {
     }
 
     const invite = await prisma.invite.findUnique({
-      where: { code: inviteCode },
+      where: { code: normalizeInviteCode(inviteCode) },
     });
 
     if (!invite || invite.cliqId !== cliqId) {
@@ -75,7 +76,7 @@ export async function POST(req: Request) {
 
     // Optionally: delete or mark invite as used
     await prisma.invite.delete({
-      where: { code: inviteCode },
+      where: { code: normalizeInviteCode(inviteCode) },
     });
 
     return NextResponse.json({ success: true });

@@ -29,7 +29,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
-import { nanoid } from 'nanoid';
+import { generateInviteCode } from '@/lib/auth/generateInviteCode';
 
 export async function POST(req: NextRequest) {
   try {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
     // Create approved invite
     await prisma.invite.create({
       data: {
-        code: nanoid(10),
+        code: await generateInviteCode(),
         cliqId: inviteRequest.cliqId,
         invitedRole: inviteRequest.invitedRole,
         inviteeEmail: inviteRequest.inviteeEmail,

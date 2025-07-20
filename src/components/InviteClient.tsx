@@ -1,26 +1,25 @@
 'use client';
 
-// Force fresh deployment - child button fix
 /**
  * 🔐 APA-HARDENED COMPONENT: InviteClient
  *
  * Used in: /cliqs/[id]/invite/page.tsx
  *
  * Purpose:
- *   - Renders the redesigned invite form for the new invite flow
- *   - Supports inviting adults directly and children via trusted adults
- *   - Submits invite data to /api/invite/create
- *   - Displays success or error messages
+ *   - Renders the redesigned invite form with new field structure
+ *   - Supports two invite types: 'child' and 'adult'
+ *   - For child invites: collects friend's name and trusted adult contact
+ *   - For adult invites: collects adult's email directly
+ *   - Submits invite data to /api/invite/create with new branded codes
  *
- * Notes:
- *   - Requires a valid `cliqId` prop (string)
- *   - Uses fetch POST with JSON payload
- *   - No direct use of inviterId (auth handled server-side)
- *   - Collects different information based on inviteType (child vs adult)
+ * New Form Fields:
+ *   - friendFirstName: string (required for child invites)
+ *   - trustedAdultContact: string (required email for child invites)
+ *   - inviteType: 'child' | 'adult' (required radio selection)
+ *   - inviteNote?: string (optional message)
  */
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
@@ -31,176 +30,128 @@ interface InviteClientProps {
 }
 
 export default function InviteClient({ cliqId }: InviteClientProps) {
-  const router = useRouter();
-
-  // New state variables for redesigned invite form
-  const [inviteType, setInviteType] = useState<'child' | 'adult'>('adult');
+  // New simplified state for redesigned invite form
   const [friendFirstName, setFriendFirstName] = useState('');
   const [trustedAdultContact, setTrustedAdultContact] = useState('');
-  const [inviteNote, setInviteNote] = useState('');
-  const [adultEmail, setAdultEmail] = useState('');
+  const [inviteType, setInviteType] = useState<'child' | 'adult' | ''>(''); // Must be explicitly selected
+  const [inviteNote, setInviteNote] = useState('Parent or Guardian approval is required. Please click the link to proceed.');
   const [error, setError] = useState('');
-  const [successType, setSuccessType] = useState<'invite' | 'request' | ''>('');
+  const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [userAge, setUserAge] = useState<number | null>(null);
-  const [canInviteChildren, setCanInviteChildren] = useState(false);
-
-  // Fetch user's age and permissions on component mount
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const res = await fetch('/api/user/profile');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.profile) {
-            // Calculate age from birthdate
-            const birthdate = new Date(data.profile.birthdate);
-            const today = new Date();
-            const age = today.getFullYear() - birthdate.getFullYear();
-            setUserAge(age);
-            
-            // Check if user can invite children (for teens 13+)
-            if (data.profile.childSettings) {
-              setCanInviteChildren(data.profile.childSettings.canInviteChildren || false);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching user profile:', err);
-      }
-    };
-    
-    fetchUserProfile();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccessType('');
+    setSuccess(false);
 
     try {
-      // Determine which email to use based on invite type
-      const targetEmail = inviteType === 'child' ? trustedAdultContact : adultEmail;
-      
-      // Validate required fields based on invite type
+      // Validate required fields
+      if (!inviteType) {
+        throw new Error('Please select who this invite is for');
+      }
+
       if (inviteType === 'child') {
-        if (!friendFirstName) {
+        if (!friendFirstName.trim()) {
           throw new Error("Child's first name is required");
         }
-        if (!trustedAdultContact) {
-          throw new Error("Parent/guardian email is required");
+        if (!trustedAdultContact.trim()) {
+          throw new Error('Parent/guardian email is required');
         }
-      } else if (!adultEmail) {
-        throw new Error("Email address is required");
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trustedAdultContact)) {
+          throw new Error('Please enter a valid email address');
+        }
+      } else if (inviteType === 'adult') {
+        if (!trustedAdultContact.trim()) {
+          throw new Error('Adult email is required');
+        }
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(trustedAdultContact)) {
+          throw new Error('Please enter a valid email address');
+        }
       }
-      
+
+      // Prepare the request payload based on invite type
+      const payload: any = {
+        cliqId,
+        inviteType,
+        inviteNote: inviteNote.trim() || undefined,
+      };
+
+      if (inviteType === 'child') {
+        // Child invites need friendFirstName and trustedAdultContact
+        payload.friendFirstName = friendFirstName.trim();
+        payload.trustedAdultContact = trustedAdultContact.trim();
+      } else {
+        // Adult invites need inviteeEmail
+        payload.inviteeEmail = trustedAdultContact.trim();
+      }
+
       const response = await fetch('/api/invite/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          cliqId,
-          inviteeEmail: targetEmail,  // For backward compatibility
-          inviteType,
-          friendFirstName: inviteType === 'child' ? friendFirstName : undefined,
-          trustedAdultContact: inviteType === 'child' ? trustedAdultContact : undefined,
-          inviteNote: inviteNote || undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
-      console.log('Invite response:', data);
 
-      // Handle different response status codes with user-friendly messages
       if (!response.ok) {
-        if (response.status === 400) {
-          throw new Error(data.error || 'Please check the form fields');
-        } else if (response.status === 401) {
-          throw new Error('Your session has expired. Please sign in again.');
-        } else if (response.status === 403) {
-          throw new Error('You don\'t have permission to invite to this cliq.');
-        } else if (response.status === 404) {
-          throw new Error('This cliq could not be found. It may have been deleted.');
-        } else if (response.status === 409) {
-          // This is actually a success case - the invite already exists
-          setSuccessType(data.type || 'invite');
-          resetForm();
-          return;
-        } else {
-          throw new Error(data.error || 'Unexpected error. Please try again later.');
-        }
+        throw new Error(data.error || 'Failed to send invite');
       }
 
-      // Handle success responses
-      if (data.message === 'Invite already exists') {
-        setSuccessType(data.type);
-        resetForm();
-        setError('This person has already been invited to this cliq.');
-      } else if (data.type === 'request' || data.type === 'invite') {
-        setSuccessType(data.type);
-        resetForm();
-      } else {
-        throw new Error('Unexpected response from server.');
-      }
-    } catch (err: any) {
-      console.error('Invite error:', err);
-      setError(err.message || 'Something went wrong. Please try again.');
+      setSuccess(true);
+      // Reset form
+      setFriendFirstName('');
+      setTrustedAdultContact('');
+      setInviteType('');
+      setInviteNote('Parent or Guardian approval is required. Please click the link to proceed.');
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
-  
-  // Helper function to reset form fields
-  const resetForm = () => {
-    if (inviteType === 'child') {
-      setFriendFirstName('');
-      setTrustedAdultContact('');
-    } else {
-      setAdultEmail('');
-    }
-    setInviteNote('');
-  };
 
-  // Determine if user can invite children based on age
-  const canShowChildInviteOption = userAge === null || userAge >= 18;
-  const canActuallyInviteChildren = userAge === null || userAge >= 18; // Allow adults to invite children
-  
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Required Radio Input */}
       <div>
-        <Label>Who are you inviting?</Label>
-        <div className="flex gap-4 mt-2">
-          <label className="flex items-center gap-2">
+        <Label className="text-base font-medium">Who is this invite for? *</Label>
+        <div className="flex gap-6 mt-3">
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name="inviteType"
               value="adult"
               checked={inviteType === 'adult'}
               onChange={() => setInviteType('adult')}
+              className="w-4 h-4"
             />
-            Adult
+            <span className="text-sm">Adult (18+)</span>
           </label>
-          <label className={`flex items-center gap-2 ${!canShowChildInviteOption ? 'opacity-50' : ''}`}>
+          <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="radio"
               name="inviteType"
               value="child"
               checked={inviteType === 'child'}
               onChange={() => setInviteType('child')}
-              disabled={!canActuallyInviteChildren}
+              className="w-4 h-4"
             />
-            Child
+            <span className="text-sm">Child (Under 18)</span>
           </label>
         </div>
-        {userAge !== null && userAge < 18 && (
-          <p className="text-amber-600 text-xs mt-1">Only adults (18+) can invite children</p>
-        )}
       </div>
 
+      {/* Child Invite Notice */}
       {inviteType === 'child' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
           <p className="text-sm text-blue-800">
             💡 <strong>Note:</strong> Please enter the parent/guardian's email address. 
             They will receive the invitation and can approve their child's participation.
@@ -208,51 +159,44 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
         </div>
       )}
 
-      {inviteType === 'adult' ? (
+      {/* Dynamic Form Fields Based on Invite Type */}
+      {inviteType === 'child' && (
         <div>
-          <Label htmlFor="adultEmail">Adult's Email</Label>
+          <Label htmlFor="friendFirstName">Child's First Name *</Label>
           <Input
-            id="adultEmail"
-            type="email"
-            value={adultEmail}
-            onChange={(e) => setAdultEmail(e.target.value)}
-            placeholder="email@example.com"
+            id="friendFirstName"
+            type="text"
+            value={friendFirstName}
+            onChange={(e) => setFriendFirstName(e.target.value)}
+            placeholder="Enter child's first name"
             required
+            className="mt-1"
           />
+        </div>
+      )}
+
+      {/* Email Field - Label Changes Based on Invite Type */}
+      <div>
+        <Label htmlFor="trustedAdultContact">
+          {inviteType === 'child' ? 'Parent/Guardian Email *' : 'Adult Email *'}
+        </Label>
+        <Input
+          id="trustedAdultContact"
+          type="email"
+          value={trustedAdultContact}
+          onChange={(e) => setTrustedAdultContact(e.target.value)}
+          placeholder={inviteType === 'child' ? 'parent@example.com' : 'email@example.com'}
+          required
+          className="mt-1"
+        />
+        {inviteType === 'adult' && (
           <p className="text-xs text-gray-500 mt-1">
             Adults will need to verify their age during account creation
           </p>
-        </div>
-      ) : (
-        <>
-          <div>
-            <Label htmlFor="friendFirstName">Child's First Name</Label>
-            <Input
-              id="friendFirstName"
-              type="text"
-              value={friendFirstName}
-              onChange={(e) => setFriendFirstName(e.target.value)}
-              placeholder="First name only"
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="trustedAdultContact">Parent/Guardian Email</Label>
-            <Input
-              id="trustedAdultContact"
-              type="email"
-              value={trustedAdultContact}
-              onChange={(e) => setTrustedAdultContact(e.target.value)}
-              placeholder="parent@example.com"
-              required
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              We'll send the invite to their parent/guardian for approval
-            </p>
-          </div>
-        </>
-      )}
-      
+        )}
+      </div>
+
+      {/* Optional Message */}
       <div>
         <Label htmlFor="inviteNote">Optional Message</Label>
         <Textarea
@@ -262,22 +206,34 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
           placeholder={inviteType === 'child' 
             ? "Add a note to the parent/guardian" 
             : "Add a personal message"}
-          className="h-20"
+          className="mt-1 h-20"
         />
       </div>
 
-      {error && <p className="text-red-600 text-sm">{error}</p>}
-      {successType && (
-        <p className="text-green-600 text-sm">
-          {successType === 'invite' 
-            ? 'Invite sent!' 
-            : inviteType === 'child'
-              ? 'Invite sent to parent for approval!'
-              : 'Invite sent successfully!'}
-        </p>
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+          <p className="text-red-600 text-sm">{error}</p>
+        </div>
       )}
 
-      <Button type="submit" disabled={loading}>
+      {/* Success Message */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-md p-3">
+          <p className="text-green-600 text-sm">
+            {inviteType === 'child'
+              ? 'Invite sent to parent/guardian for approval!'
+              : 'Invite sent successfully!'}
+          </p>
+        </div>
+      )}
+
+      {/* Submit Button */}
+      <Button 
+        type="submit" 
+        disabled={loading || !inviteType}
+        className="w-full"
+      >
         {loading ? 'Sending...' : 'Send Invite'}
       </Button>
     </form>

@@ -28,6 +28,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,7 +49,7 @@ export async function POST(req: NextRequest) {
     
     // Find the invite
     const invite = await prisma.invite.findUnique({
-      where: { code: inviteCode },
+      where: { code: normalizeInviteCode(inviteCode) },
       include: {
         cliq: {
           select: {

@@ -4,9 +4,12 @@ export const dynamic = 'force-dynamic';
 
 /**
  * 🔐 APA-HARDENED — Invite Acceptance Page
+ * 🔄 REDIRECT HELPER
  * 
  * This page handles invite acceptance redirects.
  * It receives an invite code via URL query parameter and redirects to the invite page.
+ * 
+ * Tags: Helper, Redirect, Internal
  * 
  * Security notes:
  * - No direct account creation happens here

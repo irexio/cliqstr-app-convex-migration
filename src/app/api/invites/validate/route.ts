@@ -1,18 +1,26 @@
 export const dynamic = 'force-dynamic';
 
 /**
- * Invite Code Validation API
+ * ⚠️ DEPRECATED ROUTE: /api/invites/validate
+ * 
+ * This route is deprecated. Please use /api/validate-invite instead.
  * 
  * Purpose:
- * - Validates invite codes
- * - Returns invite metadata for rendering the join page
+ * - Legacy invite code validation (DEPRECATED)
+ * - Use /api/validate-invite for new implementations
+ * 
+ * @deprecated Use /api/validate-invite instead
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
 export async function GET(req: NextRequest) {
   try {
+    // Log deprecation warning
+    console.warn('⚠️ DEPRECATED: /api/invites/validate is deprecated. Use /api/validate-invite instead.');
+    
     // Extract the invite code from the query params
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
@@ -23,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     // Look up the invite code
     const invite = await prisma.invite.findUnique({
-      where: { code },
+      where: { code: normalizeInviteCode(code) },
       include: {
         inviter: {
           select: {

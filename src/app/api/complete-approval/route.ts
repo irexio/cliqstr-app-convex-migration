@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
 export async function POST(req: Request) {
   try {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
 
     // ✅ Validate the invite
     const invite = await prisma.invite.findUnique({
-      where: { code: inviteCode },
+      where: { code: normalizeInviteCode(inviteCode) },
     });
 
     if (!invite || invite.status !== 'pending') {
@@ -112,7 +113,7 @@ export async function POST(req: Request) {
 
     // ✅ Mark invite as used
     await prisma.invite.update({
-      where: { code: inviteCode },
+      where: { code: normalizeInviteCode(inviteCode) },
       data: { status: 'used' },
     });
 
