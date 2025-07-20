@@ -45,6 +45,7 @@ model Profile {
   userId    String   @unique
   username  String   @unique
   firstName String?
+  lastName  String?
   birthdate DateTime
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -23,9 +23,9 @@ export async function getCurrentUser() {
       include: {
         profile: {
           select: {
-            id: true,
             username: true,
             firstName: true,
+            lastName: true,
             image: true,
             bannerImage: true,
             about: true,

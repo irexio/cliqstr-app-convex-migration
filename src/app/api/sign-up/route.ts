@@ -14,7 +14,8 @@ export const dynamic = 'force-dynamic';
 
 const signUpSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
-  email: z.string().email('Please enter a valid email address'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   birthdate: z.preprocess((val) => {
     if (val === null || val === undefined) return '';
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { firstName, email, password, birthdate, inviteCode, parentEmail } = parsed.data;
+    const { firstName, lastName, email, password, birthdate, inviteCode, parentEmail } = parsed.data;
 
     // Check for existing user
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -92,6 +93,7 @@ export async function POST(req: Request) {
       data: {
         userId: newUser.id,
         firstName: firstName,
+        lastName: lastName,
         birthdate: birthDateObj,
         username: `user-${newUser.id}`, // ✅ temp placeholder
       },
