@@ -101,6 +101,15 @@ export async function POST(req: Request) {
         cliqId,
         inviteeEmail: targetEmail,
         used: false
+      },
+      select: {
+        id: true,
+        code: true,
+        invitedRole: true,
+        friendFirstName: true,
+        trustedAdultContact: true,
+        inviteType: true,
+        inviteNote: true
       }
     });
     
@@ -116,9 +125,7 @@ export async function POST(req: Request) {
       
       // Update the existing invite with the new fields if needed
       if (inviteType === 'child') {
-        // Use type assertion to handle the new fields that TypeScript doesn't know about yet
-        const typedInvite = existingInvite as any;
-        if (typedInvite.friendFirstName !== friendFirstName || typedInvite.inviteNote !== inviteNote) {
+        if (existingInvite.friendFirstName !== friendFirstName || existingInvite.inviteNote !== inviteNote) {
           await prisma.invite.update({
             where: { id: existingInvite.id },
             data: {
