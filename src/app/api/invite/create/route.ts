@@ -10,8 +10,6 @@ import { BASE_URL } from '@/lib/email';
 export const dynamic = 'force-dynamic';
 
 // POST route handler for creating invites
-
-// POST route handler for creating invites
 export async function POST(req: Request) {
   try {
     // APA: Use getCurrentUser() for session validation
