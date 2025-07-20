@@ -183,10 +183,17 @@ export async function POST(req: Request) {
     console.log('[EMAIL DEBUG] Sending invite email to', targetEmail);
     
     // Get the best available inviter name for personalization
-    const inviterName = senderName || 
-                       inviter?.profile?.username || 
-                       inviter?.email?.split('@')[0] || 
+    const inviterName = inviter?.profile?.username || 
+                       senderName || 
+                       (inviter?.email ? inviter.email.split('@')[0] : null) || 
                        'Someone';
+    
+    console.log('[EMAIL DEBUG] Inviter data:', {
+      username: inviter?.profile?.username,
+      email: inviter?.email,
+      senderName,
+      finalInviterName: inviterName
+    });
     
     console.log('[EMAIL DEBUG] Using inviter name:', inviterName);
     
