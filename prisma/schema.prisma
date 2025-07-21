@@ -34,8 +34,6 @@ model User {
 model Profile {
   id                String            @id @default(cuid())
   username          String            @unique
-  firstName         String?
-  lastName          String?
   birthdate         DateTime
   createdAt         DateTime          @default(now())
   userId            String            @unique
@@ -45,6 +43,8 @@ model Profile {
   image             String?
   updatedAt         DateTime          @updatedAt
   aiModerationLevel AIModerationLevel @default(strict)
+  firstName         String?
+  lastName          String?
   childSettings     ChildSettings?
   user              User              @relation(fields: [userId], references: [id])
 }
@@ -131,22 +131,26 @@ model Reply {
 }
 
 model Invite {
-  id            String    @id @default(cuid())
-  createdAt     DateTime  @default(now())
-  cliqId        String
-  status        String    @default("pending")
-  inviterId     String
-  invitedUserId String?
-  isApproved    Boolean   @default(false)
-  code          String    @unique
-  expiresAt     DateTime?
-  invitedRole   String
-  inviteeEmail  String
-  maxUses       Int
-  used          Boolean   @default(false)
-  message       String?
-  cliq          Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
-  inviter       User      @relation("SentInvites", fields: [inviterId], references: [id])
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  cliqId              String
+  status              String    @default("pending")
+  inviterId           String
+  invitedUserId       String?
+  isApproved          Boolean   @default(false)
+  code                String    @unique
+  expiresAt           DateTime?
+  invitedRole         String
+  inviteeEmail        String
+  maxUses             Int
+  used                Boolean   @default(false)
+  message             String?
+  friendFirstName     String?
+  trustedAdultContact String?
+  inviteType          String?
+  inviteNote          String?
+  cliq                Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
+  inviter             User      @relation("SentInvites", fields: [inviterId], references: [id])
 }
 
 model InviteRequest {
