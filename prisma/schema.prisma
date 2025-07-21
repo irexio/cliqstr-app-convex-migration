@@ -44,6 +44,7 @@ model Profile {
   image             String?
   bannerImage       String?
   firstName         String?
+  lastName          String?
   childSettings     ChildSettings?
   user              User              @relation(fields: [userId], references: [id])
 }
