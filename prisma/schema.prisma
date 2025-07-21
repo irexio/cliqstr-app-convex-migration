@@ -11,13 +11,13 @@ model User {
   id                  String          @id @default(cuid())
   email               String          @unique
   password            String
-  resetToken          String?
-  resetTokenExpires   DateTime?
-  verificationToken   String?
-  verificationExpires DateTime?
-  isApproved          Boolean         @default(false)
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
+  resetToken          String?
+  resetTokenExpires   DateTime?
+  isApproved          Boolean         @default(false)
+  verificationExpires DateTime?
+  verificationToken   String?
   account             Account?
   ownedCliqs          Cliq[]          @relation("CliqOwner")
   invitesSent         Invite[]        @relation("SentInvites")
@@ -33,29 +33,27 @@ model User {
 
 model Profile {
   id                String            @id @default(cuid())
-  userId            String            @unique
   username          String            @unique
   birthdate         DateTime
   createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  userId            String            @unique
   ageGroup          String?
-  aiModerationLevel AIModerationLevel @default(strict)
   about             String?
-  image             String?
   bannerImage       String?
-  firstName         String?
-  lastName          String?
+  image             String?
+  updatedAt         DateTime          @updatedAt
+  aiModerationLevel AIModerationLevel @default(strict)
   childSettings     ChildSettings?
   user              User              @relation(fields: [userId], references: [id])
 }
 
 model ParentLink {
   id        String   @id @default(cuid())
-  parentId  String?
   childId   String
-  email     String?
-  approved  Boolean  @default(false)
   createdAt DateTime @default(now())
+  approved  Boolean  @default(false)
+  parentId  String?
+  email     String?
   child     User     @relation("ChildLinks", fields: [childId], references: [id])
   parent    User?    @relation(fields: [parentId], references: [id])
 }
@@ -66,11 +64,11 @@ model ChildSettings {
   canCreatePublicCliqs Boolean @default(false)
   canSendInvites       Boolean @default(false)
   isSilentlyMonitored  Boolean @default(true)
+  aiModerationLevel    String?
   canAccessGames       Boolean @default(false)
   canPostImages        Boolean @default(false)
   canShareYouTube      Boolean @default(false)
   visibilityLevel      String?
-  aiModerationLevel    String?
   profile              Profile @relation(fields: [profileId], references: [id])
 }
 
@@ -92,12 +90,12 @@ model Cliq {
   id             String          @id @default(cuid())
   name           String
   description    String?
-  privacy        String          @default("private")
-  coverImage     String?
+  ownerId        String
   createdAt      DateTime        @default(now())
   deleted        Boolean         @default(false)
   deletedAt      DateTime?
-  ownerId        String
+  coverImage     String?
+  privacy        String          @default("private")
   owner          User            @relation("CliqOwner", fields: [ownerId], references: [id])
   invites        Invite[]        @relation("CliqInvites")
   inviteRequests InviteRequest[] @relation("CliqInviteRequests")
@@ -112,9 +110,9 @@ model Post {
   image     String?
   createdAt DateTime  @default(now())
   deleted   Boolean   @default(false)
-  expiresAt DateTime?
   authorId  String
   cliqId    String
+  expiresAt DateTime?
   author    User      @relation(fields: [authorId], references: [id])
   cliq      Cliq      @relation(fields: [cliqId], references: [id])
   replies   Reply[]
@@ -131,26 +129,22 @@ model Reply {
 }
 
 model Invite {
-  code                String    @unique
-  id                  String    @id @default(cuid())
-  cliqId              String
-  invitedUserId       String?
-  inviterId           String
-  invitedRole         String
-  inviteeEmail        String
-  status              String    @default("pending")
-  isApproved          Boolean   @default(false)
-  createdAt           DateTime  @default(now())
-  expiresAt           DateTime?
-  maxUses             Int
-  used                Boolean   @default(false)
-  message             String?
-  friendFirstName     String?
-  trustedAdultContact String?
-  inviteNote          String?
-  inviteType          String?
-  cliq                Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
-  inviter             User      @relation("SentInvites", fields: [inviterId], references: [id])
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  cliqId        String
+  status        String    @default("pending")
+  inviterId     String
+  invitedUserId String?
+  isApproved    Boolean   @default(false)
+  code          String    @unique
+  expiresAt     DateTime?
+  invitedRole   String
+  inviteeEmail  String
+  maxUses       Int
+  used          Boolean   @default(false)
+  message       String?
+  cliq          Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
+  inviter       User      @relation("SentInvites", fields: [inviterId], references: [id])
 }
 
 model InviteRequest {
