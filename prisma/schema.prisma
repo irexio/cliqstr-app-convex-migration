@@ -1,93 +1,76 @@
-// This schema is APA-hardened and includes child safety, parental linking, and moderation defaults.
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql" // or your actual provider
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum AIModerationLevel {
-  strict
-  moderate
-  relaxed
-}
-
 model User {
-  id                String    @id @default(cuid())
-  email             String    @unique
-  password          String
-  resetToken        String?
-  resetTokenExpires DateTime?
-  verificationToken String?
+  id                  String          @id @default(cuid())
+  email               String          @unique
+  password            String
+  resetToken          String?
+  resetTokenExpires   DateTime?
+  verificationToken   String?
   verificationExpires DateTime?
-  isApproved        Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-
-  profile            Profile?
-  parentLinks        ParentLink[] // if this user is a parent
-  children           ParentLink[]    @relation("ChildLinks")
-  account            Account? // 🔐 APA system metadata
-  ownedCliqs         Cliq[]          @relation("CliqOwner")
-  memberships        Membership[]
-  Post               Post[]
-  Reply              Reply[]
-  invitesSent        Invite[]        @relation("SentInvites")
-  inviteRequestsSent InviteRequest[] @relation("InviteRequestsSent")
-  redAlertsTriggered RedAlert[]
+  isApproved          Boolean         @default(false)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  account             Account?
+  ownedCliqs          Cliq[]          @relation("CliqOwner")
+  invitesSent         Invite[]        @relation("SentInvites")
+  inviteRequestsSent  InviteRequest[] @relation("InviteRequestsSent")
+  memberships         Membership[]
+  children            ParentLink[]    @relation("ChildLinks")
+  parentLinks         ParentLink[]
+  Post                Post[]
+  profile             Profile?
+  redAlertsTriggered  RedAlert[]
+  Reply               Reply[]
 }
 
 model Profile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  username  String   @unique
-  firstName String?
-  lastName  String?
-  birthdate DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                String            @id @default(cuid())
+  userId            String            @unique
+  username          String            @unique
+  birthdate         DateTime
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
   ageGroup          String?
   aiModerationLevel AIModerationLevel @default(strict)
   about             String?
   image             String?
   bannerImage       String?
-
-  user          User           @relation(fields: [userId], references: [id])
-  childSettings ChildSettings?
+  firstName         String?
+  childSettings     ChildSettings?
+  user              User              @relation(fields: [userId], references: [id])
 }
 
 model ParentLink {
-  id       String  @id @default(cuid())
-  parentId String?
-  childId  String
-  email    String?
-
-  parent User? @relation(fields: [parentId], references: [id])
-  child  User  @relation("ChildLinks", fields: [childId], references: [id])
-
+  id        String   @id @default(cuid())
+  parentId  String?
+  childId   String
+  email     String?
   approved  Boolean  @default(false)
   createdAt DateTime @default(now())
+  child     User     @relation("ChildLinks", fields: [childId], references: [id])
+  parent    User?    @relation(fields: [parentId], references: [id])
 }
 
 model ChildSettings {
-  id        String  @id @default(cuid())
-  profileId String  @unique
-  profile   Profile @relation(fields: [profileId], references: [id])
-
+  id                   String  @id @default(cuid())
+  profileId            String  @unique
   canCreatePublicCliqs Boolean @default(false)
   canSendInvites       Boolean @default(false)
-  canInviteChildren    Boolean @default(false)  // New permission for teens 13+ to invite other children
   isSilentlyMonitored  Boolean @default(true)
-
-  canAccessGames    Boolean @default(false)
-  canPostImages     Boolean @default(false)
-  canShareYouTube   Boolean @default(false)
-  visibilityLevel   String?
-  aiModerationLevel String?
+  canAccessGames       Boolean @default(false)
+  canPostImages        Boolean @default(false)
+  canShareYouTube      Boolean @default(false)
+  visibilityLevel      String?
+  aiModerationLevel    String?
+  profile              Profile @relation(fields: [profileId], references: [id])
 }
 
 /// 🔐 APA — System-level metadata for each user
@@ -101,32 +84,24 @@ model Account {
   stripeCustomerId String?
   createdAt        DateTime @default(now())
   suspended        Boolean  @default(false)
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-enum CliqPrivacy {
-  private
-  semi_private
-  public
+  user             User     @relation(fields: [userId], references: [id])
 }
 
 model Cliq {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  privacy     String    @default("private")
-  coverImage  String?
-  createdAt   DateTime  @default(now())
-  deleted     Boolean   @default(false)
-  deletedAt   DateTime?
-  ownerId     String
-
+  id             String          @id @default(cuid())
+  name           String
+  description    String?
+  privacy        String          @default("private")
+  coverImage     String?
+  createdAt      DateTime        @default(now())
+  deleted        Boolean         @default(false)
+  deletedAt      DateTime?
+  ownerId        String
   owner          User            @relation("CliqOwner", fields: [ownerId], references: [id])
-  posts          Post[]
-  memberships    Membership[]
   invites        Invite[]        @relation("CliqInvites")
   inviteRequests InviteRequest[] @relation("CliqInviteRequests")
+  memberships    Membership[]
+  posts          Post[]
   redAlerts      RedAlert[]
 }
 
@@ -139,10 +114,9 @@ model Post {
   expiresAt DateTime?
   authorId  String
   cliqId    String
-
-  author  User    @relation(fields: [authorId], references: [id])
-  cliq    Cliq    @relation(fields: [cliqId], references: [id])
-  replies Reply[]
+  author    User      @relation(fields: [authorId], references: [id])
+  cliq      Cliq      @relation(fields: [cliqId], references: [id])
+  replies   Reply[]
 }
 
 model Reply {
@@ -151,33 +125,31 @@ model Reply {
   createdAt DateTime @default(now())
   postId    String
   authorId  String
-
-  post   Post @relation(fields: [postId], references: [id])
-  author User @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
 }
 
 model Invite {
-  id                 String    @id @default(cuid())
-  code               String    @unique
-  cliq               Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
-  cliqId             String
-  inviter            User      @relation("SentInvites", fields: [inviterId], references: [id])
-  inviterId          String
-  invitedUserId      String?
-  invitedRole        String
-  inviteeEmail       String
-  status             String    @default("pending")
-  isApproved         Boolean   @default(false) // 🔐 APA: Required for membership control
-  createdAt          DateTime  @default(now())
-  expiresAt          DateTime?
-  maxUses            Int
-  used               Boolean   @default(false)
-  message            String?
-  // New fields for redesigned invite system
-  friendFirstName    String?   // Who the invite is for (required for child invites)
-  trustedAdultContact String?  // Email of parent/guardian (required for child invites)
-  inviteType         String?   // 'child' or 'adult'
-  inviteNote         String?   // Optional message to parent/guardian
+  code                String    @unique
+  id                  String    @id @default(cuid())
+  cliqId              String
+  invitedUserId       String?
+  inviterId           String
+  invitedRole         String
+  inviteeEmail        String
+  status              String    @default("pending")
+  isApproved          Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  expiresAt           DateTime?
+  maxUses             Int
+  used                Boolean   @default(false)
+  message             String?
+  friendFirstName     String?
+  trustedAdultContact String?
+  inviteNote          String?
+  inviteType          String?
+  cliq                Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
+  inviter             User      @relation("SentInvites", fields: [inviterId], references: [id])
 }
 
 model InviteRequest {
@@ -189,9 +161,8 @@ model InviteRequest {
   invitedRole  String
   inviteeEmail String
   inviterId    String
-
-  cliq    Cliq @relation("CliqInviteRequests", fields: [cliqId], references: [id])
-  inviter User @relation("InviteRequestsSent", fields: [inviterId], references: [id])
+  cliq         Cliq     @relation("CliqInviteRequests", fields: [cliqId], references: [id])
+  inviter      User     @relation("InviteRequestsSent", fields: [inviterId], references: [id])
 }
 
 model ParentAuditLog {
@@ -210,7 +181,6 @@ model RedAlert {
   triggeredById String
   reason        String?
   triggeredAt   DateTime @default(now())
-
   cliq          Cliq     @relation(fields: [cliqId], references: [id])
   triggeredBy   User     @relation(fields: [triggeredById], references: [id])
 }
@@ -219,7 +189,7 @@ model PasswordResetAudit {
   id        String   @id @default(cuid())
   email     String
   ip        String?
-  event     String   // "requested" or "completed"
+  event     String
   createdAt DateTime @default(now())
 }
 
@@ -229,9 +199,20 @@ model Membership {
   cliqId   String
   role     String   @default("Member")
   joinedAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-  cliq Cliq @relation(fields: [cliqId], references: [id])
+  cliq     Cliq     @relation(fields: [cliqId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, cliqId])
+}
+
+enum AIModerationLevel {
+  strict
+  moderate
+  relaxed
+}
+
+enum CliqPrivacy {
+  private
+  semi_private
+  public
 }
