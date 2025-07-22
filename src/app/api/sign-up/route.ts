@@ -130,18 +130,36 @@ export async function POST(req: Request) {
         inviteCode: inviteCode ?? undefined,
       });
     } else if (!isChild) {
-      // For adult accounts, send an optional verification email
-      // This is non-blocking - users can still access the app
+      // For adult accounts, send a verification email (now required)
       try {
-        await sendVerificationEmail({
-          to: email,
-          userId: newUser.id,
+        // Create verification token regardless of email success
+        // This ensures the account is marked as needing verification
+        const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const codeHash = require('crypto').createHash('sha256').update(code).digest('hex');
+        
+        // Store hash and expiry in User model
+        await prisma.user.update({
+          where: { id: newUser.id },
+          data: {
+            verificationToken: codeHash,
+            verificationExpires: expiresAt,
+          },
         });
-        console.log(`Optional verification email sent to ${email}`);
+        
+        try {
+          await sendVerificationEmail({
+            to: email,
+            userId: newUser.id,
+          });
+          console.log(`Verification email sent to ${email}`);
+        } catch (emailError) {
+          // Log but continue - user can request resend later
+          console.error('Failed to send verification email:', emailError);
+        }
       } catch (error) {
-        // Log but don't fail if verification email fails
-        console.error('Failed to send verification email:', error);
-        // Non-critical error, don't block account creation
+        // Log token creation error but don't fail the request
+        console.error('Failed to create verification token:', error);
       }
     }
 

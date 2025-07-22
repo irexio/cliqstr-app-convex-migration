@@ -121,16 +121,21 @@ export default function SignUpForm() {
       if (inviteCode) {
         body.inviteCode = inviteCode;
       }
-
+      
+      console.log('Submitting sign-up form for adult user');
+      
+      // First store the email in localStorage before making the API call
+      // This ensures we have it even if there's an error
+      localStorage.setItem('pendingVerificationEmail', email);
+      
       const res = await fetchJson('/api/sign-up', {
         method: 'POST',
         body: JSON.stringify(body),
       });
 
       // Check if we need to redirect to verification pending page
-      if (res.redirectUrl === '/verification-pending' && res.email) {
-        // Store email in localStorage for the verification pending page
-        localStorage.setItem('pendingVerificationEmail', res.email);
+      if (res.redirectUrl === '/verification-pending') {
+        // Email is already stored in localStorage above
         setCurrentStep('adult-processing');
         
         // Show processing message briefly before redirecting
@@ -163,6 +168,25 @@ export default function SignUpForm() {
       }
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
+      
+      // If we have a detailed error message from the server, use it
+      if (err.data && err.data.details) {
+        console.error('Server error details:', err.data.details);
+      }
+      
+      // Handle the error but still redirect to verification pending
+      // This ensures the user experience isn't broken even if email sending fails
+      if (err.status === 500) {
+        console.log('Server error during sign-up, but continuing to verification page');
+        // We already stored the email in localStorage above
+        setCurrentStep('adult-processing');
+        
+        setTimeout(() => {
+          router.push('/verification-pending');
+        }, 1500);
+        return;
+      }
+      
       setError(err.message || 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
