@@ -24,7 +24,8 @@ async function removeUser(email: string) {
     console.log(`✅ Found user: ${user.id}`);
     console.log(`📊 User details:`);
     console.log(`- Email: ${user.email}`);
-    console.log(`- Is Approved: ${user.isApproved}`);
+    console.log(`- Is Approved: ${user.account?.isApproved ?? 'No account'}`);
+    console.log(`- Role: ${user.account?.role ?? 'No account'}`);
     console.log(`- Created At: ${user.createdAt}`);
     
     // Ask for confirmation

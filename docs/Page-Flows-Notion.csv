@@ -14,6 +14,7 @@ Page,Redirects To,Description,Has Auth Check,Dynamic Rendering
 /cliqs/[id]/members,,🔐 APA-HARDENED PAGE: /cliqs/[id]/members,Yes,Yes
 /cliqs/[id],,🔐 APA-Hardened: View Cliq Feed — /cliqs/[id]/page.tsx,Yes,Yes
 /debug/session-check,,No description available,Yes,Yes
+/email-confirmation,,🔐 APA-HARDENED — Email Confirmation Page Displayed after adult sign-up to inform users to check their email Part of the APA-compliant adult sign-up flow,No,No
 /explore,,No description available,No,No
 /faqs,,No description available,No,No
 /features,,No description available,No,No
@@ -38,12 +39,14 @@ Page,Redirects To,Description,Has Auth Check,Dynamic Rendering
 /profile/[username],,🔐 APA-HARDENED PAGE: /profile/[username],No,Yes
 /reset-password,,🔐 APA-HARDENED by Aiden — Password Reset Page,No,No
 /safety,,No description available,No,No
-/session-ping,"/sign-in, /my-cliqs-dashboard, /my-cliqs-dashboard, /choose-plan, /choose-plan, /my-cliqs-dashboard",🔐 APA-HARDENED SESSION PING PAGE,Yes,Yes
+/session-ping,"/sign-in, /my-cliqs-dashboard, /email-confirmation, /choose-plan, /choose-plan, /my-cliqs-dashboard",🔐 APA-HARDENED SESSION PING PAGE,Yes,Yes
 /setup-profile,,"Purpose: - General profile customization for all users - Profile photo upload, bio, preferences - Different from /child/onboarding (nickname-specific) Note: - Child nickname setup happens at /child/onboarding - This page is for general profile customization",No,No
 /sign-in,,🔐 APA-HARDENED SIGN-IN PAGE,No,No
 /sign-up,,🔐 APA-HARDENED SIGN-UP PAGE,No,No
 /suspended,,🔐 APA SUSPENDED PAGE — shown to users whose accounts are suspended,No,No
 /terms,,No description available,No,No
 /verification-error,,Email Verification Error Page Displayed when there's an issue with email verification,No,No
+/verification-pending,,Retrieve email from localStorage on component mount,No,No
 /verification-success,,Email Verification Success Page Displayed when a user successfully verifies their email address,No,No
 /verify-card,/sign-in,No description available,Yes,Yes
+/verify-email,,Email Verification Page This page handles the verification link from emails It extracts the code from the URL and forwards it to the API,No,No

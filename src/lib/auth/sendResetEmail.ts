@@ -14,7 +14,7 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
   console.log('📨 [sendResetEmail] Invoked for:', email)
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } })
+    const user = await prisma.user.findUnique({ where: { email }, include: { account: true } })
 
     if (!user) {
       console.log('🚫 No user found:', email)
@@ -22,7 +22,7 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
     }
 
     // ✅ Allow password reset even if not approved
-    if (!user.isApproved) {
+    if (!user.account?.isApproved) {
       console.log(`[🕊️] User not approved — allowing reset so they can complete signup: ${email}`)
     }
 

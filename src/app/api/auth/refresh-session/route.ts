@@ -19,7 +19,7 @@ export async function GET() {
       plan: user.account?.plan ?? null,
       role: user.account?.role ?? null,
       // Check account first, then fall back to user if needed
-      approved: user.account?.isApproved ?? ('isApproved' in user ? user.isApproved : null),
+      approved: user.account?.isApproved,
     }
   });
 }

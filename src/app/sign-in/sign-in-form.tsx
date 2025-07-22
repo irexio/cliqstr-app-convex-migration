@@ -167,7 +167,7 @@ export default function SignInForm() {
         return;
       }
 
-      console.log(`✅ User signed in: ${profile.role}, approved: ${profile.isApproved}, plan: ${account?.plan || 'none'}`);
+      console.log(`✅ User signed in: ${profile.role}, profile.isApproved: ${profile.isApproved}, account.isApproved: ${account?.isApproved}, plan: ${account?.plan || 'none'}`);
 
       // 🎉 Final redirect: Track the redirect with console logs
       console.log('[APA] Authentication successful - redirecting to session-ping');

@@ -15,8 +15,6 @@ model User {
   updatedAt           DateTime        @updatedAt
   resetToken          String?
   resetTokenExpires   DateTime?
-  isApproved          Boolean         @default(false)
-  isVerified          Boolean         @default(false)
   verificationExpires DateTime?
   verificationToken   String?
   account             Account?
@@ -132,17 +130,17 @@ model Reply {
 }
 
 model Invite {
-  id                  String    @id @default(cuid())
-  createdAt           DateTime  @default(now())
-  cliqId              String
-  status              String    @default("pending")
-  inviterId           String
-  invitedUserId       String?
-  isApproved          Boolean   @default(false)
-  code                String    @unique
-  expiresAt           DateTime?
-  invitedRole         String
-  inviteeEmail        String
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  cliqId        String
+  status        String    @default("pending")
+  inviterId     String
+  invitedUserId String?
+  isApproved    Boolean   @default(false)
+  code          String    @unique
+  expiresAt     DateTime?
+  invitedRole   String
+  inviteeEmail  String
   maxUses             Int
   used                Boolean   @default(false)
   message             String?
