@@ -87,7 +87,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ cliq });
+    console.log(`[CREATE_CLIQ_SUCCESS] Created cliq ${cliq.id} for user ${user.id}`);
+    return NextResponse.json({ 
+      cliq,
+      success: true,
+      message: 'Cliq created successfully'
+    });
   } catch (error) {
     console.error('[CREATE_CLIQ_ERROR]', error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

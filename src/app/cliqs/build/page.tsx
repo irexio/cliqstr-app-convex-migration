@@ -57,7 +57,9 @@ export default function BuildCliqPage() {
         }),
       });
 
-      router.push(`/cliqs/${data.cliq.id}`);
+      // Redirect to My Cliqs dashboard to see the new cliq
+      router.push('/my-cliqs-dashboard');
+      router.refresh(); // Force refresh to show new cliq
     } catch (err: any) {
       setError(err.message || 'Failed to create cliq.');
     } finally {
