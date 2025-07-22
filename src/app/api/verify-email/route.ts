@@ -43,14 +43,25 @@ export async function GET(req: Request) {
       }, { status: 400 });
     }
 
-    // Update user to mark as verified
+    // Clear verification token and update account approval status
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        isApproved: true, // Mark as approved
         verificationToken: null, // Clear verification token
         verificationExpires: null, // Clear expiry
       },
+    });
+    
+    // Update account approval status
+    await prisma.account.upsert({
+      where: { userId: user.id },
+      update: { isApproved: true },
+      create: {
+        userId: user.id,
+        role: 'Adult',
+        isApproved: true,
+        plan: 'basic'
+      }
     });
 
     // Return JSON response instead of redirecting
