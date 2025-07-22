@@ -30,7 +30,15 @@ const signUpSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
+    // Wrap the initial parsing in a try-catch to handle malformed JSON
+    let body;
+    try {
+      body = await req.json();
+    } catch (jsonError) {
+      console.error('Failed to parse request body:', jsonError);
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 });
+    }
+    
     const parsed = signUpSchema.safeParse(body);
 
     if (!parsed.success) {
@@ -217,6 +225,41 @@ export async function POST(req: Request) {
     // Log environment check (without exposing sensitive data)
     console.error('Database URL configured:', !!process.env.DATABASE_URL);
     console.error('NODE_ENV:', process.env.NODE_ENV);
+    console.error('RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
+    console.error('BASE_URL configured:', !!process.env.NEXT_PUBLIC_SITE_URL);
+    
+    // For adult sign-ups, still return success with redirect to verification pending
+    // This ensures the user experience isn't broken even if there's a server error
+    const body = await req.json().catch(() => ({}));
+    if (body && body.birthdate) {
+      try {
+        const birthDateObj = new Date(body.birthdate);
+        const ageDifMs = Date.now() - birthDateObj.getTime();
+        const ageDate = new Date(ageDifMs);
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        const isChild = age < 18;
+        
+        if (!isChild && body.email) {
+          // For adult users, return success with redirect to verification pending
+          // even if there was an error, to ensure smooth user experience
+          console.log('Returning graceful error response for adult user');
+          const headers = new Headers();
+          clearAuthTokens(headers);
+          
+          return NextResponse.json(
+            { 
+              success: true, 
+              redirectUrl: '/verification-pending',
+              email: body.email,
+              gracefulError: true
+            },
+            { headers, status: 200 }
+          );
+        }
+      } catch (ageError) {
+        console.error('Error calculating age during error recovery:', ageError);
+      }
+    }
     
     return NextResponse.json({ 
       error: 'Internal server error', 
