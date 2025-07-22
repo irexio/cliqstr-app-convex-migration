@@ -40,15 +40,21 @@ export async function POST(req: Request) {
       isApproved = true; // Explicitly ensure test plan is approved
       console.log(`[PLAN_API] Setting test plan with approved status for user ${user.id}`);
       
-      // Force update the user's approval status in the database
+      // Force update the user's approval status in the Account model
       try {
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { isApproved: true } // Set the User.isApproved field to true
+        await prisma.account.upsert({
+          where: { userId: user.id },
+          update: { isApproved: true },
+          create: {
+            userId: user.id,
+            role: 'Adult',
+            isApproved: true,
+            plan: 'test'
+          }
         });
-        console.log(`[PLAN_API] Updated user ${user.id} approval status to true`);
-      } catch (userUpdateError) {
-        console.error(`[PLAN_API] Failed to update user approval status:`, userUpdateError);
+        console.log(`[PLAN_API] Updated user ${user.id} account approval status to true`);
+      } catch (accountUpdateError) {
+        console.error(`[PLAN_API] Failed to update account approval status:`, accountUpdateError);
       }
     } else if (plan === 'free') {
       planToSave = 'free';
