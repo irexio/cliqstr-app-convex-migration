@@ -84,8 +84,8 @@ function ParentInviteContent() {
       const data = await response.json();
       
       if (response.ok) {
-        // Redirect to the cliq page after successful acceptance
-        router.push(`/cliqs/${data.cliqId}`);
+        // Redirect to Parents HQ to set up child permissions (APA compliance)
+        router.push('/parents-hq');
       } else {
         setInviteDetails(prev => ({ ...prev!, error: data.error }));
         setLoading(false);
