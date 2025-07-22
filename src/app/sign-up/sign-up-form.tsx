@@ -86,6 +86,10 @@ export default function SignUpForm() {
       });
       
       setCurrentStep('child-success');
+      // Redirect to awaiting-approval page after a short delay to show success message
+      setTimeout(() => {
+        router.push('/awaiting-approval');
+      }, 3000);
     } catch (err: any) {
       setError(err.message || 'Failed to send parent approval request');
     } finally {
@@ -136,11 +140,10 @@ export default function SignUpForm() {
         // Wait briefly for session cookie to be set
         await new Promise((resolve) => setTimeout(resolve, 500));
         
-        // Redirect to plan selection
-        console.log('Adult user registered, redirecting to choose plan');
-        // Use hard navigation to session-ping to ensure fresh session data
-        console.log('[APA] Redirecting to session-ping after successful sign-up');
-        window.location.replace('/session-ping?t=' + Date.now());
+        // Redirect to plan selection page first
+        console.log('Adult user registered, redirecting to plan selection');
+        console.log('[APA] Redirecting to choose-plan after successful sign-up');
+        window.location.replace('/choose-plan?t=' + Date.now());
       } catch (signInErr) {
         console.error('Auto sign-in failed after registration:', signInErr);
         // If auto sign-in fails, redirect to sign-in page

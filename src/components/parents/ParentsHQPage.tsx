@@ -98,13 +98,67 @@ export default function ParentsHQPage({ childId }: ParentsHQPageProps) {
     }
   };
 
+  // Handle username and password setup for child
+  const handleSetupCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    setResetError('');
+    setResetSuccess('');
+    
+    if (!resetUsername || !resetPassword) {
+      setResetError('Please provide both username and password');
+      setActionLoading(false);
+      return;
+    }
+    
+    try {
+      await fetchJson('/api/parent/child-credentials/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          childId, 
+          username: resetUsername,
+          password: resetPassword 
+        }),
+      });
+      
+      setResetSuccess('Username and password set successfully! Please share these credentials with your child or help them sign in.');
+      setTimeout(() => {
+        setResetDialogOpen(false);
+        setResetUsername('');
+        setResetPassword('');
+      }, 3000);
+    } catch (err: any) {
+      setResetError(err.message || 'Failed to update credentials');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Child Account Setup Section */}
+      <div className="p-4 bg-blue-50 rounded border border-blue-200">
+        <h2 className="text-xl font-semibold mb-2">Child Account Setup</h2>
+        <p className="text-sm text-gray-700 mb-4">
+          As a parent, you need to create a username and password for your child's account.
+          Please share these credentials with your child or help them sign in.
+        </p>
+        
+        <Button 
+          onClick={() => setResetDialogOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Set Up Child's Username & Password
+        </Button>
+      </div>
+
+      {/* Invite Approval Settings */}
       <div className="flex items-center justify-between p-4 bg-gray-50 rounded">
         <div>
           <span className="font-semibold">Require my approval before my child can send invites</span>
           <p className="text-sm text-gray-500 mt-1">
-            If enabled, you’ll receive an approval request via SMS (if your mobile is on file) or email whenever your child tries to invite someone.
+            If enabled, you'll receive an approval request via SMS (if your mobile is on file) or email whenever your child tries to invite someone.
           </p>
         </div>
         <Switch
@@ -121,6 +175,70 @@ export default function ParentsHQPage({ childId }: ParentsHQPageProps) {
       </div>
       {saveSuccess && <div className="text-green-600">Setting saved!</div>}
       {saveError && <div className="text-red-600">{saveError}</div>}
+      
+      {/* Username/Password Setup Modal */}
+      {resetDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+            <h3 className="text-xl font-bold mb-4">Set Up Child's Account</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Create a username and password for your child. Make sure to share these credentials with your child or help them sign in.
+            </p>
+            
+            <form onSubmit={handleSetupCredentials} className="space-y-4">
+              <div>
+                <label htmlFor="childUsername" className="block text-sm font-medium text-gray-700 mb-1">
+                  Username
+                </label>
+                <input
+                  id="childUsername"
+                  type="text"
+                  value={resetUsername}
+                  onChange={(e) => setResetUsername(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Choose a username"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="childPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  id="childPassword"
+                  type="password"
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  placeholder="Choose a password"
+                  required
+                />
+              </div>
+              
+              {resetError && <p className="text-red-600 text-sm">{resetError}</p>}
+              {resetSuccess && <p className="text-green-600 text-sm">{resetSuccess}</p>}
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <Button 
+                  type="button" 
+                  onClick={() => setResetDialogOpen(false)}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  disabled={actionLoading}
+                >
+                  {actionLoading ? 'Setting Up...' : 'Set Up Account'}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

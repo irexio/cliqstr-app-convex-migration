@@ -30,10 +30,10 @@ export default async function SessionPingPage() {
     redirect('/my-cliqs-dashboard');
   }
   
-  // For test plan users, always proceed to dashboard regardless of approval status
+  // For test plan users, redirect to email-confirmation per APA flow document
   if (user.plan === 'test') {
-    console.log('[APA] Test plan user detected. Bypassing approval check and redirecting to dashboard.');
-    redirect('/my-cliqs-dashboard');
+    console.log('[APA] Test plan user detected. Redirecting to email-confirmation per APA flow document.');
+    redirect('/email-confirmation');
   }
   
   // If user has no plan, redirect to choose-plan
