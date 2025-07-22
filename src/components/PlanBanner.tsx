@@ -59,11 +59,22 @@ export default function PlanBanner() {
   // Don't render anything while loading to avoid flash of content
   if (loading) return null;
   
-  // Check if we're on the My Cliqs dashboard page
+  // Check if we're on pages where we shouldn't show the banner
   const isOnDashboard = typeof window !== 'undefined' && window.location.pathname.includes('/my-cliqs-dashboard');
+  const isOnVerificationPage = typeof window !== 'undefined' && (
+    window.location.pathname.includes('/verify-email') ||
+    window.location.pathname.includes('/verification-success') ||
+    window.location.pathname.includes('/verification-error') ||
+    window.location.pathname.includes('/awaiting-approval')
+  );
+  const isOnSignupFlow = typeof window !== 'undefined' && (
+    window.location.pathname.includes('/sign-up') ||
+    window.location.pathname.includes('/sign-in') ||
+    window.location.pathname.includes('/choose-plan')
+  );
   
-  // Don't show banner on dashboard or if user doesn't need a plan
-  if (!needsPlan || isOnDashboard) return null;
+  // Don't show banner on dashboard, verification pages, or if user doesn't need a plan
+  if (!needsPlan || isOnDashboard || isOnVerificationPage || isOnSignupFlow) return null;
 
   return (
     <div className="w-full bg-red-50 text-center py-3 px-4 text-red-700">
