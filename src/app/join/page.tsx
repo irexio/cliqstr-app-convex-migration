@@ -56,7 +56,7 @@ export default async function JoinPage({ params, searchParams }: Props) {
   
   try {
     // Use server-side fetch to validate the invite code
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/invites/validate?code=${inviteCode}`, { 
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/validate-invite?code=${inviteCode}`, { 
       cache: 'no-store'
     });
     const data = await response.json();

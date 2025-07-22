@@ -43,7 +43,7 @@ export default function InviteCodeModal({ open, setOpen }: InviteCodeModalProps)
     
     try {
       setLoading(true);
-      const response = await fetch(`/api/invites/validate?code=${code.trim()}`);
+      const response = await fetch(`/api/validate-invite?code=${code.trim()}`);
       const data = await response.json();
       
       if (data.valid) {
@@ -110,7 +110,7 @@ export default function InviteCodeModal({ open, setOpen }: InviteCodeModalProps)
     
     try {
       // Check if the invite code exists
-      const response = await fetch(`/api/invites/validate?code=${inviteCode.trim()}`);
+      const response = await fetch(`/api/validate-invite?code=${inviteCode.trim()}`);
       const data = await response.json();
       
       if (data.valid) {
