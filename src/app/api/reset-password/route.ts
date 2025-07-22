@@ -65,7 +65,9 @@ export async function POST(req: Request) {
     }
     
     // APA protection: deny if unapproved child
-    if (user.account?.role?.toLowerCase() === 'child' && !user.account?.isApproved) {
+    // Check isApproved on both User and Account models for compatibility
+    const isChildApproved = user.account?.isApproved ?? ('isApproved' in user ? user.isApproved : false);
+    if (user.account?.role?.toLowerCase() === 'child' && !isChildApproved) {
       console.log('🚫 Reset denied - child not approved:', user.email);
       return NextResponse.json({ error: 'Password reset not allowed - account requires approval' }, { status: 403 });
     }
