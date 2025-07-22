@@ -85,6 +85,7 @@ export async function POST(req: Request) {
       data: {
         email,
         password: hashedPassword,
+        // isVerified field is tracked via verificationToken presence/absence
       },
     });
 
@@ -162,13 +163,15 @@ export async function POST(req: Request) {
       );
     }
     
-    // For adult accounts, return success
-    // The client will handle the sign-in flow separately
+    // For adult accounts, return success and redirect to verification pending page
+    // Store email in localStorage for the verification pending page
     return NextResponse.json(
       { 
         success: true, 
         userId: newUser.id,
-        isChild: false
+        isChild: false,
+        redirectUrl: '/verification-pending',
+        email: email // Pass email to be stored in localStorage
       },
       { headers }
     );

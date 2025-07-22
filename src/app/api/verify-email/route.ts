@@ -4,7 +4,7 @@
  * Purpose:
  * - Processes email verification tokens
  * - Marks accounts as verified when users click verification links
- * - Non-blocking verification (users can still access the app before verifying)
+ * - Required verification (users must verify before accessing the app)
  */
 
 import { NextResponse } from 'next/server';
@@ -20,7 +20,10 @@ export async function GET(req: Request) {
     const code = url.searchParams.get('code');
 
     if (!code) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=missing-code`);
+      return NextResponse.json({
+        success: false,
+        error: 'Verification code is missing',
+      }, { status: 400 });
     }
 
     const codeHash = require('crypto').createHash('sha256').update(code).digest('hex');
@@ -34,21 +37,33 @@ export async function GET(req: Request) {
     });
 
     if (!user) {
-      return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=invalid-or-expired-code`);
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired verification code',
+      }, { status: 400 });
     }
 
+    // Update user to mark as verified
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        isApproved: true, // or whatever flag marks as verified
-        verificationToken: null,
-        verificationExpires: null,
+        isApproved: true, // Mark as approved
+        verificationToken: null, // Clear verification token
+        verificationExpires: null, // Clear expiry
       },
     });
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-success`);
+    // Return JSON response instead of redirecting
+    // The frontend will handle the redirect
+    return NextResponse.json({
+      success: true,
+      message: 'Email verified successfully',
+    });
   } catch (error) {
     console.error('Email verification error:', error);
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/verification-error?reason=server-error`);
+    return NextResponse.json({
+      success: false,
+      error: 'Server error during verification',
+    }, { status: 500 });
   }
 }

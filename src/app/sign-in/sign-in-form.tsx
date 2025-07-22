@@ -22,11 +22,14 @@ export default function SignInForm() {
   useEffect(() => {
     const message = searchParams.get('message');
     const resetSuccess = searchParams.get('reset');
+    const verified = searchParams.get('verified');
     
     if (message) {
       setSecurityMessage(decodeURIComponent(message));
     } else if (resetSuccess === 'success') {
       setSecurityMessage('Your password has been reset successfully. Please sign in with your new password.');
+    } else if (verified === 'true') {
+      setSecurityMessage('Your email has been verified successfully! Please sign in to continue.');
     }
   }, [searchParams]);
 
@@ -56,6 +59,15 @@ export default function SignInForm() {
           message = 'The email or password you entered is incorrect.';
         } else if (signInData?.error === 'Awaiting parent approval') {
           message = 'Your account requires parent approval before signing in.';
+        } else if (signInData?.error === 'Email not verified') {
+          message = 'Please verify your email before signing in.';
+          // Store email in localStorage for the verification pending page
+          if (signInData.email) {
+            localStorage.setItem('pendingVerificationEmail', signInData.email);
+          }
+          // Redirect to verification pending page
+          router.push('/verification-pending');
+          return; // Exit early to prevent further processing
         } else if (signInData?.error) {
           message = signInData.error;
         }

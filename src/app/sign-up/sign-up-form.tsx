@@ -127,27 +127,39 @@ export default function SignUpForm() {
         body: JSON.stringify(body),
       });
 
-      // For adults, sign in automatically after sign-up
-      try {
-        const signInRes = await fetchJson('/api/sign-in', {
-          method: 'POST',
-          body: JSON.stringify({
-            email,
-            password
-          }),
-        });
+      // Check if we need to redirect to verification pending page
+      if (res.redirectUrl === '/verification-pending' && res.email) {
+        // Store email in localStorage for the verification pending page
+        localStorage.setItem('pendingVerificationEmail', res.email);
+        setCurrentStep('adult-processing');
         
-        // Wait briefly for session cookie to be set
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        
-        // Redirect to plan selection page first
-        console.log('Adult user registered, redirecting to plan selection');
-        console.log('[APA] Redirecting to choose-plan after successful sign-up');
-        window.location.replace('/choose-plan?t=' + Date.now());
-      } catch (signInErr) {
-        console.error('Auto sign-in failed after registration:', signInErr);
-        // If auto sign-in fails, redirect to sign-in page
-        router.push('/sign-in?message=' + encodeURIComponent('Account created successfully. Please sign in.'));
+        // Show processing message briefly before redirecting
+        setTimeout(() => {
+          router.push('/verification-pending');
+        }, 1500);
+      } else {
+        // Legacy flow - attempt auto sign-in
+        try {
+          const signInRes = await fetchJson('/api/sign-in', {
+            method: 'POST',
+            body: JSON.stringify({
+              email,
+              password
+            }),
+          });
+          
+          // Redirect to the appropriate page
+          if (signInRes.redirectUrl) {
+            router.push(signInRes.redirectUrl);
+          } else {
+            router.push('/dashboard');
+          }
+        } catch (signInErr: any) {
+          console.error('Auto sign-in failed:', signInErr);
+          // If auto sign-in fails, still consider signup successful
+          // and redirect to sign-in page
+          router.push('/sign-in');
+        }
       }
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
@@ -337,6 +349,21 @@ export default function SignUpForm() {
             Back
           </Button>
         </form>
+      </div>
+    );
+  }
+  
+  // Step 4: Adult processing (verification pending)
+  if (currentStep === 'adult-processing') {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="w-16 h-16 mx-auto bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <h3 className="font-semibold text-xl">Creating your account...</h3>
+        <p className="text-gray-600">
+          We're setting up your account and sending a verification email.
+        </p>
       </div>
     );
   }

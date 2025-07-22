@@ -16,6 +16,7 @@ model User {
   resetToken          String?
   resetTokenExpires   DateTime?
   isApproved          Boolean         @default(false)
+  isVerified          Boolean         @default(false)
   verificationExpires DateTime?
   verificationToken   String?
   account             Account?

@@ -1,12 +1,11 @@
-// NOTE: This email verification flow is APA-compliant but not currently used.
-// All user verification is handled via credit card + parent approval.
 /**
  * Email Verification Helper
  * 
  * Purpose:
- * - Sends a non-blocking verification email to adult users
- * - Used as a secondary verification method alongside payment verification
- * - Helps ensure account recovery in case of forgotten passwords
+ * - Sends a verification email to users as part of the sign-up flow
+ * - Required for account activation (blocking verification)
+ * - Helps ensure account recovery and valid email addresses
+ * - Prevents fake accounts and improves security
  */
 
 import { sendEmail, BASE_URL } from '@/lib/email';
@@ -49,7 +48,7 @@ export async function sendVerificationEmail({ to, userId, name }: SendVerificati
           <h2 style="color: #000;">Welcome to Cliqstr!</h2>
           <p>Hi ${displayName},</p>
           <p>Thanks for signing up! Please verify your email address to complete your account setup.</p>
-          <p>This step is <strong>optional</strong>, but it helps us keep your account secure and enables password recovery.</p>
+          <p>This step is <strong>required</strong> to activate your account and continue to plan selection.</p>
           
           <div style="margin: 30px 0;">
             <a href="${verificationLink}" style="background-color: #000; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">

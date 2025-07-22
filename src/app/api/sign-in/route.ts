@@ -57,6 +57,26 @@ export async function POST(req: Request) {
       );
     }
     
+    // Check if adult user has verified their email
+    // We determine this by checking if verificationToken exists
+    // If token exists, they haven't verified their email yet
+    if (user.account?.role?.toLowerCase() !== 'child' && user.verificationToken) {
+      console.log('🚫 Sign-in denied - email not verified:', user.email);
+      
+      // Create response with headers to clear any legacy tokens
+      const headers = new Headers();
+      clearAuthTokens(headers);
+      
+      return NextResponse.json(
+        { 
+          error: 'Email not verified', 
+          redirectUrl: '/verification-pending',
+          email: user.email // Send back email for the verification pending page
+        },
+        { status: 403, headers }
+      );
+    }
+    
     // Redirect unapproved users to complete signup
     // Check isApproved on both User and Account models for compatibility
     const isUserApproved = user.account?.isApproved ?? ('isApproved' in user ? user.isApproved : false);
