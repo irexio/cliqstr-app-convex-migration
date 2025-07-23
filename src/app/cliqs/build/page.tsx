@@ -110,7 +110,7 @@ export default function BuildCliqPage() {
             Recommended size: 1200×400px (landscape). Max file size: 4MB.
           </p>
           <UploadDropzone
-            endpoint="banner"
+            endpoint="cliqBanner"
             appearance={{
               container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
               button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
