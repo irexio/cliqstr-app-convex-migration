@@ -34,7 +34,7 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
   const [friendFirstName, setFriendFirstName] = useState('');
   const [trustedAdultContact, setTrustedAdultContact] = useState('');
   const [inviteType, setInviteType] = useState<'child' | 'adult' | ''>(''); // Must be explicitly selected
-  const [inviteNote, setInviteNote] = useState('Parent or Guardian approval is required. Please click the link to proceed.');
+  const [inviteNote, setInviteNote] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -109,7 +109,7 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       setFriendFirstName('');
       setTrustedAdultContact('');
       setInviteType('');
-      setInviteNote('Parent or Guardian approval is required. Please click the link to proceed.');
+      setInviteNote('');
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -130,7 +130,12 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
               name="inviteType"
               value="adult"
               checked={inviteType === 'adult'}
-              onChange={() => setInviteType('adult')}
+              onChange={() => {
+                setInviteType('adult');
+                if (!inviteNote || inviteNote === 'Parent or Guardian approval is required. Please click the link to proceed.') {
+                  setInviteNote('Join my Cliq on Cliqstr!');
+                }
+              }}
               className="w-4 h-4"
             />
             <span className="text-sm">Adult (18+)</span>
@@ -141,7 +146,12 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
               name="inviteType"
               value="child"
               checked={inviteType === 'child'}
-              onChange={() => setInviteType('child')}
+              onChange={() => {
+                setInviteType('child');
+                if (!inviteNote || inviteNote === 'Join my Cliq on Cliqstr!') {
+                  setInviteNote('Parent or Guardian approval is required. Please click the link to proceed.');
+                }
+              }}
               className="w-4 h-4"
             />
             <span className="text-sm">Child (Under 18)</span>
