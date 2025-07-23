@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UploadDropzone } from '@uploadthing/react';
-import type { OurFileRouter } from '@/lib/uploadthing';
+import { UploadDropzone } from '@/lib/uploadthing-client';
+import type { OurFileRouter } from '@/app/api/uploadthing/core';
 import { fetchJson } from '@/lib/fetchJson';
 
 export default function SetUpProfileClient({
@@ -144,16 +144,16 @@ export default function SetUpProfileClient({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Upload Avatar</label>
           <p className="text-xs text-neutral-500 italic mb-2">Recommended: square image, 400×400px</p>
-          <UploadDropzone<OurFileRouter, 'avatar'>
+          <UploadDropzone
             endpoint="avatar"
             appearance={{
               button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
               container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
             }}
-            onClientUploadComplete={(res) => {
+            onClientUploadComplete={(res: any) => {
               if (res && res[0]?.url) setAvatarUrl(res[0].url);
             }}
-            onUploadError={(err) => alert(`Avatar upload error: ${err.message}`)}
+            onUploadError={(err: any) => alert(`Avatar upload error: ${err.message}`)}
           />
           {avatarUrl && (
             <img
@@ -168,16 +168,16 @@ export default function SetUpProfileClient({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Upload Banner</label>
           <p className="text-xs text-neutral-500 italic mb-2">Recommended: wide landscape, 1200×400px</p>
-          <UploadDropzone<OurFileRouter, 'banner'>
+          <UploadDropzone
             endpoint="banner"
             appearance={{
               button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
               container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
             }}
-            onClientUploadComplete={(res) => {
+            onClientUploadComplete={(res: any) => {
               if (res && res[0]?.url) setBannerUrl(res[0].url);
             }}
-            onUploadError={(err) => alert(`Banner upload error: ${err.message}`)}
+            onUploadError={(err: any) => alert(`Banner upload error: ${err.message}`)}
           />
           {bannerUrl && (
             <img

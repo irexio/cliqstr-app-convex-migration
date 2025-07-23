@@ -64,6 +64,7 @@ model ChildSettings {
   profileId            String  @unique
   canCreatePublicCliqs Boolean @default(false)
   canSendInvites       Boolean @default(false)
+  inviteRequiresApproval Boolean @default(true)
   isSilentlyMonitored  Boolean @default(true)
   aiModerationLevel    String?
   canAccessGames       Boolean @default(false)

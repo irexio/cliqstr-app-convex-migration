@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { fetchJson } from '@/lib/fetchJson';
-import { UploadDropzone } from '@uploadthing/react';
-import type { OurFileRouter } from '@/lib/uploadthing'; // Adjust path if needed
+import { UploadDropzone } from '@/lib/uploadthing-client';
+import type { OurFileRouter } from '@/app/api/uploadthing/core';
 
 export default function CreateCliqForm({ userId }: { userId: string }) {
   const router = useRouter();

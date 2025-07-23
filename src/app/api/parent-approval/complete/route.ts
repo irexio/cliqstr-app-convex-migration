@@ -195,12 +195,27 @@ export async function POST(req: NextRequest) {
       },
     });
     
-    return NextResponse.json({
+    // Create session for parent to automatically log them in
+    const response = NextResponse.json({
       success: true,
       message: 'Parent approval completed successfully',
       parentId: parentUser.id,
       childId: childUser.id,
+      redirectUrl: '/parents-hq',
     });
+    
+    // Set session cookie
+    response.cookies.set({
+      name: 'session',
+      value: parentUser.id,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+    
+    return response;
   } catch (error) {
     console.error('[PARENT_APPROVAL_COMPLETE_ERROR]', error);
     const errorMessage = error instanceof Error ? error.message : String(error);

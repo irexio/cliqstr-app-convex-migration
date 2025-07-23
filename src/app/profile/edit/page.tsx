@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UploadDropzone } from '@uploadthing/react';
+import { UploadDropzone } from '@/lib/uploadthing-client';
 import { fetchJson } from '@/lib/fetchJson';
 import type { OurFileRouter } from '@/app/api/uploadthing/core';
 
@@ -105,9 +105,9 @@ export default function EditProfilePage() {
         {/* Avatar Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Update Avatar</label>
-          <UploadDropzone<OurFileRouter, "avatar">
+          <UploadDropzone
             endpoint="avatar"
-            onClientUploadComplete={(res) => {
+            onClientUploadComplete={(res: any) => {
               if (res?.[0]?.url) setAvatarUrl(res[0].url);
             }}
             onUploadError={(err: Error) => alert(`Avatar upload error: ${err.message}`)}
@@ -124,9 +124,9 @@ export default function EditProfilePage() {
         {/* Banner Upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Update Banner</label>
-          <UploadDropzone<OurFileRouter, "banner">
+          <UploadDropzone
             endpoint="banner"
-            onClientUploadComplete={(res) => {
+            onClientUploadComplete={(res: any) => {
               if (res?.[0]?.url) setBannerUrl(res[0].url);
             }}
             onUploadError={(err: Error) => alert(`Banner upload error: ${err.message}`)}

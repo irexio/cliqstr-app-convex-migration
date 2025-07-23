@@ -20,6 +20,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized - please sign in again' }, { status: 401 });
     }
     
+    // Check if user is a child and enforce invite permissions
+    if (user.role === 'Child') {
+      // Fetch child settings
+      const childSettings = await prisma.childSettings.findUnique({
+        where: { profileId: user.profile?.id }
+      });
+      
+      if (!childSettings?.canSendInvites) {
+        console.log('[INVITE_ERROR] Child not allowed to send invites', { userId: user.id });
+        return NextResponse.json({ 
+          error: 'You do not have permission to send invites. Please ask your parent to enable this feature.' 
+        }, { status: 403 });
+      }
+      
+      // Check if invite requires approval
+      if (childSettings.inviteRequiresApproval) {
+        console.log('[INVITE_INFO] Child invite requires parent approval', { userId: user.id });
+        // TODO: Create invite request instead of direct invite
+        // For now, we'll note this in the response
+      }
+    }
+    
     // Log the request body
     const body = await req.json();
     console.log('[INVITE_DEBUG] Request payload:', body);

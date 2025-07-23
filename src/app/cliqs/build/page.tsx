@@ -20,8 +20,8 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
-import { UploadDropzone } from '@uploadthing/react';
-import type { OurFileRouter } from '@/lib/uploadthing';
+import { UploadDropzone } from '@/lib/uploadthing-client';
+import type { OurFileRouter } from '@/app/api/uploadthing/core';
 import { fetchJson } from '@/lib/fetchJson';
 import Image from 'next/image';
 
@@ -109,19 +109,19 @@ export default function BuildCliqPage() {
           <p className="text-xs text-neutral-500 italic mb-2">
             Recommended size: 1200×400px (landscape). Max file size: 4MB.
           </p>
-          <UploadDropzone<OurFileRouter, 'banner'>
+          <UploadDropzone
             endpoint="banner"
             appearance={{
               container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
               button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
               label: 'text-sm text-neutral-700',
             }}
-            onClientUploadComplete={(res) => {
+            onClientUploadComplete={(res: any) => {
               if (res && res[0]?.url) {
                 setBannerImage(res[0].url);
               }
             }}
-            onUploadError={(err) => {
+            onUploadError={(err: any) => {
               console.error('Upload error:', err);
               setError('Image upload failed. Try again.');
             }}
