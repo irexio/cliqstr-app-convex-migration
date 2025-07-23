@@ -31,14 +31,14 @@ export async function sendParentApprovalEmail({
       <p>Hello!</p>
       <p>Your child <strong>${childName}</strong> (age ${childAge}) would like to create an account on Cliqstr, a safe and private space for families and close friends to connect.</p>
       
-      <div style="background: #f8f9fa; border-left: 4px solid #007bff; padding: 15px; margin: 20px 0;">
-        <h3 style="margin-top: 0; color: #007bff;">What is Cliqstr?</h3>
+      <div style="background: #f8f9fa; border-left: 4px solid #000000; padding: 15px; margin: 20px 0;">
+        <h3 style="margin-top: 0; color: #000000;">What is Cliqstr?</h3>
         <p style="margin-bottom: 0;">Cliqstr is designed specifically for families and trusted groups. It's not a public social network - it's a private space where your child can safely connect with family members and close friends you approve.</p>
       </div>
 
       <p><strong>To approve ${childName}'s account, please click the link below:</strong></p>
       <div style="text-align: center; margin: 30px 0;">
-        <a href="${approvalLink}" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+        <a href="${approvalLink}" style="background: #000000; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
           Approve ${childName}'s Account
         </a>
       </div>

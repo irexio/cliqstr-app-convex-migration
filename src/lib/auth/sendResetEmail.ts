@@ -55,12 +55,20 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
       to: email,
       subject: 'Reset Your Cliqstr Password',
       html: `
-        <p>Hi there,</p>
-        <p>You requested a password reset for your Cliqstr account.</p>
-        <p><a href="${resetUrl}" target="_blank">Click here to reset your password</a></p>
-        <p>This link will expire in 1 hour.</p>
-        <p>If you didn’t request this, you can ignore this email.</p>
-        <p>– The Cliqstr Team</p>
+        <div style="font-family: sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
+          <h2>Reset Your Password</h2>
+          <p>Hi there,</p>
+          <p>You requested a password reset for your Cliqstr account.</p>
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${resetUrl}" style="display:inline-block; padding:12px 24px; background:#000000; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
+              Reset Password
+            </a>
+          </div>
+          <p style="font-size: 14px; color: #666;">This link will expire in 1 hour.</p>
+          <p style="font-size: 12px; color: #888;">If you didn't request this, you can ignore this email.</p>
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="font-size: 12px; color: #888;">– The Cliqstr Team</p>
+        </div>
       `,
     })
 

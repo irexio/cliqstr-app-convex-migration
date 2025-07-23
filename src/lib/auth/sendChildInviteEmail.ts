@@ -53,7 +53,7 @@ export async function sendChildInviteEmail({
       </p>
       
       ${inviteNote ? `
-      <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #7F56D9;">
+      <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #000000;">
         <p style="margin: 0;"><strong>Message from ${inviterName}:</strong></p>
         <p style="margin: 8px 0 0;">${inviteNote}</p>
       </div>
@@ -62,7 +62,7 @@ export async function sendChildInviteEmail({
       <p><strong>As ${friendFirstName}'s parent/guardian</strong>, you'll need to create and manage their account.</p>
       
       <div style="margin: 30px 0;">
-        <a href="${inviteLink}" style="display:inline-block; padding:12px 24px; background:#7F56D9; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
+        <a href="${inviteLink}" style="display:inline-block; padding:12px 24px; background:#000000; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
           Accept Invite for ${friendFirstName}
         </a>
       </div>

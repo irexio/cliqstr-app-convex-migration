@@ -89,44 +89,45 @@ export default async function MyCliqsDashboardPage() {
           <p className="text-gray-600 mt-1">Manage your cliqs and invite friends to join.</p>
         </div>
         
-        <Link 
-          href="/cliqs/build"
-          className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-4 py-2 rounded-md font-medium transition-colors"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Create New Cliq
-        </Link>
+        <div className="flex gap-3">
+          <Link 
+            href={user.profile ? "/profile/edit" : "/profile/create"}
+            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            {user.profile ? "Edit Profile" : "Create Profile"}
+          </Link>
+          
+          <Link 
+            href="/cliqs/build"
+            className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-4 py-2 rounded-md font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create New Cliq
+          </Link>
+        </div>
       </div>
 
       {cliqs.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border border-gray-200">
           <h2 className="text-2xl font-bold mb-4">Welcome to Cliqstr</h2>
           <p className="text-gray-600 mb-8 max-w-md text-center">Create your first cliq to start sharing with family and friends in a private, safe space.</p>
-          <div className="flex gap-4">
-            <Link
-              href="/cliqs/build"
-              className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-6 py-3 rounded-md font-medium transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Create a Cliq
-            </Link>
-            <Link
-              href="/profile/create"
-              className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-6 py-3 rounded-md font-medium transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-              </svg>
-              Create Your Profile
-            </Link>
-          </div>
+          <Link
+            href="/cliqs/build"
+            className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-6 py-3 rounded-md font-medium transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create Your First Cliq
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

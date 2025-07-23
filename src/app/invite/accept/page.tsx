@@ -43,7 +43,12 @@ function InviteAcceptContent() {
         });
         
         // Race the fetch against the timeout
-        const fetchPromise = fetch(`/api/validate-invite?code=${inviteCode}`);
+        const fetchPromise = fetch(`/api/validate-invite?code=${inviteCode}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-cache'
+        });
         
         const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
         

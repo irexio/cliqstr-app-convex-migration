@@ -36,7 +36,7 @@ export async function sendInviteEmail({
         No ads. No tracking. Just your people.
       </p>
       <div style="margin: 30px 0;">
-        <a href="${inviteLink}" style="display:inline-block; padding:12px 24px; background:#7F56D9; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
+        <a href="${inviteLink}" style="display:inline-block; padding:12px 24px; background:#000000; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
           Accept Invite
         </a>
       </div>

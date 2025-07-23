@@ -33,14 +33,18 @@ import { prisma } from '@/lib/prisma';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
 export async function GET(req: NextRequest) {
+  console.log('[VALIDATE-INVITE] Received request');
   try {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
+    console.log('[VALIDATE-INVITE] Code:', code);
 
     if (!code) {
+      console.log('[VALIDATE-INVITE] No code provided');
       return NextResponse.json({ valid: false, error: 'Missing invite code' }, { status: 400 });
     }
 
+    console.log('[VALIDATE-INVITE] Looking up invite with normalized code:', normalizeInviteCode(code));
     const invite = await prisma.invite.findUnique({
       where: { code: normalizeInviteCode(code) },
       select: {
@@ -70,8 +74,10 @@ export async function GET(req: NextRequest) {
         }
       },
     });
+    console.log('[VALIDATE-INVITE] Invite found:', invite ? 'Yes' : 'No');
 
     if (!invite) {
+      console.log('[VALIDATE-INVITE] Invite not found in database');
       return NextResponse.json({ valid: false, error: 'Invite not found' }, { status: 404 });
     }
 
