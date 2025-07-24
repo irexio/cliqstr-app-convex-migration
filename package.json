@@ -5,12 +5,17 @@
   "scripts": {
     "prebuild": "echo 'Skipping hostname'",
     "dev": "next dev",
+    "dev:clean": "npm run kill-node && npm run dev",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
     "docs:routes": "node scripts/route-analyzer.js",
-    "docs:notion": "node scripts/notion-route-analyzer.js"
+    "docs:notion": "node scripts/notion-route-analyzer.js",
+    "kill-node": "taskkill /F /IM node.exe || echo 'No node processes found'",
+    "kill-port": "npx kill-port 3000",
+    "clean": "npm run kill-node && npm run kill-port",
+    "reset": "npm run clean && rm -rf .next && npm run dev"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

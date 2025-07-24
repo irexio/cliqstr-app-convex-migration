@@ -57,20 +57,35 @@ export default function ScrapbookGallery({
   const handleSaveItem = async () => {
     if (!tempImageUrl) return;
 
-    // In a real app, this would save to the database
-    console.log('Saving new item:', {
-      imageUrl: tempImageUrl,
-      caption,
-      userId,
-    });
+    try {
+      const response = await fetch('/api/scrapbook/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          profileId: userId, // Note: userId prop is actually profileId
+          imageUrl: tempImageUrl,
+          caption,
+        }),
+      });
 
-    // Reset the form
-    setTempImageUrl(null);
-    setCaption('');
-    setShowCaptionInput(false);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to save item');
+      }
 
-    // Refresh the gallery
-    if (onItemAdded) onItemAdded();
+      // Reset the form
+      setTempImageUrl(null);
+      setCaption('');
+      setShowCaptionInput(false);
+
+      // Refresh the gallery
+      if (onItemAdded) onItemAdded();
+    } catch (error) {
+      console.error('Error saving scrapbook item:', error);
+      alert('Failed to save item. Please try again.');
+    }
   };
 
   return (

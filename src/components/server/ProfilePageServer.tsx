@@ -2,7 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { notFound, redirect } from 'next/navigation';
-import ProfilePublic from '@/components/ProfilePublic';
+import ProfileClientWrapper from '@/app/profile/[username]/ProfileClient';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { checkSharedCliqMembership } from '@/lib/auth/requireCliqMembership';
 
@@ -44,18 +44,44 @@ export default async function ProfilePageServer({ username }: { username: string
     }
   }
 
-  const displayName = !profile?.username || profile.username.startsWith('user-')
-    ? profile.user?.email?.split('@')[0] || 'New User'
-    : profile.username;
+  const isOwner = profile.user.id === currentUser.id;
+  
+  // Fetch scrapbook items (only valid ones - not expired unless pinned)
+  const ninetyDaysAgo = new Date();
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+  
+  const scrapbookItems = await prisma.scrapbookItem.findMany({
+    where: {
+      profileId: profile.id,
+      OR: [
+        { isPinned: true },
+        { createdAt: { gte: ninetyDaysAgo } },
+      ],
+    },
+    orderBy: [
+      { isPinned: 'desc' },
+      { createdAt: 'desc' },
+    ],
+  });
+
+  const profileData = {
+    id: profile.id,
+    name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || profile.username,
+    username: profile.username,
+    birthdate: profile.birthdate.toISOString(),
+    bio: profile.about || '',
+    avatarUrl: profile.image || undefined,
+    bannerUrl: profile.bannerImage || undefined,
+    isOwner,
+    canViewGallery: true, // Since they share a cliq, they can view the gallery
+    galleryLayoutStyle: 'inline' as const,
+  };
 
   return (
-    <div className="py-10 px-4">
-      <ProfilePublic
-        displayName={displayName}
-        image={profile.image || undefined}
-        bannerImage={profile.bannerImage || undefined}
-        about={profile.about || undefined}
-        birthdate={profile.birthdate.toISOString()}
+    <div className="min-h-screen bg-gray-50">
+      <ProfileClientWrapper
+        initialProfile={profileData}
+        initialScrapbookItems={scrapbookItems}
       />
     </div>
   );

@@ -102,7 +102,7 @@ export default async function MyCliqsDashboardPage() {
           </Link>
           
           <Link 
-            href="/cliqs/build"
+            href={user.profile ? "/cliqs/build" : "/profile/create"}
             className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-4 py-2 rounded-md font-medium transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -119,7 +119,7 @@ export default async function MyCliqsDashboardPage() {
           <h2 className="text-2xl font-bold mb-4">Welcome to Cliqstr</h2>
           <p className="text-gray-600 mb-8 max-w-md text-center">Create your first cliq to start sharing with family and friends in a private, safe space.</p>
           <Link
-            href="/cliqs/build"
+            href={user.profile ? "/cliqs/build" : "/profile/create"}
             className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-6 py-3 rounded-md font-medium transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

@@ -45,6 +45,7 @@ model Profile {
   firstName         String?
   lastName          String?
   childSettings     ChildSettings?
+  scrapbookItems    ScrapbookItem[]
   user              User              @relation(fields: [userId], references: [id])
 }
 
@@ -216,4 +217,15 @@ enum CliqPrivacy {
   private
   semi_private
   public
+}
+
+model ScrapbookItem {
+  id        String   @id @default(cuid())
+  profileId String
+  imageUrl  String
+  caption   String   @default("")
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }

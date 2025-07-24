@@ -41,6 +41,13 @@ export async function POST(req: NextRequest) {
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Check if user has a profile
+    if (!user.profile) {
+      console.log('[APA] User missing profile in /api/cliqs/create');
+      return NextResponse.json({ error: 'Profile required. Please create your profile first.' }, { status: 403 });
+    }
+    
     // Simplified plan validation - only check if plan exists
     if (!user.plan) {
       console.log('[APA] User missing plan in /api/cliqs/create');

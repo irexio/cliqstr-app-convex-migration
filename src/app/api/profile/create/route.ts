@@ -1,0 +1,122 @@
+/**
+ * 🔐 APA-HARDENED ROUTE: POST /api/profile/create
+ *
+ * Purpose:
+ *   - Creates a social media profile for authenticated user
+ *   - Uses firstName, lastName, birthdate from sign-up data
+ *   - Sets username, bio, avatar, banner for social features
+ *
+ * Auth:
+ *   - Requires valid session (user.id)
+ *   - User must not already have a profile
+ *
+ * Body:
+ *   - username: string (3-15 chars, alphanumeric + underscore)
+ *   - firstName: string
+ *   - lastName: string
+ *   - birthdate: string (ISO date)
+ *   - about?: string (bio/description)
+ *   - image?: string (avatar URL)
+ *   - bannerImage?: string (banner URL)
+ *
+ * Returns:
+ *   - 200 OK + profile data
+ *   - 401 if unauthorized
+ *   - 400 if invalid input or profile exists
+ *   - 500 on error
+ */
+
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { z } from 'zod';
+import { getAgeGroup } from '@/lib/ageUtils';
+
+const schema = z.object({
+  username: z.string().min(3).max(15).regex(/^[a-zA-Z0-9_]+$/),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  birthdate: z.string().transform((val) => new Date(val)),
+  about: z.string().optional(),
+  image: z.string().url().optional().or(z.literal('')),
+  bannerImage: z.string().url().optional().or(z.literal('')),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Check if user already has a profile
+    if (user.profile) {
+      return NextResponse.json({ error: 'Profile already exists' }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const parsed = schema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ 
+        error: 'Invalid input', 
+        details: parsed.error.flatten() 
+      }, { status: 400 });
+    }
+
+    const { username, firstName, lastName, birthdate, about, image, bannerImage } = parsed.data;
+
+    // Check if username is taken
+    const existingProfile = await prisma.profile.findUnique({
+      where: { username }
+    });
+
+    if (existingProfile) {
+      return NextResponse.json({ error: 'Username already taken' }, { status: 400 });
+    }
+
+    // Calculate age group
+    const { group } = getAgeGroup(birthdate.toISOString());
+
+    // Create profile
+    const profile = await prisma.profile.create({
+      data: {
+        userId: user.id,
+        username,
+        firstName,
+        lastName,
+        birthdate,
+        ageGroup: group,
+        about: about || '',
+        image: image || '',
+        bannerImage: bannerImage || '',
+        aiModerationLevel: group === 'child' ? 'strict' : 'standard',
+      },
+    });
+
+    // If child, create default child settings
+    if (group === 'child') {
+      await prisma.childSettings.create({
+        data: {
+          profileId: profile.id,
+          canSendInvites: false,
+          inviteRequiresApproval: true,
+          canCreatePublicCliqs: false,
+          scrapbookEnabled: true,
+          birthdayVisible: false,
+        },
+      });
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      profile,
+      message: 'Profile created successfully' 
+    });
+  } catch (error) {
+    console.error('[PROFILE_CREATE_ERROR]', error);
+    return NextResponse.json({ 
+      error: 'Failed to create profile' 
+    }, { status: 500 });
+  }
+}
