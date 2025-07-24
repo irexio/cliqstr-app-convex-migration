@@ -6,7 +6,8 @@
       "Bash(git add:*)",
       "Bash(npm run dev:*)",
       "Bash(set NODE_OPTIONS=--max-old-space-size=4096)",
-      "Bash(npx prisma migrate:*)"
+      "Bash(npx prisma migrate:*)",
+      "Bash(git commit:*)"
     ],
     "deny": []
   }

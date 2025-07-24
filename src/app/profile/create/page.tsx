@@ -12,8 +12,8 @@ export default async function CreateProfilePage() {
     redirect('/sign-in');
   }
   
-  // If user already has a profile, redirect to dashboard
-  if (user.profile) {
+  // If user already has a complete profile (not a temporary one), redirect to dashboard
+  if (user.profile && !user.profile.username?.startsWith('user-')) {
     redirect('/my-cliqs-dashboard');
   }
 

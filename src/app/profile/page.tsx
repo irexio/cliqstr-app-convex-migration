@@ -1,20 +1,21 @@
-// 🔐 APA-HARDENED — Edit Profile Page
+// 🔐 APA-HARDENED — Profile Redirect Page
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import SetUpProfileClient from '@/components/SetUpProfileClient';
-import { notFound } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
-export default async function EditProfilePage() {
+export default async function ProfileRedirectPage() {
   const user = await getCurrentUser();
 
   if (!user?.id) {
-    notFound();
+    redirect('/sign-in');
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-white p-4">
-      <SetUpProfileClient userId={user.id} isEdit />
-    </div>
-  );
+  // Redirect to the user's own profile if they have one
+  if (user.profile && !user.profile.username?.startsWith('user-')) {
+    redirect(`/profile/${user.profile.username}`);
+  } else {
+    // If no profile, redirect to create one
+    redirect('/profile/create');
+  }
 }
