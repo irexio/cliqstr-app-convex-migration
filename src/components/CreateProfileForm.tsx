@@ -16,6 +16,7 @@ export default function CreateProfileForm() {
   const [about, setAbout] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [bannerUrl, setBannerUrl] = useState('');
+  const [showYear, setShowYear] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +48,7 @@ export default function CreateProfileForm() {
           about,
           image: avatarUrl,
           bannerImage: bannerUrl,
+          showYear,
         }),
       });
 
@@ -61,7 +63,7 @@ export default function CreateProfileForm() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="w-full max-w-lg mx-auto px-4 sm:px-6 py-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold mb-2">Create Your Profile</h1>
         <p className="text-gray-600">
@@ -69,9 +71,9 @@ export default function CreateProfileForm() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-lg shadow-lg">
+      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 sm:p-8 rounded-lg shadow-lg">
         {/* Name Fields */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               First Name
@@ -87,7 +89,7 @@ export default function CreateProfileForm() {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Last Name (or Nickname)
+              Last Name
             </label>
             <input
               type="text"
@@ -118,6 +120,20 @@ export default function CreateProfileForm() {
           <p className="text-xs text-gray-500 mt-1">
             Your age group determines privacy settings
           </p>
+          
+          {/* Show Year Toggle */}
+          <div className="mt-3 flex items-center">
+            <input
+              type="checkbox"
+              id="showYear"
+              checked={showYear}
+              onChange={(e) => setShowYear(e.target.checked)}
+              className="h-4 w-4 text-black focus:ring-black border-gray-300 rounded"
+            />
+            <label htmlFor="showYear" className="ml-2 text-sm text-gray-700">
+              Show my birth year on my profile
+            </label>
+          </div>
         </div>
 
         {/* Username */}
@@ -164,6 +180,9 @@ export default function CreateProfileForm() {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Profile Picture (Optional)
           </label>
+          <p className="text-xs text-gray-500 mb-3">
+            Choose a fun photo of yourself or something that represents you. This will be shown to your cliq members. You can skip this — we'll give you a fun avatar if you don't pick one!
+          </p>
           <div className="flex items-start gap-4">
             {avatarUrl && (
               <img
@@ -225,18 +244,18 @@ export default function CreateProfileForm() {
           </div>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="w-full sm:flex-1 h-12 px-6 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="flex-1 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50"
+            className="w-full sm:flex-1 h-12 px-6 bg-black text-white rounded-lg hover:bg-gray-800 disabled:opacity-50 transition-colors"
           >
             {loading ? 'Creating Profile...' : 'Create Profile'}
           </button>

@@ -40,6 +40,7 @@ const schema = z.object({
   about: z.string().optional(),
   image: z.string().url().optional().or(z.literal('')),
   bannerImage: z.string().url().optional().or(z.literal('')),
+  showYear: z.boolean().optional().default(false),
 });
 
 export async function POST(req: NextRequest) {
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const { username, firstName, lastName, birthdate, about, image, bannerImage } = parsed.data;
+    const { username, firstName, lastName, birthdate, about, image, bannerImage, showYear } = parsed.data;
 
     // Check if username is taken
     const existingProfile = await prisma.profile.findUnique({
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
         firstName,
         lastName,
         birthdate,
+        showYear,
         ageGroup: group,
         about: about || '',
         image: image || '',

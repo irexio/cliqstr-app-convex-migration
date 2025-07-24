@@ -17,12 +17,17 @@ interface CliqCardProps {
     description?: string | null;
     privacy: string;
     coverImage?: string | null;
+    ownerId?: string;
   };
+  currentUserId?: string;
 }
 
-export default function CliqCard({ cliq }: CliqCardProps) {
+export default function CliqCard({ cliq, currentUserId }: CliqCardProps) {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [membersModalOpen, setMembersModalOpen] = useState(false);
+  
+  // Check if current user is the owner
+  const isOwner = currentUserId && cliq.ownerId === currentUserId;
 
   return (
     <BaseCard className="p-0 overflow-hidden group hover:shadow-lg transition-shadow">
@@ -52,17 +57,26 @@ export default function CliqCard({ cliq }: CliqCardProps) {
       </Link>
       {/* Action Buttons */}
       <div className="flex gap-2 px-4 pb-4 mt-auto">
-        <Link href={`/cliqs/${cliq.id}`}>
-          <Button className="flex-1">
+        <Link href={`/cliqs/${cliq.id}`} className="flex-1">
+          <Button className="w-full">
             View
           </Button>
         </Link>
+        {isOwner && (
+          <Link href={`/cliqs/${cliq.id}/edit`}>
+            <Button variant="outline">
+              Edit
+            </Button>
+          </Link>
+        )}
         <Button variant="outline" onClick={() => setMembersModalOpen(true)}>
           Members
         </Button>
-        <Button variant="outline" onClick={() => setInviteModalOpen(true)}>
-          Invite
-        </Button>
+        {isOwner && (
+          <Button variant="outline" onClick={() => setInviteModalOpen(true)}>
+            Invite
+          </Button>
+        )}
       </div>
       <InviteModal cliqId={cliq.id} open={inviteModalOpen} onClose={() => setInviteModalOpen(false)} />
       <MembersModal cliqId={cliq.id} open={membersModalOpen} onClose={() => setMembersModalOpen(false)} />

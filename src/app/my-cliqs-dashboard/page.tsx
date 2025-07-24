@@ -81,44 +81,58 @@ export default async function MyCliqsDashboardPage() {
   
 
 
+  // Determine user state
+  const hasProfile = user.profile && !user.profile.username?.startsWith('user-');
+  const hasCliqs = cliqs.length > 0;
+
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">{cliqs.length === 0 ? "Welcome to Cliqstr" : "My Cliqs"}</h1>
-          <p className="text-gray-600 mt-1">{cliqs.length === 0 ? "Create your profile and start connecting with family and friends." : "Manage your cliqs and invite friends to join."}</p>
+      {/* State 1: No Profile - Show welcome only, no header buttons */}
+      {!hasProfile ? (
+        <div className="text-center mb-6">
+          <h1 className="text-3xl font-bold">Welcome to Cliqstr</h1>
+          <p className="text-gray-600 mt-1">Create your profile and start connecting with family and friends.</p>
         </div>
-        
-        <div className="flex gap-3">
-          <Link 
-            href={user.profile && !user.profile.username?.startsWith('user-') ? "/profile/edit" : "/profile/create"}
-            className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            {user.profile && !user.profile.username?.startsWith('user-') ? "Edit Profile" : "Create Profile"}
-          </Link>
+      ) : (
+        /* State 2 & 3: Has Profile - Show appropriate header with buttons */
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold">{hasCliqs ? "My Cliqs" : "Create Your First Cliq"}</h1>
+            <p className="text-gray-600 mt-1">{hasCliqs ? "Manage your cliqs and invite friends to join." : "You're all set! Now create a cliq to start sharing."}</p>
+          </div>
           
-          <Link 
-            href={user.profile && !user.profile.username?.startsWith('user-') ? "/cliqs/build" : "/profile/create"}
-            className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-4 py-2 rounded-md font-medium transition-colors"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            {user.profile && !user.profile.username?.startsWith('user-') ? "Create New Cliq" : "Create Profile First"}
-          </Link>
+          <div className="flex gap-3">
+            <Link 
+              href="/profile/edit"
+              className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-md font-medium transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Edit Profile
+            </Link>
+            
+            <Link 
+              href="/cliqs/build"
+              className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-4 py-2 rounded-md font-medium transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create New Cliq
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
 
-      {cliqs.length === 0 ? (
+      {/* Empty State Content */}
+      {!hasCliqs ? (
         <div className="flex flex-col items-center justify-center py-20 bg-gray-50 rounded-lg border border-gray-200">
-          {!user.profile || user.profile.username?.startsWith('user-') ? (
+          {!hasProfile ? (
+            /* State 1: No Profile - Centered Create Profile button */
             <>
-              <h2 className="text-2xl font-bold mb-4">Complete Your Profile</h2>
               <p className="text-gray-600 mb-8 max-w-md text-center">
                 Before you can create or join cliqs, we need you to set up your profile. This helps other members recognize you!
               </p>
@@ -130,13 +144,15 @@ export default async function MyCliqsDashboardPage() {
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
-                Create Your Profile
+                Create Profile
               </Link>
             </>
           ) : (
+            /* State 2: Has Profile, No Cliqs - Centered Create Cliq button */
             <>
-              <h2 className="text-2xl font-bold mb-4">Welcome to Cliqstr</h2>
-              <p className="text-gray-600 mb-8 max-w-md text-center">Create your first cliq to start sharing with family and friends in a private, safe space.</p>
+              <p className="text-gray-600 mb-8 max-w-md text-center">
+                Your profile is all set! Now create your first cliq to start sharing with family and friends in a private, safe space.
+              </p>
               <Link
                 href="/cliqs/build"
                 className="flex items-center gap-2 bg-black hover:bg-[#c032d1] text-white px-6 py-3 rounded-md font-medium transition-colors"
@@ -145,7 +161,7 @@ export default async function MyCliqsDashboardPage() {
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                Create Your First Cliq
+                Create Cliq
               </Link>
             </>
           )}
@@ -153,7 +169,7 @@ export default async function MyCliqsDashboardPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {cliqs.map((cliq) => (
-            <CliqCard key={cliq.id} cliq={cliq} />
+            <CliqCard key={cliq.id} cliq={cliq} currentUserId={user.id} />
           ))}
         </div>
       )}

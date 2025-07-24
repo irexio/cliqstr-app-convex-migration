@@ -3,6 +3,8 @@
 **Private. Joyful. Social. Safe.**  
 Cliqstr is a private-first social platform built for families, kids, and communities who want connection without the noise of surveillance capitalism, ads, or unsafe algorithms.
 
+> 📚 **For Developers**: Please read [Profile vs Account Guide](./docs/PROFILE-VS-ACCOUNT.md) to understand our data model architecture.
+
 ## Project Overview
 
 This repository contains the Cliqstr social platform codebase, built with Next.js 15 and custom APA (Aiden's Power Auth) authentication to provide APA-aligned safety and COPPA compliance for minors.

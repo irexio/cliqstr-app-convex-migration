@@ -30,23 +30,26 @@ model User {
   Reply               Reply[]
 }
 
+// 🎭 SOCIAL MEDIA PROFILE - Public-facing user information
+// This is what other cliq members see. For auth/system data, see Account model.
 model Profile {
   id                String            @id @default(cuid())
-  username          String            @unique
+  username          String            @unique    // Social handle (@username)
   birthdate         DateTime
+  showYear          Boolean           @default(false) // Show birth year on profile
   createdAt         DateTime          @default(now())
   userId            String            @unique
   ageGroup          String?
-  about             String?
-  bannerImage       String?
-  image             String?
+  about             String?                      // Bio/description
+  bannerImage       String?                      // Cover photo
+  image             String?                      // Avatar
   updatedAt         DateTime          @updatedAt
   aiModerationLevel AIModerationLevel @default(strict)
-  firstName         String?
-  lastName          String?
+  firstName         String?                      // Display name
+  lastName          String?                      // Display name
   childSettings     ChildSettings?
   user              User              @relation(fields: [userId], references: [id])
-  scrapbookItems    ScrapbookItem[]
+  scrapbookItems    ScrapbookItem[]              // Photo gallery
 }
 
 model ParentLink {
@@ -76,14 +79,16 @@ model ChildSettings {
 }
 
 /// 🔐 APA — System-level metadata for each user
+// 🔐 SYSTEM ACCOUNT - Authentication, permissions, and billing
+// This handles system-level concerns. For social features, see Profile model.
 model Account {
   id               String   @id @default(cuid())
   userId           String   @unique
-  role             String
-  isApproved       Boolean  @default(false)
-  stripeStatus     String?
-  plan             String?
-  stripeCustomerId String?
+  role             String   // adult, child, or parent
+  isApproved       Boolean  @default(false) // Parent approval for children
+  stripeStatus     String?  // Subscription status
+  plan             String?  // Subscription tier
+  stripeCustomerId String?  // Billing reference
   createdAt        DateTime @default(now())
   suspended        Boolean  @default(false)
   user             User     @relation(fields: [userId], references: [id])
