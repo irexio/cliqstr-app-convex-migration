@@ -38,7 +38,7 @@ export default function CliqCard({ cliq, currentUserId }: CliqCardProps) {
           <div className="relative w-full h-32">
             <Image
               src={cliq.coverImage}
-              alt={cliq.name}
+              alt={`${cliq.name} banner image`}
               fill
               className="object-cover"
               priority
