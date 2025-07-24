@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
         about: about || '',
         image: image || '',
         bannerImage: bannerImage || '',
-        aiModerationLevel: group === 'child' ? 'strict' : 'standard',
+        aiModerationLevel: group === 'child' ? 'strict' : 'moderate',
       },
     });
 
