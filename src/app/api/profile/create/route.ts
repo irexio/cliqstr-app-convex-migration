@@ -102,8 +102,7 @@ export async function POST(req: NextRequest) {
           canSendInvites: false,
           inviteRequiresApproval: true,
           canCreatePublicCliqs: false,
-          scrapbookEnabled: true,
-          birthdayVisible: false,
+          canPostImages: true, // Allow children to post to their scrapbook
         },
       });
     }
