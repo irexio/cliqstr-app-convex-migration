@@ -8,8 +8,10 @@ const f = createUploadthing();
 
 export const ourFileRouter = {
   avatar: f({ image: { maxFileSize: "1MB" } })
-    .middleware(async () => {
+    .middleware(async ({ req }) => {
       console.log('[UPLOADTHING] Avatar upload middleware starting');
+      console.log('[UPLOADTHING] Request headers:', req.headers);
+      
       const user = await getCurrentUser();
       if (!user) {
         console.error('[UPLOADTHING] No authenticated user found');
@@ -25,8 +27,10 @@ export const ourFileRouter = {
     }),
 
   banner: f({ image: { maxFileSize: "4MB" } })
-    .middleware(async () => {
+    .middleware(async ({ req }) => {
       console.log('[UPLOADTHING] Banner upload middleware starting');
+      console.log('[UPLOADTHING] Request headers:', req.headers);
+      
       const user = await getCurrentUser();
       if (!user) {
         console.error('[UPLOADTHING] No authenticated user found');

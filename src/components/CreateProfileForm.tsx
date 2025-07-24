@@ -19,6 +19,8 @@ export default function CreateProfileForm() {
   const [showYear, setShowYear] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,20 +38,24 @@ export default function CreateProfileForm() {
     setLoading(true);
     setError('');
 
+    const profileData = {
+      username,
+      firstName,
+      lastName,
+      birthdate,
+      about,
+      image: avatarUrl,
+      bannerImage: bannerUrl,
+      showYear,
+    };
+
+    console.log('[PROFILE] Submitting profile data:', profileData);
+
     try {
       await fetchJson('/api/profile/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username,
-          firstName,
-          lastName,
-          birthdate,
-          about,
-          image: avatarUrl,
-          bannerImage: bannerUrl,
-          showYear,
-        }),
+        body: JSON.stringify(profileData),
       });
 
       router.push('/my-cliqs-dashboard');
@@ -195,17 +201,31 @@ export default function CreateProfileForm() {
               <UploadDropzone
                 endpoint="avatar"
                 onClientUploadComplete={(res: any) => {
-                  if (res?.[0]?.url) setAvatarUrl(res[0].url);
+                  console.log('[PROFILE] Avatar upload complete:', res);
+                  setUploadingAvatar(false);
+                  if (res?.[0]?.url) {
+                    console.log('[PROFILE] Setting avatar URL:', res[0].url);
+                    setAvatarUrl(res[0].url);
+                  }
                 }}
                 onUploadError={(err: Error) => {
-                  console.error('Avatar upload error:', err);
-                  setError('Failed to upload avatar');
+                  console.error('[PROFILE] Avatar upload error:', err);
+                  setError('Failed to upload avatar: ' + err.message);
+                  setUploadingAvatar(false);
+                }}
+                onUploadBegin={(fileName: string) => {
+                  console.log('[PROFILE] Beginning avatar upload:', fileName);
+                  setUploadingAvatar(true);
+                  setError('');
                 }}
                 appearance={{
                   container: 'border-dashed border-2 border-gray-300 rounded-lg p-4',
                   button: 'bg-black text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800',
                 }}
               />
+              {uploadingAvatar && (
+                <p className="text-sm text-gray-600 mt-2">Uploading avatar...</p>
+              )}
             </div>
           </div>
         </div>
@@ -225,17 +245,31 @@ export default function CreateProfileForm() {
           <UploadDropzone
             endpoint="banner"
             onClientUploadComplete={(res: any) => {
-              if (res?.[0]?.url) setBannerUrl(res[0].url);
+              console.log('[PROFILE] Banner upload complete:', res);
+              setUploadingBanner(false);
+              if (res?.[0]?.url) {
+                console.log('[PROFILE] Setting banner URL:', res[0].url);
+                setBannerUrl(res[0].url);
+              }
             }}
             onUploadError={(err: Error) => {
-              console.error('Banner upload error:', err);
-              setError('Failed to upload banner');
+              console.error('[PROFILE] Banner upload error:', err);
+              setError('Failed to upload banner: ' + err.message);
+              setUploadingBanner(false);
+            }}
+            onUploadBegin={(fileName: string) => {
+              console.log('[PROFILE] Beginning banner upload:', fileName);
+              setUploadingBanner(true);
+              setError('');
             }}
             appearance={{
               container: 'border-dashed border-2 border-gray-300 rounded-lg p-4',
               button: 'bg-black text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800',
             }}
           />
+          {uploadingBanner && (
+            <p className="text-sm text-gray-600 mt-2">Uploading banner...</p>
+          )}
         </div>
 
         {error && (
