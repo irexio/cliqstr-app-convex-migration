@@ -131,22 +131,25 @@ export function HeaderComponent() {
         if (res.ok) {
           const data = await res.json();
           
+          // Check if we have user data (it's wrapped in a 'user' object)
+          const userData = data?.user || data;
+          
           // If we have a user ID, they're logged in
-          if (data?.id) {
-            console.log('[Header] User authenticated:', data.id);
+          if (userData?.id) {
+            console.log('[Header] User authenticated:', userData.id);
             setIsLoggedIn(true);
-            setIsApproved(data.account?.isApproved === true);
+            setIsApproved(userData.account?.isApproved === true || userData.approved === true);
             
             // Set minimal user data needed for the dropdown
             setUserData({
-              id: data.id,
-              name: data.profile?.name || data.email?.split('@')[0] || 'User',
-              email: data.email || '',
-              role: data.account?.role || data.role || '',
-              avatarUrl: data.profile?.image,
-              account: data.account,
+              id: userData.id,
+              name: userData.profile?.firstName || userData.profile?.name || userData.email?.split('@')[0] || 'User',
+              email: userData.email || '',
+              role: userData.account?.role || userData.role || '',
+              avatarUrl: userData.profile?.image,
+              account: userData.account,
               profile: {
-                username: data.profile?.username || data.email?.split('@')[0] || 'user',
+                username: userData.profile?.username || userData.email?.split('@')[0] || 'user',
               },
             });
             return;
@@ -169,22 +172,25 @@ export function HeaderComponent() {
         if (res.ok) {
           const data = await res.json();
           
+          // Check if we have user data (it's wrapped in a 'user' object)
+          const userData = data?.user || data;
+          
           // If we have a user ID, they're logged in
-          if (data?.id) {
-            console.log('[Header] User authenticated via fallback:', data.id);
+          if (userData?.id) {
+            console.log('[Header] User authenticated via fallback:', userData.id);
             setIsLoggedIn(true);
-            setIsApproved(data.account?.isApproved === true);
+            setIsApproved(userData.account?.isApproved === true || userData.approved === true);
             
             // Set minimal user data needed for the dropdown
             setUserData({
-              id: data.id,
-              name: data.profile?.name || data.email?.split('@')[0] || 'User',
-              email: data.email || '',
-              role: data.account?.role || data.role || '',
-              avatarUrl: data.profile?.image,
-              account: data.account,
+              id: userData.id,
+              name: userData.profile?.firstName || userData.profile?.name || userData.email?.split('@')[0] || 'User',
+              email: userData.email || '',
+              role: userData.account?.role || userData.role || '',
+              avatarUrl: userData.profile?.image,
+              account: userData.account,
               profile: {
-                username: data.profile?.username || data.email?.split('@')[0] || 'user',
+                username: userData.profile?.username || userData.email?.split('@')[0] || 'user',
               },
             });
             return;
