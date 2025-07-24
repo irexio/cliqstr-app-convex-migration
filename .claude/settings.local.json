@@ -4,7 +4,8 @@
       "Bash(npx prisma migrate dev:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(set NODE_OPTIONS=--max-old-space-size=4096)"
     ],
     "deny": []
   }

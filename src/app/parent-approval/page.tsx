@@ -111,7 +111,7 @@ function ParentApprovalContent() {
       // Redirect to parents-hq after a short delay
       // This ensures parents always go to parents-hq after child approval
       setTimeout(() => {
-        window.location.href = '/parents-hq';
+        window.location.href = '/parents/hq';
       }, 2000);
     } catch (err: any) {
       setError(err.message || 'Failed to complete approval');
@@ -151,8 +151,8 @@ function ParentApprovalContent() {
           You have successfully approved your child's account. They can now access Cliqstr.
         </p>
         <p className="mb-6">Redirecting to parent dashboard...</p>
-        <Button onClick={() => router.push('/parents-hq')}>
-          Go to Parent Dashboard
+        <Button onClick={() => router.push('/parents/hq')}>
+          Click to Continue
         </Button>
       </main>
     );

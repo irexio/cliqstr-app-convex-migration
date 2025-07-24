@@ -29,7 +29,7 @@ export async function middleware(req: NextRequest) {
     path === '/cliqs' ||
     path === '/my-cliqs' ||
     path === '/my-cliqs-dashboard' ||
-    path.startsWith('/parents-hq')
+    path.startsWith('/parents/hq')
   );
 
   if (isProtectedRoute) {
@@ -75,6 +75,6 @@ export const config = {
     '/cliqs/:path*',
     '/my-cliqs',
     '/my-cliqs-dashboard',
-    '/parents-hq/:path*',
+    '/parents/hq/:path*',
   ],
 };

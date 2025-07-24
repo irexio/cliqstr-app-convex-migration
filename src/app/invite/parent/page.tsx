@@ -85,7 +85,7 @@ function ParentInviteContent() {
       
       if (response.ok) {
         // Redirect to Parents HQ to set up child permissions (APA compliance)
-        router.push('/parents-hq');
+        router.push('/parents/hq');
       } else {
         setInviteDetails(prev => ({ ...prev!, error: data.error }));
         setLoading(false);

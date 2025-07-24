@@ -1,7 +1,6 @@
 // app/api/uploadthing/core.ts
 
 import { createUploadthing } from "uploadthing/next";
-import { createRouteHandler } from 'uploadthing/next';
 import type { FileRouter } from "uploadthing/next";
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
@@ -10,24 +9,36 @@ const f = createUploadthing();
 export const ourFileRouter = {
   avatar: f({ image: { maxFileSize: "1MB" } })
     .middleware(async () => {
+      console.log('[UPLOADTHING] Avatar upload middleware starting');
       const user = await getCurrentUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        console.error('[UPLOADTHING] No authenticated user found');
+        throw new Error('Not authenticated');
+      }
+      console.log('[UPLOADTHING] User authenticated:', user.id);
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Avatar upload complete for userId:", metadata.userId);
-      console.log("Avatar file url:", file.url);
+      console.log("[UPLOADTHING] Avatar upload complete for userId:", metadata.userId);
+      console.log("[UPLOADTHING] Avatar file url:", file.url);
+      return { uploadedBy: metadata.userId, url: file.url };
     }),
 
   banner: f({ image: { maxFileSize: "4MB" } })
     .middleware(async () => {
+      console.log('[UPLOADTHING] Banner upload middleware starting');
       const user = await getCurrentUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        console.error('[UPLOADTHING] No authenticated user found');
+        throw new Error('Not authenticated');
+      }
+      console.log('[UPLOADTHING] User authenticated:', user.id);
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
-      console.log("Banner upload complete for userId:", metadata.userId);
-      console.log("Banner file url:", file.url);
+      console.log("[UPLOADTHING] Banner upload complete for userId:", metadata.userId);
+      console.log("[UPLOADTHING] Banner file url:", file.url);
+      return { uploadedBy: metadata.userId, url: file.url };
     }),
 
   postImage: f({ image: { maxFileSize: "4MB" } })
@@ -54,5 +65,3 @@ export const ourFileRouter = {
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
-
-export const { GET, POST } = createRouteHandler({ router: ourFileRouter });

@@ -201,7 +201,7 @@ export async function POST(req: NextRequest) {
       message: 'Parent approval completed successfully',
       parentId: parentUser.id,
       childId: childUser.id,
-      redirectUrl: '/parents-hq',
+      redirectUrl: '/parents/hq',
     });
     
     // Set session cookie
