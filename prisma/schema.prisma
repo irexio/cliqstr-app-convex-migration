@@ -45,7 +45,6 @@ model Profile {
   firstName         String?
   lastName          String?
   childSettings     ChildSettings?
-  scrapbookItems    ScrapbookItem[]
   user              User              @relation(fields: [userId], references: [id])
 }
 
@@ -61,18 +60,18 @@ model ParentLink {
 }
 
 model ChildSettings {
-  id                   String  @id @default(cuid())
-  profileId            String  @unique
-  canCreatePublicCliqs Boolean @default(false)
-  canSendInvites       Boolean @default(false)
+  id                     String  @id @default(cuid())
+  profileId              String  @unique
+  canCreatePublicCliqs   Boolean @default(false)
+  canSendInvites         Boolean @default(false)
+  isSilentlyMonitored    Boolean @default(true)
+  aiModerationLevel      String?
+  canAccessGames         Boolean @default(false)
+  canPostImages          Boolean @default(false)
+  canShareYouTube        Boolean @default(false)
+  visibilityLevel        String?
   inviteRequiresApproval Boolean @default(true)
-  isSilentlyMonitored  Boolean @default(true)
-  aiModerationLevel    String?
-  canAccessGames       Boolean @default(false)
-  canPostImages        Boolean @default(false)
-  canShareYouTube      Boolean @default(false)
-  visibilityLevel      String?
-  profile              Profile @relation(fields: [profileId], references: [id])
+  profile                Profile @relation(fields: [profileId], references: [id])
 }
 
 /// 🔐 APA — System-level metadata for each user
@@ -132,24 +131,24 @@ model Reply {
 }
 
 model Invite {
-  id            String    @id @default(cuid())
-  createdAt     DateTime  @default(now())
-  cliqId        String
-  status        String    @default("pending")
-  inviterId     String
-  invitedUserId String?
-  isApproved    Boolean   @default(false)
-  code          String    @unique
-  expiresAt     DateTime?
-  invitedRole   String
-  inviteeEmail  String
+  id                  String    @id @default(cuid())
+  createdAt           DateTime  @default(now())
+  cliqId              String
+  status              String    @default("pending")
+  inviterId           String
+  invitedUserId       String?
+  isApproved          Boolean   @default(false)
+  code                String    @unique
+  expiresAt           DateTime?
+  invitedRole         String
+  inviteeEmail        String
   maxUses             Int
   used                Boolean   @default(false)
   message             String?
   friendFirstName     String?
-  trustedAdultContact String?
-  inviteType          String?
   inviteNote          String?
+  inviteType          String?
+  trustedAdultContact String?
   cliq                Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
   inviter             User      @relation("SentInvites", fields: [inviterId], references: [id])
 }
@@ -217,15 +216,4 @@ enum CliqPrivacy {
   private
   semi_private
   public
-}
-
-model ScrapbookItem {
-  id        String   @id @default(cuid())
-  profileId String
-  imageUrl  String
-  caption   String   @default("")
-  isPinned  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
