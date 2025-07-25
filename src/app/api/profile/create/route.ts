@@ -36,7 +36,11 @@ const schema = z.object({
   username: z.string().min(3).max(15).regex(/^[a-zA-Z0-9_]+$/),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  birthdate: z.string().transform((val) => new Date(val)),
+  birthdate: z.string().transform((val) => {
+    // Parse the date string as local date to avoid timezone issues
+    const [year, month, day] = val.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }),
   about: z.string().optional(),
   image: z.string().url().optional().or(z.literal('')),
   bannerImage: z.string().url().optional().or(z.literal('')),
