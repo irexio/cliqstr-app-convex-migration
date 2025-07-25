@@ -238,7 +238,7 @@ export function HeaderComponent() {
           </div>
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-4 text-sm">
             {isLoggedIn ? (
               <UserDropdown userData={userData} handleSignOut={handleSignOut} />
             ) : (
