@@ -233,7 +233,9 @@ export function HeaderComponent() {
           </Link>
 
           {/* Desktop Navigation */}
-          <DesktopNav isLoggedIn={isLoggedIn} isApproved={isApproved} />
+          <div className="flex-1 flex justify-center">
+            <DesktopNav isLoggedIn={isLoggedIn} isApproved={isApproved} />
+          </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-4 text-sm">
