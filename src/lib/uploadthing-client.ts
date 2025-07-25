@@ -15,15 +15,11 @@ export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
 // Override the default fetch to include credentials
 if (typeof window !== 'undefined') {
   const originalFetch = window.fetch;
-  window.fetch = function(...args) {
-    if (args[0] && typeof args[0] === 'string' && args[0].includes('/api/uploadthing')) {
+  window.fetch = function(input: RequestInfo | URL, init?: RequestInit) {
+    if (typeof input === 'string' && input.includes('/api/uploadthing')) {
       // Ensure credentials are included for uploadthing requests
-      if (args[1]) {
-        args[1] = { ...args[1], credentials: 'include' };
-      } else {
-        args[1] = { credentials: 'include' };
-      }
+      init = { ...init, credentials: 'include' };
     }
-    return originalFetch.apply(this, args);
+    return originalFetch(input, init);
   };
 }

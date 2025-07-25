@@ -1,7 +1,6 @@
 // app/api/uploadthing/core.ts
 
-import { createUploadthing } from "uploadthing/next";
-import type { FileRouter } from "uploadthing/next";
+import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 const f = createUploadthing();

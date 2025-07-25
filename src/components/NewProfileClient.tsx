@@ -232,7 +232,7 @@ export default function ProfileClient({
         {data.isOwner && (
           <button
             onClick={() => setIsEditing(true)}
-            className="mt-8 px-6 py-2.5 bg-[#6366f1] text-white rounded-full text-sm font-medium hover:bg-[#5558e3] transition-colors inline-flex items-center gap-2 shadow-sm"
+            className="mt-8 px-6 py-2.5 bg-black text-white rounded-full text-sm font-medium hover:text-[#c032d1] transition-colors inline-flex items-center gap-2 shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>

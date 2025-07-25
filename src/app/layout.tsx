@@ -4,6 +4,7 @@
 
 
 import './globals.css'; // Required for font + resets
+import '@uploadthing/react/styles.css';
 
 import { Poppins } from 'next/font/google';
 import type { Metadata } from 'next';
