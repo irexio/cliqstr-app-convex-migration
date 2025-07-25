@@ -11,10 +11,8 @@ export default async function ChoosePlanPage() {
     redirect('/sign-in');
   }
 
-  // Check if user is verified
-  if (!user.isVerified) {
-    redirect('/verify-email');
-  }
+  // User verification is handled during sign-up flow
+  // No need to check isVerified here
 
   // ✅ Debug: Log user and plan
   console.log('[APA] Reached /choose-plan');
