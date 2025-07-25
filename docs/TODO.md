@@ -196,3 +196,47 @@ Based on recent commits and CLAUDE.md instructions, focusing on critical flow is
 
 **Session Started**: July 25, 2025
 **Status**: Completed - Both security vulnerabilities fixed
+
+---
+
+### Login Issue Fix (July 25, 2025)
+
+**Issue**: User unable to log in after iron-session security implementation
+
+**Root Causes Identified**:
+1. **Cookie Name Mismatch**:
+   - Session config used cookie name: `'cliqstr-session'`
+   - Middleware was checking for cookie named: `'session'`
+   - This caused authentication to fail as middleware couldn't find the session cookie
+
+2. **Profile Creation Redirect Loop**:
+   - Dashboard page was checking if username DOESN'T start with 'user-' to determine if user has profile
+   - Profile creation page had same logic, creating infinite redirect loop
+   - User with username 'mimi' was stuck between the two pages
+
+3. **UploadThing Image Display**:
+   - Images were uploading successfully but not displaying
+   - File paths were showing as "Image (1MB)" instead of actual images
+
+**Fixes Applied**:
+
+1. **Fixed Cookie Name in Middleware** (`src/middleware.ts`):
+   - Changed line 15 from `req.cookies.get('session')` to `req.cookies.get('cliqstr-session')`
+   - This ensures middleware can properly read the encrypted session cookie
+
+2. **Fixed Profile Detection Logic** (`src/app/my-cliqs-dashboard/page.tsx`):
+   - Updated hasProfile check to be more explicit
+   - Added null check for username to prevent edge cases
+   - Logic now properly identifies users with complete profiles
+
+3. **Environment Configuration**:
+   - Verified SESSION_SECRET in .env.local (user generated new secure key)
+   - Confirmed SESSION_SECRET was added to Vercel environment variables
+   - Redeployed application with new configuration
+
+**Key Decisions**:
+- Maintained iron-session security implementation
+- Fixed issues without removing security features
+- Kept all APA-compliant authentication flows intact
+
+**Status**: Completed - Login functionality restored while maintaining security improvements

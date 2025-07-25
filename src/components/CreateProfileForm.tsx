@@ -204,7 +204,9 @@ export default function CreateProfileForm() {
                   console.log('[PROFILE] Avatar upload complete:', res);
                   setUploadingAvatar(false);
                   if (res && res.length > 0) {
-                    const fileUrl = res[0].url;
+                    // UploadThing v7 returns the URL in res[0].url or res[0].fileUrl
+                    const fileData = res[0] as any;
+                    const fileUrl = fileData.url || fileData.fileUrl || fileData.appUrl;
                     console.log('[PROFILE] Setting avatar URL:', fileUrl);
                     setAvatarUrl(fileUrl);
                   }
@@ -249,7 +251,9 @@ export default function CreateProfileForm() {
               console.log('[PROFILE] Banner upload complete:', res);
               setUploadingBanner(false);
               if (res && res.length > 0) {
-                const fileUrl = res[0].url;
+                // UploadThing v7 returns the URL in res[0].url or res[0].fileUrl
+                const fileData = res[0] as any;
+                const fileUrl = fileData.url || fileData.fileUrl || fileData.appUrl;
                 console.log('[PROFILE] Setting banner URL:', fileUrl);
                 setBannerUrl(fileUrl);
               }

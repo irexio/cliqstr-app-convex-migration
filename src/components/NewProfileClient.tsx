@@ -128,7 +128,8 @@ export default function ProfileClient({
                   console.log('[PROFILE_EDIT] Banner upload complete:', res);
                   setUploadingBanner(false);
                   if (res && res.length > 0) {
-                    const fileUrl = res[0].url;
+                    const fileData = res[0] as any;
+                    const fileUrl = fileData.url || fileData.fileUrl || fileData.appUrl;
                     console.log('[PROFILE_EDIT] Setting banner URL:', fileUrl);
                     setData({ ...data, bannerUrl: fileUrl });
                     handleChange('bannerUrl', fileUrl);
@@ -191,7 +192,8 @@ export default function ProfileClient({
                   console.log('[PROFILE_EDIT] Avatar upload complete:', res);
                   setUploadingAvatar(false);
                   if (res && res.length > 0) {
-                    const fileUrl = res[0].url;
+                    const fileData = res[0] as any;
+                    const fileUrl = fileData.url || fileData.fileUrl || fileData.appUrl;
                     console.log('[PROFILE_EDIT] Setting avatar URL:', fileUrl);
                     setData({ ...data, avatarUrl: fileUrl });
                     handleChange('avatarUrl', fileUrl);

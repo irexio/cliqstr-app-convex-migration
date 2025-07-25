@@ -82,7 +82,8 @@ export default async function MyCliqsDashboardPage() {
 
 
   // Determine user state
-  const hasProfile = user.profile && !user.profile.username?.startsWith('user-');
+  // A user has a profile if they have a profile record AND it has a real username (not the temporary user-xxx format)
+  const hasProfile = user.profile && user.profile.username && !user.profile.username.startsWith('user-');
   const hasCliqs = cliqs.length > 0;
 
   return (
