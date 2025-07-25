@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname;
 
   // Get session cookie
-  const session = req.cookies.get('session')?.value;
+  const session = req.cookies.get('cliqstr-session')?.value;
 
   // Admin route protection (session-based)
   if (path.startsWith('/admin')) {
