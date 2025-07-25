@@ -34,7 +34,7 @@ export async function GET(
     }
 
     // Get the profile and its owner
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.myProfile.findUnique({
       where: { id: profileId },
       select: { userId: true },
     });

@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if user has a profile
-    if (!user.profile) {
+    if (!user.myProfile) {
       console.log('[APA] User missing profile in /api/cliqs/create');
       return NextResponse.json({ error: 'Profile required. Please create your profile first.' }, { status: 403 });
     }
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     // Check child permission for public cliqs
     if (user.role === 'Child' && privacy === 'public') {
       const childSettings = await prisma.childSettings.findUnique({
-        where: { profileId: user.profile.id }
+        where: { profileId: user.myProfile.id }
       });
 
       if (!childSettings?.canCreatePublicCliqs) {

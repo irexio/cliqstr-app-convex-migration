@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'Missing childId' }, { status: 400 });
   }
   // Look up Profile by userId (childId)
-  const profile = await prisma.profile.findUnique({
+  const profile = await prisma.myProfile.findUnique({
     where: { userId: childId },
   });
   if (!profile) {

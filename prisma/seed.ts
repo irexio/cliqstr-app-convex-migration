@@ -21,7 +21,7 @@ async function main() {
         email: 'admin@cliqstr.com',
         password: 'test1234', // plaintext for dev testing only
 
-        profile: {
+        myProfile: {
           create: {
             username: 'admin',
             birthdate: new Date('1980-01-01'),

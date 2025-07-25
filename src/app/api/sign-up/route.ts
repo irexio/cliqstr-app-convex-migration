@@ -97,16 +97,7 @@ export async function POST(req: Request) {
       },
     });
 
-    // Create associated profile
-    await prisma.profile.create({
-      data: {
-        userId: newUser.id,
-        firstName: firstName,
-        lastName: lastName,
-        birthdate: birthDateObj,
-        username: `user-${newUser.id}`, // ✅ temp placeholder
-      },
-    });
+    // DO NOT create MyProfile here - it will be created after plan selection
 
     // Create Account with APA role/isApproved
     await prisma.account.create({

@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         inviter: {
           select: {
             email: true,
-            profile: {
+            myProfile: {
               select: {
                 username: true
               }
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
   
     // Get inviter information from the related user
     const inviter = invite.inviter || {};
-    const inviterName = inviter.profile?.username || 
+    const inviterName = inviter.myProfile?.username || 
                        (inviter.email ? inviter.email.split('@')[0] : 'Someone');
   
     // Get the invite type and child's name if available

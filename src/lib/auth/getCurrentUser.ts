@@ -49,7 +49,7 @@ export async function getCurrentUser() {
     const user = await prisma.user.findUnique({
       where: { id: session.userId },
       include: {
-        profile: {
+        myProfile: {
           select: {
             id: true,
             username: true,
@@ -96,7 +96,7 @@ export async function getCurrentUser() {
       plan: user.account?.plan ?? null,
       role: user.account?.role ?? null,
       approved: user.account?.isApproved ?? null,
-      profile: user.profile,
+      myProfile: user.myProfile,
       account: user.account,
     };
   } catch (error) {

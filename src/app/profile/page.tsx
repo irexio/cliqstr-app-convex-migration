@@ -12,8 +12,8 @@ export default async function ProfileRedirectPage() {
   }
 
   // Redirect to the user's own profile if they have one
-  if (user.profile && !user.profile.username?.startsWith('user-')) {
-    redirect(`/profile/${user.profile.username}`);
+  if (user.myProfile && !user.myProfile.username?.startsWith('user-')) {
+    redirect(`/profile/${user.myProfile.username}`);
   } else {
     // If no profile, redirect to create one
     redirect('/profile/create');

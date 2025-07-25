@@ -240,3 +240,59 @@ Based on recent commits and CLAUDE.md instructions, focusing on critical flow is
 - Kept all APA-compliant authentication flows intact
 
 **Status**: Completed - Login functionality restored while maintaining security improvements
+
+---
+
+### Account vs MyProfile Separation Refactor (July 25, 2025)
+
+**Issue**: Architectural confusion between Account (system identity) and Profile (social media profile) causing security and logic issues
+
+**Major Changes Implemented**:
+
+1. **Renamed Profile Model to MyProfile**:
+   - Updated Prisma schema to rename Profile model to MyProfile
+   - Created and applied database migration to rename table
+   - Preserved all existing data (2 profiles migrated successfully)
+
+2. **Updated TypeScript References** (40+ files):
+   - API routes: Updated all references from `profile` to `myProfile`
+   - React components: Fixed profile property access
+   - Type definitions: Updated all imports and type references
+   - Build passes with zero TypeScript errors
+
+3. **Fixed Sign-up Flow**:
+   - Sign-up now creates only User + Account (no MyProfile)
+   - Removed MyProfile creation from `/api/sign-up/route.ts`
+   - MyProfile is created later via `/api/profile/create` after plan selection
+   - This prevents temporary usernames and ensures proper onboarding
+
+4. **Fixed Parent/Child Routes**:
+   - Corrected ID usage: ParentLink uses User IDs, not MyProfile IDs
+   - Fixed routes that were incorrectly using MyProfile IDs for ParentLink creation
+   - Updated lookups to find MyProfile by userId instead of id where appropriate
+
+5. **Updated UI Components**:
+   - Header now shows Account initials only (no MyProfile avatar)
+   - Dashboard properly checks for MyProfile existence
+   - Profile pages handle missing MyProfile gracefully
+
+**Key Architecture Clarifications**:
+- **Account**: System-level identity (role, plan, isApproved, stripeStatus)
+- **MyProfile**: Social media profile (username, avatar, bio, birthdate)
+- **User**: Core authentication entity (email, password)
+- Sign-up flow: User → Account → (later) MyProfile
+- Parent/child relationships use User IDs, not MyProfile IDs
+
+**Security Improvements**:
+- Clear separation prevents privilege escalation via profile manipulation
+- Account approval status properly isolated from social profile
+- Parent-child relationships correctly tied to User identity
+
+**Testing Results**:
+- Database migration successful (Profile → MyProfile)
+- All existing users have proper Account records
+- Sign-up flow creates User + Account only
+- MyProfile creation works after plan selection
+- Build passes with all TypeScript errors resolved
+
+**Status**: Completed - Major architectural refactor successful

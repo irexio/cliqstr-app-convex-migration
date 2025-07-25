@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     const { username, about, image, bannerImage } = parsed.data;
 
     // Check if username is already taken (excluding current user)
-    const existingUsername = await prisma.profile.findFirst({
+    const existingUsername = await prisma.myProfile.findFirst({
       where: {
         username,
         userId: { not: user.id },
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     // Update profile
-    const updatedProfile = await prisma.profile.update({
+    const updatedProfile = await prisma.myProfile.update({
       where: { userId: user.id },
       data: {
         username,

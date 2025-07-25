@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     // Find user by email
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { profile: true },
+      include: { myProfile: true },
     });
     
     if (!user) {
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     await sendVerificationEmail({
       userId: user.id,
       to: email,
-      name: user.profile?.firstName || ''
+      name: user.myProfile?.firstName || ''
     });
     
     return NextResponse.json(

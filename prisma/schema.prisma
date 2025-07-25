@@ -22,34 +22,32 @@ model User {
   invitesSent         Invite[]        @relation("SentInvites")
   inviteRequestsSent  InviteRequest[] @relation("InviteRequestsSent")
   memberships         Membership[]
+  myProfile           MyProfile?
   children            ParentLink[]    @relation("ChildLinks")
   parentLinks         ParentLink[]
   Post                Post[]
-  profile             Profile?
   redAlertsTriggered  RedAlert[]
   Reply               Reply[]
 }
 
-// 🎭 SOCIAL MEDIA PROFILE - Public-facing user information
-// This is what other cliq members see. For auth/system data, see Account model.
-model Profile {
+model MyProfile {
   id                String            @id @default(cuid())
-  username          String            @unique    // Social handle (@username)
+  username          String            @unique
   birthdate         DateTime
-  showYear          Boolean           @default(false) // Show birth year on profile
   createdAt         DateTime          @default(now())
   userId            String            @unique
   ageGroup          String?
-  about             String?                      // Bio/description
-  bannerImage       String?                      // Cover photo
-  image             String?                      // Avatar
+  about             String?
+  bannerImage       String?
+  image             String?
   updatedAt         DateTime          @updatedAt
   aiModerationLevel AIModerationLevel @default(strict)
-  firstName         String?                      // Display name
-  lastName          String?                      // Display name
+  firstName         String?
+  lastName          String?
+  showYear          Boolean           @default(false)
   childSettings     ChildSettings?
-  user              User              @relation(fields: [userId], references: [id])
-  scrapbookItems    ScrapbookItem[]              // Photo gallery
+  user              User              @relation(fields: [userId], references: [id], map: "Profile_userId_fkey")
+  scrapbookItems    ScrapbookItem[]
 }
 
 model ParentLink {
@@ -64,31 +62,29 @@ model ParentLink {
 }
 
 model ChildSettings {
-  id                     String  @id @default(cuid())
-  profileId              String  @unique
-  canCreatePublicCliqs   Boolean @default(false)
-  canSendInvites         Boolean @default(false)
-  isSilentlyMonitored    Boolean @default(true)
+  id                     String    @id @default(cuid())
+  profileId              String    @unique
+  canCreatePublicCliqs   Boolean   @default(false)
+  canSendInvites         Boolean   @default(false)
+  isSilentlyMonitored    Boolean   @default(true)
   aiModerationLevel      String?
-  canAccessGames         Boolean @default(false)
-  canPostImages          Boolean @default(false)
-  canShareYouTube        Boolean @default(false)
+  canAccessGames         Boolean   @default(false)
+  canPostImages          Boolean   @default(false)
+  canShareYouTube        Boolean   @default(false)
   visibilityLevel        String?
-  inviteRequiresApproval Boolean @default(true)
-  profile                Profile @relation(fields: [profileId], references: [id])
+  inviteRequiresApproval Boolean   @default(true)
+  myProfile              MyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 /// 🔐 APA — System-level metadata for each user
-// 🔐 SYSTEM ACCOUNT - Authentication, permissions, and billing
-// This handles system-level concerns. For social features, see Profile model.
 model Account {
   id               String   @id @default(cuid())
   userId           String   @unique
-  role             String   // adult, child, or parent
-  isApproved       Boolean  @default(false) // Parent approval for children
-  stripeStatus     String?  // Subscription status
-  plan             String?  // Subscription tier
-  stripeCustomerId String?  // Billing reference
+  role             String
+  isApproved       Boolean  @default(false)
+  stripeStatus     String?
+  plan             String?
+  stripeCustomerId String?
   createdAt        DateTime @default(now())
   suspended        Boolean  @default(false)
   user             User     @relation(fields: [userId], references: [id])
@@ -212,6 +208,17 @@ model Membership {
   @@unique([userId, cliqId])
 }
 
+model ScrapbookItem {
+  id        String    @id @default(cuid())
+  profileId String
+  imageUrl  String
+  caption   String    @default("")
+  isPinned  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  myProfile MyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
 enum AIModerationLevel {
   strict
   moderate
@@ -222,16 +229,4 @@ enum CliqPrivacy {
   private
   semi_private
   public
-}
-
-model ScrapbookItem {
-  id        String   @id @default(cuid())
-  profileId String
-  imageUrl  String
-  caption   String   @default("")
-  isPinned  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }

@@ -77,20 +77,20 @@ export async function GET(req: NextRequest) {
       const childUser = await prisma.user.findUnique({
         where: { id: childId },
         include: {
-          profile: true,
+          myProfile: true,
         },
       });
 
-      if (childUser && childUser.profile) {
+      if (childUser && childUser.myProfile) {
         // Calculate age from birthdate
-        const birthdate = childUser.profile.birthdate;
+        const birthdate = childUser.myProfile.birthdate;
         const ageDifMs = Date.now() - birthdate.getTime();
         const ageDate = new Date(ageDifMs);
         const age = Math.abs(ageDate.getUTCFullYear() - 1970);
 
         childInfo = {
-          firstName: childUser.profile.firstName || 'Child',
-          lastName: childUser.profile.lastName || '',
+          firstName: childUser.myProfile.firstName || 'Child',
+          lastName: childUser.myProfile.lastName || '',
           age: age
         };
       }

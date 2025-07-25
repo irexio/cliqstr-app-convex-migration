@@ -19,7 +19,7 @@ type UserData = {
     stripeStatus?: string;
     plan?: string;
   };
-  profile?: {
+  myProfile?: {
     username: string;
   };
 };
@@ -143,14 +143,14 @@ export function HeaderComponent() {
             // Set minimal user data needed for the dropdown
             setUserData({
               id: userData.id,
-              name: userData.profile?.firstName || userData.profile?.name || userData.email?.split('@')[0] || 'User',
+              name: userData.myProfile?.firstName || userData.myProfile?.name || userData.email?.split('@')[0] || 'User',
               email: userData.email || '',
               role: userData.account?.role || userData.role || '',
-              avatarUrl: userData.profile?.image,
+              // Do not pass MyProfile avatar - header shows Account initials only
               account: userData.account,
-              profile: {
-                username: userData.profile?.username || userData.email?.split('@')[0] || 'user',
-              },
+              myProfile: userData.myProfile ? {
+                username: userData.myProfile.username || userData.email?.split('@')[0] || 'user',
+              } : undefined,
             });
             return;
           }
@@ -184,14 +184,14 @@ export function HeaderComponent() {
             // Set minimal user data needed for the dropdown
             setUserData({
               id: userData.id,
-              name: userData.profile?.firstName || userData.profile?.name || userData.email?.split('@')[0] || 'User',
+              name: userData.myProfile?.firstName || userData.myProfile?.name || userData.email?.split('@')[0] || 'User',
               email: userData.email || '',
               role: userData.account?.role || userData.role || '',
-              avatarUrl: userData.profile?.image,
+              // Do not pass MyProfile avatar - header shows Account initials only
               account: userData.account,
-              profile: {
-                username: userData.profile?.username || userData.email?.split('@')[0] || 'user',
-              },
+              myProfile: userData.myProfile ? {
+                username: userData.myProfile.username || userData.email?.split('@')[0] || 'user',
+              } : undefined,
             });
             return;
           }

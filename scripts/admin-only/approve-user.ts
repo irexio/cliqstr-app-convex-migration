@@ -7,7 +7,7 @@ async function approveUser() {
   try {
     const user = await prisma.user.findUnique({
       where: { email: 'mimi@cliqstr.com' },
-      include: { profile: true, account: true },
+      include: { myProfile: true, account: true },
     });
 
     if (!user) {
@@ -43,18 +43,18 @@ async function approveUser() {
     }
 
     // ✅ Create or update profile (safe fields only)
-    if (user.profile) {
-      await prisma.profile.update({
-        where: { id: user.profile.id },
+    if (user.myProfile) {
+      await prisma.myProfile.update({
+        where: { id: user.myProfile.id },
         data: {
-          username: user.profile.username || 'mimi',
-          birthdate: user.profile.birthdate || new Date('1980-01-01'),
-          ageGroup: user.profile.ageGroup || 'adult',
+          username: user.myProfile.username || 'mimi',
+          birthdate: user.myProfile.birthdate || new Date('1980-01-01'),
+          ageGroup: user.myProfile.ageGroup || 'adult',
         },
       });
       console.log('Updated profile');
     } else {
-      await prisma.profile.create({
+      await prisma.myProfile.create({
         data: {
           userId: user.id,
           username: 'mimi',

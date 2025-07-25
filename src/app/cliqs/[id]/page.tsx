@@ -24,7 +24,7 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
           author: {
             select: {
               id: true,
-              profile: true,
+              myProfile: true,
             }
           }
         },

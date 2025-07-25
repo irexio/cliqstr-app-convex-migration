@@ -15,7 +15,7 @@ export default async function ProfilePageServer({ username }: { username: string
   }
   
   // Get the target profile
-  const profile = await prisma.profile.findUnique({
+  const profile = await prisma.myProfile.findUnique({
     where: { username },
     include: {
       user: {

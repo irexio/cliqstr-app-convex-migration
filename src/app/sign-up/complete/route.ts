@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     }
 
     // Update profile
-    await prisma.profile.update({
+    await prisma.myProfile.update({
       where: { userId },
       data: {
         username,

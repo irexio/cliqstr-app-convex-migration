@@ -21,7 +21,7 @@ export default async function MemberActionsPage({
       where: { cliqId },
       include: {
         user: {
-          select: { id: true, email: true, profile: true },
+          select: { id: true, email: true, myProfile: true },
         },
       },
     }),
@@ -42,7 +42,7 @@ export default async function MemberActionsPage({
       <ul className="space-y-4">
         {memberships.map((m) => {
           const role = m.role || 'Member';
-          const name = m.user.profile?.username || m.user.email;
+          const name = m.user.myProfile?.username || m.user.email;
 
           const isSelf = m.user.id === user.id;
 

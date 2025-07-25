@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       });
       
       // Create child profile
-      await prisma.profile.create({
+      await prisma.myProfile.create({
         data: {
           userId: childUser.id,
           firstName: childFirstName,
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
       });
       
       // Create parent profile
-      await prisma.profile.create({
+      await prisma.myProfile.create({
         data: {
           userId: parentUser.id,
           firstName: 'Parent', // Default name

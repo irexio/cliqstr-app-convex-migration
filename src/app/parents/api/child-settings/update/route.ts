@@ -23,7 +23,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     // Look up Profile by userId (childId)
-    const profile = await prisma.profile.findUnique({ where: { userId: childId } });
+    const profile = await prisma.myProfile.findUnique({ where: { userId: childId } });
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }

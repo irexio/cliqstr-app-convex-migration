@@ -43,7 +43,7 @@ export async function GET(
           include: {
             user: {
               include: {
-                profile: {
+                myProfile: {
                   select: {
                     username: true,
                     image: true,

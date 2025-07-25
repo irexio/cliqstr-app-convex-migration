@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
           include: {
             author: {
               include: {
-                profile: {
+                myProfile: {
                   select: { username: true },
                 },
               },
@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
         },
         author: {
           include: {
-            profile: {
+            myProfile: {
               select: { username: true },
             },
           },

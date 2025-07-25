@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     const { imageUrl, caption, profileId } = parsed.data;
 
     // Verify the profile belongs to the current user
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.myProfile.findUnique({
       where: { id: profileId },
       select: { userId: true },
     });

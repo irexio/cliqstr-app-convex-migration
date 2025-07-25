@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     // Get full profile data
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.myProfile.findUnique({
       where: { userId: user.id },
       select: {
         id: true,

@@ -72,7 +72,7 @@ export async function GET(
         memberships: {
           include: {
             user: {
-              select: { id: true, email: true, profile: true },
+              select: { id: true, email: true, myProfile: true },
             },
           },
         },

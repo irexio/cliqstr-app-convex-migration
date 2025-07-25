@@ -10,7 +10,7 @@ export default async function BuildCliqPage() {
   }
   
   // Check if user has a profile
-  if (!user.profile) {
+  if (!user.myProfile) {
     redirect('/profile/create');
   }
   

@@ -48,7 +48,7 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
     include: {
       author: {
         select: {
-          profile: {
+          myProfile: {
             select: { username: true, image: true },
           },
         },
@@ -58,7 +58,7 @@ export default async function CliqPageServer({ cliqId }: CliqPageServerProps) {
         include: {
           author: {
             select: {
-              profile: {
+              myProfile: {
                 select: { username: true, image: true },
               },
             },

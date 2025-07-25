@@ -14,7 +14,7 @@ type UserData = {
     stripeStatus?: string;
     plan?: string;
   };
-  profile?: {
+  myProfile?: {
     username?: string;
   };
 };
@@ -63,22 +63,10 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
         <span className="hidden md:block text-sm font-medium">
           {displayName}
         </span>
-        {userData.avatarUrl && !avatarError ? (
-          <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
-            <Image
-              src={userData.avatarUrl}
-              alt={`${displayName}'s avatar`}
-              width={32}
-              height={32}
-              className="object-cover"
-              onError={() => setAvatarError(true)}
-            />
-          </div>
-        ) : (
-          <div className="h-8 w-8 bg-purple-100 text-[#c032d1] rounded-full flex items-center justify-center text-sm font-medium">
-            {userInitials}
-          </div>
-        )}
+        {/* Always show Account initials, never MyProfile avatar */}
+        <div className="h-8 w-8 bg-purple-100 text-[#c032d1] rounded-full flex items-center justify-center text-sm font-medium">
+          {userInitials}
+        </div>
       </button>
       
       {/* User dropdown menu */}
@@ -99,7 +87,7 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
           </div>
           
           <Link 
-            href={`/profile/${userData.profile?.username || userId}`} 
+            href={`/profile/${userData.myProfile?.username || userId}`} 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={() => setIsUserMenuOpen(false)}
           >

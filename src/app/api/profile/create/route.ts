@@ -50,8 +50,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user already has a profile
-    if (user.profile) {
+    // Check if user already has a MyProfile
+    if (user.myProfile) {
       return NextResponse.json({ error: 'Profile already exists' }, { status: 400 });
     }
 
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     const { username, firstName, lastName, birthdate, about, image, bannerImage, showYear } = parsed.data;
 
     // Check if username is taken
-    const existingProfile = await prisma.profile.findUnique({
+    const existingProfile = await prisma.myProfile.findUnique({
       where: { username }
     });
 
@@ -79,8 +79,8 @@ export async function POST(req: NextRequest) {
     // Calculate age group
     const { group } = getAgeGroup(birthdate.toISOString());
 
-    // Create profile
-    const profile = await prisma.profile.create({
+    // Create MyProfile
+    const profile = await prisma.myProfile.create({
       data: {
         userId: user.id,
         username,

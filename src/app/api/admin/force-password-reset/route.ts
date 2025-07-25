@@ -41,9 +41,6 @@ export async function POST(req: NextRequest) {
     // 3. Find the user in the database
     const targetUser = await prisma.user.findUnique({
       where: { email },
-      include: {
-        profile: true,
-      },
     });
 
     if (!targetUser) {
@@ -74,7 +71,7 @@ export async function POST(req: NextRequest) {
       To: ${email}
       Subject: Cliqstr Password Reset
       
-      Hello ${targetUser.profile?.username || ''},
+      Hello ${targetUser.email},
       
       Your password has been flagged for reset by an administrator.
       

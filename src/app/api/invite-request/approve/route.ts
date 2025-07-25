@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ✅ Enforce parent or adult role only
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.myProfile.findUnique({
       where: { userId: user.id },
     });
     const account = await prisma.account.findUnique({ where: { userId: user.id } });

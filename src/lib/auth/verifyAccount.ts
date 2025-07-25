@@ -23,7 +23,7 @@ interface VerifyAccountOptions {
 export async function verifyAccount({ userId, method, metadata = {} }: VerifyAccountOptions) {
   try {
     // Get the user's profile and account
-    const profile = await prisma.profile.findUnique({
+    const profile = await prisma.myProfile.findUnique({
       where: { userId },
       include: { user: true }
     });

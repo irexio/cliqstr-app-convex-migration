@@ -11,7 +11,7 @@ async function removeUser(email: string) {
     const user = await prisma.user.findUnique({
       where: { email },
       include: {
-        profile: true,
+        myProfile: true,
         account: true,
       },
     });
@@ -38,8 +38,8 @@ async function removeUser(email: string) {
     readline.question('', async (answer: string) => {
       if (answer.toLowerCase() === 'y') {
         // Delete related records first to avoid foreign key constraints
-        if (user.profile) {
-          await prisma.profile.delete({
+        if (user.myProfile) {
+          await prisma.myProfile.delete({
             where: { userId: user.id },
           });
           console.log(`✅ Deleted profile for user: ${user.id}`);

@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if username is already taken
-    const existingUser = await prisma.profile.findFirst({
+    const existingUser = await prisma.myProfile.findFirst({
       where: {
         username: username,
         userId: { not: childId }, // Exclude the current child
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await hash(password, 10);
     
     // Update child's username in profile
-    await prisma.profile.update({
+    await prisma.myProfile.update({
       where: { userId: childId },
       data: { username: username },
     });

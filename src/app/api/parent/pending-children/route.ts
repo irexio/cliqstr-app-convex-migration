@@ -14,8 +14,8 @@ export async function GET() {
   const links = await prisma.parentLink.findMany({ where: { email: parent.email } });
   const childIds = links.map(l => l.childId);
   // Fetch profiles for all linked children
-  const profiles = await prisma.profile.findMany({
-    where: { id: { in: childIds } },
+  const profiles = await prisma.myProfile.findMany({
+    where: { userId: { in: childIds } },
     select: { id: true, username: true, userId: true },
   });
 

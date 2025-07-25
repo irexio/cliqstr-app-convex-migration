@@ -67,7 +67,7 @@ export async function POST(req: Request) {
     }
 
     // Fetch child profile (using childId as userId)
-    const childProfile = await prisma.profile.findUnique({ where: { userId: childId } });
+    const childProfile = await prisma.myProfile.findUnique({ where: { userId: childId } });
     if (!childProfile) {
       return NextResponse.json({ error: 'Child profile not found' }, { status: 404 });
     }

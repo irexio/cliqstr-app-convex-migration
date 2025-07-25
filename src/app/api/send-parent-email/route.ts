@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     const hashedPassword = await hash(password, 10);
 
     // 📥 Step 2: Get profile and user ID
-    const childProfile = await prisma.profile.findUnique({
+    const childProfile = await prisma.myProfile.findUnique({
       where: { id: childId },
       select: { userId: true }
     });
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     }
 
     // 🔒 Step 3: Update profile (set username + approval)
-    await prisma.profile.update({
+    await prisma.myProfile.update({
       where: { id: childId },
       data: {
         username,
@@ -124,7 +124,7 @@ export async function POST(req: Request) {
     // 👪 Step 7: Create ParentLink
     await prisma.parentLink.create({
       data: {
-        childId,
+        childId: childProfile.userId,
         email: parentEmail
       }
     });

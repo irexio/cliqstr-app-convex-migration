@@ -22,7 +22,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     const hashedPassword = await hash(password, 10);
-    await prisma.profile.update({ where: { id: childId }, data: { username } });
+    await prisma.myProfile.update({ where: { userId: childId }, data: { username } });
     await prisma.user.update({ where: { id: childId }, data: { password: hashedPassword } });
     return NextResponse.json({ success: true });
   } catch (err) {

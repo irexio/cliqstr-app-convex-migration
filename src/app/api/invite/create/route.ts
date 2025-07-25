@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     if (user.role === 'Child') {
       // Fetch child settings
       const childSettings = await prisma.childSettings.findUnique({
-        where: { profileId: user.profile?.id }
+        where: { profileId: user.myProfile?.id }
       });
       
       if (!childSettings?.canSendInvites) {
@@ -204,19 +204,19 @@ export async function POST(req: Request) {
     
     // Get the best available inviter name for personalization
     // Priority: full name -> firstName -> email prefix -> username -> fallback
-    const fullName = user?.profile?.firstName && user?.profile?.lastName 
-      ? `${user.profile.firstName} ${user.profile.lastName}`
+    const fullName = user?.myProfile?.firstName && user?.myProfile?.lastName 
+      ? `${user.myProfile.firstName} ${user.myProfile.lastName}`
       : null;
     
     const inviterName = fullName ||
-                       user?.profile?.firstName ||
+                       user?.myProfile?.firstName ||
                        (user?.email ? user.email.split('@')[0] : null) ||
-                       user?.profile?.username || 
+                       user?.myProfile?.username || 
                        senderName || 
                        'Someone';
     
     console.log('[EMAIL DEBUG] Inviter data:', {
-      username: user?.profile?.username,
+      username: user?.myProfile?.username,
       email: user?.email,
       senderName,
       finalInviterName: inviterName
