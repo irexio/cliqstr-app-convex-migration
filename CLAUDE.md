@@ -18,7 +18,7 @@ Cliqstr is a private, family-first social platform designed to enable safe group
 
 ### Mission:
 
-Create an APA-safe (Aiden’s Power Auth) space that prioritizes security, age-based controls, and intentional friction to protect children online.
+Create an APA-safe (Aiden's Power Auth) space that prioritizes security, age-based controls, and intentional friction to protect children online.
 
 ---
 
@@ -116,6 +116,12 @@ Claude should prioritize resolving and verifying these known broken flows:
   * If `inviteRequiresApproval = true`, the invite is held until a parent approves it
   * Otherwise, invite is sent immediately
 
+### 🚧 UI/UX Flow Issues
+
+* User Profile and Cliq Creation Flexibility:
+  * 2 should show both - for example: if a user is in the process of setting up a profile but can't find a picture to use. They may want to edit the profile or create a cliq. 
+  * #3 Should also include both
+
 ---
 
 ## 📁 Key Reference Files
@@ -131,11 +137,11 @@ Claude should use these for logic alignment:
 
 ## ❗ Avoid These Mistakes
 
-* ❌ Don’t simplify or remove ANY EXISTING steps just to reduce friction IN APA — friction is **intentional** in APA
-* ❌ Don’t alter `/parent-approval`, `/awaiting-approval`, or `/parents-hq` routes without checking spec
-* ❌ Don’t auto-approve child accounts or merge flows
-* ❌ Don’t touch custom auth logic (e.g., crypto, session cookies) without instruction
-* ❌ Don’t overwrite existing `/my-cliqs-dashboard` logic without first confirming it is not redundant
+* ❌ Don't simplify or remove ANY EXISTING steps just to reduce friction IN APA — friction is **intentional** in APA
+* ❌ Don't alter `/parent-approval`, `/awaiting-approval`, or `/parents-hq` routes without checking spec
+* ❌ Don't auto-approve child accounts or merge flows
+* ❌ Don't touch custom auth logic (e.g., crypto, session cookies) without instruction
+* ❌ Don't overwrite existing `/my-cliqs-dashboard` logic without first confirming it is not redundant
 
 ---
 
@@ -152,14 +158,13 @@ Claude should use these for logic alignment:
 
 ## 👩‍👧 Example Prompts Claude Should Support
 
-* “Review `/api/invite/validate.ts` and confirm invite approval flow matches `APA-Flow-Scenarios.md`”
-* “Does `/api/sign-up/route.ts` properly block child access without parent setup?”
-* “Scan for any unsafe direct access to child routes”
-* “Fix broken invite link validation and route correctly to child sign-up or parent approval logic”
-* “Check that `/parents-hq` applies child permissions correctly per parent settings”
-* “Ensure that the `/my-cliqs-dashboard` view is not overwritten or misaligned with previously working logic”
+* "Review `/api/invite/validate.ts` and confirm invite approval flow matches `APA-Flow-Scenarios.md`"
+* "Does `/api/sign-up/route.ts` properly block child access without parent setup?"
+* "Scan for any unsafe direct access to child routes"
+* "Fix broken invite link validation and route correctly to child sign-up or parent approval logic"
+* "Check that `/parents-hq` applies child permissions correctly per parent settings"
+* "Ensure that the `/my-cliqs-dashboard` view is not overwritten or misaligned with previously working logic"
 
 ---
 
 *Last updated: July 23, 2025 by Mimi & Assistant*
-
