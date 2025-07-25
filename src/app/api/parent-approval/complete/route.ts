@@ -135,6 +135,9 @@ export async function POST(req: NextRequest) {
     // Check if parent already exists
     let parentUser = await prisma.user.findUnique({
       where: { email: parentEmail },
+      include: {
+        account: true,
+      },
     });
     
     if (!parentUser) {
@@ -145,6 +148,9 @@ export async function POST(req: NextRequest) {
         data: {
           email: parentEmail,
           password: hashedPassword,
+        },
+        include: {
+          account: true,
         },
       });
       
@@ -159,15 +165,25 @@ export async function POST(req: NextRequest) {
         },
       });
       
-      // Create parent account with Adult role
+      // Create parent account with Parent role
       await prisma.account.create({
         data: {
           userId: parentUser.id,
-          role: 'Adult',
+          role: 'Parent',
           isApproved: true,
           plan: 'test', // Apply test plan automatically
         },
       });
+    } else {
+      // Parent already exists - ensure they have Parent role
+      if (parentUser.account && parentUser.account.role !== 'Parent') {
+        await prisma.account.update({
+          where: { userId: parentUser.id },
+          data: {
+            role: 'Parent',
+          },
+        });
+      }
     }
     
     // Create parent-child link
