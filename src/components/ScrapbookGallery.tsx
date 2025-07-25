@@ -106,9 +106,12 @@ export default function ScrapbookGallery({
         <div className="mb-6 p-6 border-2 border-dashed border-gray-300 rounded-lg text-center">
           <UploadButton
             endpoint="postImage"
-            onClientUploadComplete={(res: { url: string }[]) => {
-              if (res?.[0]?.url) {
-                handleImageUploaded(res[0].url);
+            onClientUploadComplete={(res) => {
+              console.log('[SCRAPBOOK] Upload complete:', res);
+              if (res && res.length > 0) {
+                const fileUrl = res[0].url || res[0].fileUrl;
+                console.log('[SCRAPBOOK] Setting image URL:', fileUrl);
+                handleImageUploaded(fileUrl);
               }
             }}
             onUploadError={(error: Error) => {

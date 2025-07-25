@@ -116,13 +116,16 @@ export default function BuildCliqClient() {
               button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
               label: 'text-sm text-neutral-700',
             }}
-            onClientUploadComplete={(res: any) => {
-              if (res && res[0]?.url) {
-                setBannerImage(res[0].url);
+            onClientUploadComplete={(res) => {
+              console.log('[CLIQ] Banner upload complete:', res);
+              if (res && res.length > 0) {
+                const fileUrl = res[0].url || res[0].fileUrl;
+                console.log('[CLIQ] Setting banner URL:', fileUrl);
+                setBannerImage(fileUrl);
               }
             }}
-            onUploadError={(err: any) => {
-              console.error('Upload error:', err);
+            onUploadError={(err: Error) => {
+              console.error('[CLIQ] Upload error:', err);
               setError('Image upload failed. Try again.');
             }}
           />

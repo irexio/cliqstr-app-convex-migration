@@ -56,14 +56,39 @@ export default function ProfileClient({
   };
 
   const handleSave = async () => {
-    // In a real implementation, this would call an API to save the profile data
-    console.log('[TODO] Save profile changes:', data);
-    
-    // After successful save, close the edit modal
-    setIsEditing(false);
-    
-    // Refresh the profile data if a callback was provided
-    if (onRefresh) onRefresh();
+    try {
+      console.log('[PROFILE] Saving profile changes:', data);
+      
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: data.username,
+          about: data.bio,
+          image: data.avatarUrl,
+          bannerImage: data.bannerUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update profile');
+      }
+
+      const result = await response.json();
+      console.log('[PROFILE] Update successful:', result);
+      
+      // Close the edit modal
+      setIsEditing(false);
+      
+      // Refresh the profile data if a callback was provided
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('[PROFILE] Update error:', error);
+      alert('Failed to update profile: ' + (error as Error).message);
+    }
   };
 
   return (
@@ -99,12 +124,15 @@ export default function ProfileClient({
               <h3 className="font-medium mb-3">Upload New Banner</h3>
               <UploadButton
                 endpoint="banner"
-                onClientUploadComplete={(res: { url: string }[]) => {
-                  if (res?.[0]?.url) {
-                    setData({ ...data, bannerUrl: res[0].url });
-                    handleChange('bannerUrl', res[0].url);
-                  }
+                onClientUploadComplete={(res) => {
+                  console.log('[PROFILE_EDIT] Banner upload complete:', res);
                   setUploadingBanner(false);
+                  if (res && res.length > 0) {
+                    const fileUrl = res[0].url || res[0].fileUrl;
+                    console.log('[PROFILE_EDIT] Setting banner URL:', fileUrl);
+                    setData({ ...data, bannerUrl: fileUrl });
+                    handleChange('bannerUrl', fileUrl);
+                  }
                 }}
                 onUploadError={(error: Error) => {
                   console.error('Upload error:', error);
@@ -124,15 +152,15 @@ export default function ProfileClient({
       </div>
 
       {/* Profile Info Section */}
-      <div className="flex flex-col items-center px-4 py-8 bg-white rounded-b-lg shadow-md">
+      <div className="flex flex-col items-center px-4 pt-16 pb-8 bg-white -mt-1">
         {/* Avatar Section with Upload Button */}
-        <div className="relative -mt-20 w-32 h-32">
-          <div className="w-full h-full rounded-full border-4 border-white overflow-hidden shadow-md">
+        <div className="relative -mt-32 w-40 h-40">
+          <div className="w-full h-full rounded-full border-4 border-white overflow-hidden shadow-lg">
             <Image
               src={data.avatarUrl || '/images/default-avatar.png'}
               alt="Profile picture"
-              width={128}
-              height={128}
+              width={160}
+              height={160}
               className="object-cover w-full h-full"
             />
           </div>
@@ -141,7 +169,7 @@ export default function ProfileClient({
           {data.isOwner && !uploadingAvatar && (
             <button
               onClick={() => setUploadingAvatar(true)}
-              className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transition border border-gray-200"
+              className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-md hover:bg-gray-100 transition border border-gray-200"
               aria-label="Change profile picture"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -159,12 +187,15 @@ export default function ProfileClient({
               <h3 className="font-medium mb-4">Upload New Profile Picture</h3>
               <UploadButton
                 endpoint="avatar"
-                onClientUploadComplete={(res: { url: string }[]) => {
-                  if (res?.[0]?.url) {
-                    setData({ ...data, avatarUrl: res[0].url });
-                    handleChange('avatarUrl', res[0].url);
-                  }
+                onClientUploadComplete={(res) => {
+                  console.log('[PROFILE_EDIT] Avatar upload complete:', res);
                   setUploadingAvatar(false);
+                  if (res && res.length > 0) {
+                    const fileUrl = res[0].url || res[0].fileUrl;
+                    console.log('[PROFILE_EDIT] Setting avatar URL:', fileUrl);
+                    setData({ ...data, avatarUrl: fileUrl });
+                    handleChange('avatarUrl', fileUrl);
+                  }
                 }}
                 onUploadError={(error: Error) => {
                   console.error('Upload error:', error);
@@ -183,25 +214,25 @@ export default function ProfileClient({
         )}
 
         {/* Profile Information */}
-        <div className="text-center mt-4">
-          <h1 className="text-3xl font-bold text-[#202020] mb-2">{data.name}</h1>
-          <p className="text-gray-600">@{data.username}</p>
-          <p className="text-gray-500 mt-1">Birthday: {new Date(data.birthdate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
+        <div className="text-center mt-6">
+          <h1 className="text-4xl font-bold text-gray-900">{data.name}</h1>
+          <p className="text-lg text-gray-500 mt-1">@{data.username}</p>
+          <p className="text-base text-gray-600 mt-3">Birthday: {new Date(data.birthdate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</p>
         </div>
 
         {/* About Section */}
-        <div className="mt-6 text-center max-w-md">
-          <h2 className="text-sm font-semibold text-gray-700">About</h2>
-          <p className="text-gray-600 mt-1">{data.bio || "No bio yet"}</p>
+        <div className="mt-8 text-center max-w-2xl mx-auto px-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">About</h2>
+          <p className="text-gray-600 text-base leading-relaxed">{data.bio || "No bio yet"}</p>
         </div>
 
         {/* Edit Profile Button (only visible to profile owner) */}
         {data.isOwner && (
           <button
             onClick={() => setIsEditing(true)}
-            className="mt-6 px-4 py-2 bg-black text-white rounded-full text-sm hover:bg-gray-800 inline-flex items-center gap-1"
+            className="mt-8 px-6 py-2.5 bg-[#6366f1] text-white rounded-full text-sm font-medium hover:bg-[#5558e3] transition-colors inline-flex items-center gap-2 shadow-sm"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
             </svg>

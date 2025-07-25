@@ -69,6 +69,20 @@ export async function POST(req: NextRequest) {
 
     const { name, description, privacy, coverImage } = parsed.data;
 
+    // Check child permission for public cliqs
+    if (user.role === 'Child' && privacy === 'public') {
+      const childSettings = await prisma.childSettings.findUnique({
+        where: { profileId: user.profile.id }
+      });
+
+      if (!childSettings?.canCreatePublicCliqs) {
+        console.log('[APA] Child blocked from creating public cliq:', user.email);
+        return NextResponse.json({
+          error: 'You need parent permission to create public cliqs'
+        }, { status: 403 });
+      }
+    }
+
     const DEFAULT_IMAGE = '/images/default-gradient.png';
     const finalCoverImage =
       coverImage && coverImage.length > 0 ? coverImage : DEFAULT_IMAGE;

@@ -200,12 +200,13 @@ export default function CreateProfileForm() {
             <div className="flex-1">
               <UploadDropzone
                 endpoint="avatar"
-                onClientUploadComplete={(res: any) => {
+                onClientUploadComplete={(res) => {
                   console.log('[PROFILE] Avatar upload complete:', res);
                   setUploadingAvatar(false);
-                  if (res?.[0]?.url) {
-                    console.log('[PROFILE] Setting avatar URL:', res[0].url);
-                    setAvatarUrl(res[0].url);
+                  if (res && res.length > 0) {
+                    const fileUrl = res[0].url || res[0].fileUrl;
+                    console.log('[PROFILE] Setting avatar URL:', fileUrl);
+                    setAvatarUrl(fileUrl);
                   }
                 }}
                 onUploadError={(err: Error) => {
@@ -213,8 +214,8 @@ export default function CreateProfileForm() {
                   setError('Failed to upload avatar: ' + err.message);
                   setUploadingAvatar(false);
                 }}
-                onUploadBegin={(fileName: string) => {
-                  console.log('[PROFILE] Beginning avatar upload:', fileName);
+                onUploadBegin={() => {
+                  console.log('[PROFILE] Beginning avatar upload');
                   setUploadingAvatar(true);
                   setError('');
                 }}
@@ -244,12 +245,13 @@ export default function CreateProfileForm() {
           )}
           <UploadDropzone
             endpoint="banner"
-            onClientUploadComplete={(res: any) => {
+            onClientUploadComplete={(res) => {
               console.log('[PROFILE] Banner upload complete:', res);
               setUploadingBanner(false);
-              if (res?.[0]?.url) {
-                console.log('[PROFILE] Setting banner URL:', res[0].url);
-                setBannerUrl(res[0].url);
+              if (res && res.length > 0) {
+                const fileUrl = res[0].url || res[0].fileUrl;
+                console.log('[PROFILE] Setting banner URL:', fileUrl);
+                setBannerUrl(fileUrl);
               }
             }}
             onUploadError={(err: Error) => {
@@ -257,8 +259,8 @@ export default function CreateProfileForm() {
               setError('Failed to upload banner: ' + err.message);
               setUploadingBanner(false);
             }}
-            onUploadBegin={(fileName: string) => {
-              console.log('[PROFILE] Beginning banner upload:', fileName);
+            onUploadBegin={() => {
+              console.log('[PROFILE] Beginning banner upload');
               setUploadingBanner(true);
               setError('');
             }}

@@ -1,12 +1,14 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
 /**
  * API Route for signing out users
  * Clears auth_token cookie and any other session data
  */
-export async function POST() {
+export async function POST(req: Request) {
   try {
     // Create response object
     const response = NextResponse.json({ 
@@ -14,15 +16,9 @@ export async function POST() {
       message: 'Successfully signed out' 
     });
     
-    // Set an expired cookie to clear it
-    response.cookies.set({
-      name: 'session',
-      value: '',
-      expires: new Date(0),
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      path: '/' 
-    });
+    // Destroy the encrypted session
+    const session = await getIronSession<SessionData>(req, response, sessionOptions);
+    await session.destroy();
     
     return response;
   } catch (error) {

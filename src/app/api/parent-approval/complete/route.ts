@@ -26,6 +26,8 @@ import { prisma } from '@/lib/prisma';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
 export const dynamic = 'force-dynamic';
 
@@ -204,16 +206,11 @@ export async function POST(req: NextRequest) {
       redirectUrl: '/parents/hq',
     });
     
-    // Set session cookie
-    response.cookies.set({
-      name: 'session',
-      value: parentUser.id,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    // Set encrypted session
+    const session = await getIronSession<SessionData>(req, response, sessionOptions);
+    session.userId = parentUser.id;
+    session.createdAt = Date.now();
+    await session.save();
     
     return response;
   } catch (error) {

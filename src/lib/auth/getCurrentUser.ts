@@ -3,23 +3,51 @@ import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 /**
- * 🔐 APA-HARDENED: Retrieves the current user from a secure session cookie.
+ * 🔐 APA-HARDENED: Retrieves the current user from a secure encrypted session cookie.
+ * Uses iron-session for encrypted session management.
  * Requires Next.js 13+ App Router.
+ * 
+ * Note: This is a server-side only function that must be called from Server Components
+ * or Route Handlers. For API routes, use getIronSession directly.
  */
 export async function getCurrentUser() {
   try {
-    const cookieStore = cookies(); // ✅ NO await here — it's sync in latest Next.js
-    const sessionCookie = cookieStore.get('session');
+    // Import dynamically to avoid issues with server/client boundary
+    const { getIronSession } = await import('iron-session');
+    const { sessionOptions } = await import('@/lib/auth/session-config');
+    type SessionData = { userId: string; createdAt: number };
+    
+    // Create a mock request object with cookies
+    const cookieStore = cookies();
+    const mockRequest = {
+      headers: {
+        cookie: cookieStore.toString(),
+      },
+    } as any;
+    
+    // Get the encrypted session
+    const session = await getIronSession<SessionData>(
+      mockRequest,
+      new Response(),
+      sessionOptions
+    );
 
-    if (!sessionCookie) {
-      console.log('[APA] No session cookie found');
+    if (!session.userId) {
+      console.log('[APA] No session found');
       return null;
     }
 
-    const userId = sessionCookie.value;
+    // Check session age (30 min timeout)
+    const sessionAge = Date.now() - session.createdAt;
+    if (sessionAge > 30 * 60 * 1000) {
+      console.log('[APA] Session expired');
+      // Note: We can't destroy the session here in Server Components
+      // The session will be invalid on next request
+      return null;
+    }
 
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: session.userId },
       include: {
         profile: {
           select: {
@@ -46,12 +74,12 @@ export async function getCurrentUser() {
     });
 
     if (!user) {
-      console.warn('[APA] User not found for session userId:', userId);
+      console.warn('[APA] User not found for session userId:', session.userId);
       return null;
     }
 
     if (user.account?.suspended) {
-      console.warn('[APA] Suspended user attempted access:', userId);
+      console.warn('[APA] Suspended user attempted access:', session.userId);
       return null;
     }
 

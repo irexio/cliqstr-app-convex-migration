@@ -17,6 +17,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
 export async function POST(req: Request) {
   try {
@@ -96,15 +98,11 @@ export async function POST(req: Request) {
       // Clear any legacy tokens
       clearAuthTokens(response.headers);
       
-      response.cookies.set({
-        name: 'session',
-        value: user.id,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 7, // 7 days
-      });
+      // Set encrypted session
+      const session = await getIronSession<SessionData>(req, response, sessionOptions);
+      session.userId = user.id;
+      session.createdAt = Date.now();
+      await session.save();
       
       return response;
     }
@@ -121,15 +119,11 @@ export async function POST(req: Request) {
     // Clear any legacy tokens that might exist
     clearAuthTokens(response.headers);
 
-    response.cookies.set({
-      name: 'session',
-      value: user.id,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-    });
+    // Set encrypted session
+    const session = await getIronSession<SessionData>(req, response, sessionOptions);
+    session.userId = user.id;
+    session.createdAt = Date.now();
+    await session.save();
 
     return response;
   } catch (err) {

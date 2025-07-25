@@ -3,6 +3,14 @@
 This document provides project-level guidance to Claude Code for reviewing, editing, or suggesting changes in the Cliqstr codebase.
 
 ---
+Please follow these rules for each session:
+1. First think through the problem, read the codebase for relevant files, and write a plan to tasks/todo.md.
+2. The plan should have a list of todo items that you can check off as you complete them
+3. Before you begin working, check in with me and I will verify the plan.
+4. Then, begin working on the todo items, marking them as complete as you go.
+5. Please every step of the way just give me a high level explanation of what changes you made
+6. Make every task and code change you do as simple as possible. We want to avoid making any massive or complex changes. Every change should impact as little code as possible. Everything is about simplicity.
+7. Finally, add a review section to the [DOCS/TODO.md] file with a summary of the changes you made and any other relevant information.
 
 ## 🧠 Project Summary
 
@@ -53,6 +61,8 @@ Create an APA-safe (Aiden’s Power Auth) space that prioritizes security, age-b
     * A parent approves a child sign-up and configures their account
     * A user completes invite acceptance and plan setup
   * ⚠️ Claude must distinguish between verification (`isVerified`) and approval (`isApproved`) — do not conflate them
+
+
 
 ---
 
@@ -121,7 +131,7 @@ Claude should use these for logic alignment:
 
 ## ❗ Avoid These Mistakes
 
-* ❌ Don’t simplify or remove steps just to reduce friction — friction is **intentional** in APA
+* ❌ Don’t simplify or remove ANY EXISTING steps just to reduce friction IN APA — friction is **intentional** in APA
 * ❌ Don’t alter `/parent-approval`, `/awaiting-approval`, or `/parents-hq` routes without checking spec
 * ❌ Don’t auto-approve child accounts or merge flows
 * ❌ Don’t touch custom auth logic (e.g., crypto, session cookies) without instruction
