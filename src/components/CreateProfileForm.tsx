@@ -204,7 +204,7 @@ export default function CreateProfileForm() {
                   console.log('[PROFILE] Avatar upload complete:', res);
                   setUploadingAvatar(false);
                   if (res && res.length > 0) {
-                    const fileUrl = res[0].url || res[0].fileUrl;
+                    const fileUrl = res[0].url;
                     console.log('[PROFILE] Setting avatar URL:', fileUrl);
                     setAvatarUrl(fileUrl);
                   }
@@ -249,7 +249,7 @@ export default function CreateProfileForm() {
               console.log('[PROFILE] Banner upload complete:', res);
               setUploadingBanner(false);
               if (res && res.length > 0) {
-                const fileUrl = res[0].url || res[0].fileUrl;
+                const fileUrl = res[0].url;
                 console.log('[PROFILE] Setting banner URL:', fileUrl);
                 setBannerUrl(fileUrl);
               }

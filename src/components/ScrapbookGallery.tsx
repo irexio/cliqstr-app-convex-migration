@@ -109,7 +109,7 @@ export default function ScrapbookGallery({
             onClientUploadComplete={(res) => {
               console.log('[SCRAPBOOK] Upload complete:', res);
               if (res && res.length > 0) {
-                const fileUrl = res[0].url || res[0].fileUrl;
+                const fileUrl = res[0].url;
                 console.log('[SCRAPBOOK] Setting image URL:', fileUrl);
                 handleImageUploaded(fileUrl);
               }

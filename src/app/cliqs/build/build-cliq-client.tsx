@@ -119,7 +119,7 @@ export default function BuildCliqClient() {
             onClientUploadComplete={(res) => {
               console.log('[CLIQ] Banner upload complete:', res);
               if (res && res.length > 0) {
-                const fileUrl = res[0].url || res[0].fileUrl;
+                const fileUrl = res[0].url;
                 console.log('[CLIQ] Setting banner URL:', fileUrl);
                 setBannerImage(fileUrl);
               }
