@@ -37,18 +37,6 @@ async function main() {
 
     console.log('✅ Admin user created:', user.id);
 
-    await prisma.account.create({
-      data: {
-        userId: user.id,
-        role: 'Parent',
-        isApproved: true,
-        stripeStatus: 'active',
-        plan: 'premium',
-        stripeCustomerId: 'seed_customer_id',
-      },
-    });
-    console.log('✅ Account created for admin user');
-
     // STEP 2: Create the account and link by userId
     await prisma.account.create({
       data: {
