@@ -296,3 +296,4 @@ export function HeaderComponent() {
 }
 
 export default HeaderComponent;
+export { HeaderComponent };
