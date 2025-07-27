@@ -8,7 +8,8 @@ import '@uploadthing/react/styles.css';
 
 import { Poppins } from 'next/font/google';
 import type { Metadata } from 'next';
-import { Header } from '@/components/Header';
+// Import from the wrapper which should handle the re-export
+import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import SessionProvider from '@/components/SessionProvider';
 import PlanBanner from '@/components/PlanBanner';

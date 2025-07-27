@@ -1,7 +1,7 @@
 'use client'
 
-// Import the component with its internal name and re-export as Header
-import { HeaderComponent } from './Header/index'
+// Import the actual header component
+import HeaderComponent from './Header/index'
 
-// Re-export with the expected name to maintain API compatibility
-export { HeaderComponent as Header }
+// Export it as default
+export default HeaderComponent

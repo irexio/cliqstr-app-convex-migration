@@ -12,7 +12,7 @@ export function DesktopNav({ isLoggedIn, isApproved }: DesktopNavProps) {
   const showMyCliqs = isLoggedIn;
   
   return (
-    <nav className="flex items-center gap-6 text-sm font-medium text-[#202020]">
+    <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-[#202020]">
       <Link href="/explore" className="text-gray-700 hover:text-black transition">
         Explore Public Cliqs
       </Link>

@@ -25,6 +25,7 @@ type UserData = {
 };
 
 export function HeaderComponent() {
+  console.log('[Header] Component rendering at', new Date().toISOString());
   // Cache bust: 1738003853
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isApproved, setIsApproved] = useState(false); // Track APA approval status
@@ -226,7 +227,7 @@ export function HeaderComponent() {
 
   return (
     <header className="w-full bg-white border-b border-gray-200 relative">
-      <div className="max-w-7xl mx-auto px-4 py-6 font-poppins">
+      <div className="max-w-7xl mx-auto px-4 py-6 font-poppins min-h-[88px]">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-4xl font-bold text-[#202020] lowercase font-poppins">
@@ -296,4 +297,3 @@ export function HeaderComponent() {
 }
 
 export default HeaderComponent;
-export { HeaderComponent };
