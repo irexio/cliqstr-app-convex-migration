@@ -10,7 +10,7 @@ import { InnerCircleCTA } from '@/components/InnerCircleCTA';
 
 export default function HomePage() {
   return (
-    <main className="space-y-8">
+    <main>
 
       {/* HERO */}
       <section>

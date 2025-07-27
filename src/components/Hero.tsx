@@ -18,13 +18,13 @@ export function Hero() {
         <div className="flex justify-center gap-4 flex-wrap pt-4">
           <Link
             href="/sign-up"
-            className="rounded-full bg-white text-purple-700 font-semibold px-6 py-3 text-lg shadow-md hover:bg-gray-100 transition"
+            className="rounded-full bg-white text-black font-semibold px-6 py-3 text-lg shadow-md hover:bg-gray-100 transition"
           >
             Try Cliqstr Free
           </Link>
           <Link
             href="/how-it-works"
-            className="rounded-full border border-white text-white font-medium px-6 py-3 text-lg hover:bg-white hover:text-purple-700 transition"
+            className="rounded-full border border-white text-white font-medium px-6 py-3 text-lg hover:bg-white hover:text-black transition"
           >
             Learn More
           </Link>

@@ -22,6 +22,11 @@ module.exports = {
   				'100': '#F8F9FB',
   				'900': '#1F1F1F'
   			},
+  			cliqstr: {
+  				black: '#000000',
+  				white: '#FFFFFF',
+  				hover: '#c032d1'
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

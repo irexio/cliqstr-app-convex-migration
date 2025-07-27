@@ -47,32 +47,32 @@ export function MobileMenu({
   const userInitials = (userData?.name || userData?.email || 'U').substring(0, 2).toUpperCase();
 
   return (
-    <div className="md:hidden mt-4 py-4 border-t border-gray-200">
-      <nav className="flex flex-col space-y-4 text-sm font-medium text-[#202020]">
+    <div className="md:hidden absolute left-0 right-0 top-full bg-white border-b border-gray-200 shadow-lg z-50">
+      <nav className="flex flex-col px-4 py-4 text-sm font-medium text-[#202020]">
         <Link
           href="/explore"
-          className="hover:text-black transition py-2"
+          className="block hover:text-black transition py-3 border-b border-gray-100"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           Explore Public Cliqs
         </Link>
         <Link
           href="/how-it-works"
-          className="hover:text-black transition py-2"
+          className="block hover:text-black transition py-3 border-b border-gray-100"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           How It Works
         </Link>
         <Link
           href="/about"
-          className="hover:text-black transition py-2"
+          className="block hover:text-black transition py-3 border-b border-gray-100"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           About
         </Link>
         <Link
           href="/faqs"
-          className="hover:text-black transition py-2"
+          className="block hover:text-black transition py-3 border-b border-gray-100"
           onClick={() => setIsMobileMenuOpen(false)}
         >
           FAQs
@@ -81,7 +81,7 @@ export function MobileMenu({
         {isLoggedIn && (
           <Link
             href="/my-cliqs-dashboard"
-            className="font-semibold text-center hover:underline transition"
+            className="block font-semibold hover:text-black transition py-3 border-b border-gray-100"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             My Cliqs
@@ -89,7 +89,7 @@ export function MobileMenu({
         )}
 
         {/* Mobile Auth Buttons */}
-        <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200">
           {isLoggedIn && userData ? (
             <div className="space-y-2">
               {/* User Info */}
@@ -104,7 +104,7 @@ export function MobileMenu({
                     onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  <div className="w-7 h-7 bg-purple-100 text-[#c032d1] rounded-full flex items-center justify-center text-xs font-medium">
+                  <div className="w-7 h-7 bg-gray-100 text-black rounded-full flex items-center justify-center text-xs font-medium">
                     {userInitials}
                   </div>
                 )}
@@ -173,21 +173,21 @@ export function MobileMenu({
                   setIsMobileMenuOpen(false);
                   setInviteModalOpen(true);
                 }}
-                className="flex items-center justify-center text-sm bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm w-full my-2"
+                className="flex items-center justify-center text-sm bg-gradient-to-r from-gray-100 to-gray-200 text-black border border-gray-300 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm w-full my-2"
               >
                 <TicketIcon className="h-4 w-4 mr-1 text-[#c032d1]" />
                 <span>Join with <span className="font-bold">Invite</span></span>
               </button>
               <Link
                 href="/sign-in"
-                className="block px-4 py-2 border border-black text-black rounded text-center hover:bg-gray-100 transition"
+                className="block px-4 py-2 border border-black text-black rounded-full text-center hover:bg-gray-100 transition"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign In
               </Link>
               <Link
                 href="/sign-up"
-                className="block px-4 py-2 bg-black text-white rounded text-center hover:bg-gray-800 transition"
+                className="block px-4 py-2 bg-black text-white rounded-full text-center hover:bg-[#c032d1] transition"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign Up

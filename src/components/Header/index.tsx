@@ -224,7 +224,7 @@ export function HeaderComponent() {
   }, []);
 
   return (
-    <header className="w-full bg-white border-b border-gray-200">
+    <header className="w-full bg-white border-b border-gray-200 relative">
       <div className="max-w-7xl mx-auto px-4 py-6 font-poppins">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -233,31 +233,29 @@ export function HeaderComponent() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="flex-1 flex justify-center">
-            <DesktopNav isLoggedIn={isLoggedIn} isApproved={isApproved} />
-          </div>
+          <DesktopNav isLoggedIn={isLoggedIn} isApproved={isApproved} />
 
           {/* Desktop Auth Buttons */}
-          <div className="flex items-center gap-4 text-sm">
+          <div className="hidden md:flex items-center gap-4 text-sm">
             {isLoggedIn ? (
               <UserDropdown userData={userData} handleSignOut={handleSignOut} />
             ) : (
               <>
                 <button
                   onClick={() => setInviteModalOpen(true)}
-                  className="flex items-center bg-gradient-to-r from-purple-100 to-gray-100 text-black border border-purple-200 hover:border-[#c032d1] px-3 py-2 rounded-full shadow-sm transition-all hover:shadow"
+                  className="flex items-center bg-gradient-to-r from-gray-100 to-gray-200 text-black border border-gray-300 hover:border-[#c032d1] px-4 py-2 rounded-full shadow-sm transition-all hover:shadow"
                 >
                   <span>Join with <span className="font-bold">Invite</span></span>
                 </button>
                 <Link
                   href="/sign-in"
-                  className="px-4 py-2 border border-black text-black rounded hover:bg-gray-100 transition"
+                  className="px-4 py-2 border border-black text-black rounded-full hover:bg-gray-100 transition"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800 transition"
+                  className="px-4 py-2 bg-black text-white rounded-full hover:bg-[#c032d1] transition"
                 >
                   Sign Up
                 </Link>
