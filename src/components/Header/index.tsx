@@ -26,7 +26,7 @@ type UserData = {
 
 export function HeaderComponent() {
   console.log('[Header] Component rendering at', new Date().toISOString());
-  // Cache bust: 1738003853
+  // Cache bust: 1738004000
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isApproved, setIsApproved] = useState(false); // Track APA approval status
   const [hasCliqs, setHasCliqs] = useState(false);
