@@ -26,7 +26,7 @@ type UserData = {
 
 export function HeaderComponent() {
   console.log('[Header] Component rendering at', new Date().toISOString());
-  // Cache bust: 1738004000
+  // Cache bust: 1738004100 - Force clean rebuild without hooks
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isApproved, setIsApproved] = useState(false); // Track APA approval status
   const [hasCliqs, setHasCliqs] = useState(false);
@@ -34,6 +34,18 @@ export function HeaderComponent() {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Custom mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   
   // Session timeout in milliseconds (30 minutes)
   const SESSION_TIMEOUT = 30 * 60 * 1000;
@@ -238,7 +250,7 @@ export function HeaderComponent() {
           <DesktopNav isLoggedIn={isLoggedIn} isApproved={isApproved} />
 
           {/* Desktop Auth Buttons */}
-          <div className="hidden md:flex items-center gap-4 text-sm">
+          <div className="flex items-center gap-4 text-sm">
             {isLoggedIn ? (
               <UserDropdown userData={userData} handleSignOut={handleSignOut} />
             ) : (
@@ -268,7 +280,7 @@ export function HeaderComponent() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 text-[#202020] hover:text-black transition"
+            className="hidden p-2 text-[#202020] hover:text-black transition"
             aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? (
