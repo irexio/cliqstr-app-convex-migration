@@ -221,10 +221,7 @@ export default function CreateProfileForm() {
                   setUploadingAvatar(true);
                   setError('');
                 }}
-                appearance={{
-                  container: 'border-dashed border-2 border-gray-300 rounded-lg p-4',
-                  button: 'bg-black text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800',
-                }}
+                className="ut-button:bg-black ut-button:ut-readying:bg-gray-500 ut-button:ut-uploading:bg-gray-500"
               />
               {uploadingAvatar && (
                 <p className="text-sm text-gray-600 mt-2">Uploading avatar...</p>
@@ -268,10 +265,7 @@ export default function CreateProfileForm() {
               setUploadingBanner(true);
               setError('');
             }}
-            appearance={{
-              container: 'border-dashed border-2 border-gray-300 rounded-lg p-4',
-              button: 'bg-black text-white rounded-md px-4 py-2 text-sm hover:bg-gray-800',
-            }}
+            className="ut-button:bg-black ut-button:ut-readying:bg-gray-500 ut-button:ut-uploading:bg-gray-500"
           />
           {uploadingBanner && (
             <p className="text-sm text-gray-600 mt-2">Uploading banner...</p>

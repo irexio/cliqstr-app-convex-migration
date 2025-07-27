@@ -46,6 +46,13 @@ function ParentApprovalContent() {
 
   const inviteCode = searchParams.get('inviteCode');
   const childId = searchParams.get('childId');
+  
+  // Store parent approval context in sessionStorage for sign-in redirect
+  useEffect(() => {
+    if (inviteCode && childId) {
+      sessionStorage.setItem('parentApprovalContext', JSON.stringify({ inviteCode, childId }));
+    }
+  }, [inviteCode, childId]);
 
   useEffect(() => {
     if (!inviteCode || !childId) {

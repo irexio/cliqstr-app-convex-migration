@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+// Using iron-session, NOT next-auth
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -20,14 +20,33 @@ interface InviteDetails {
 
 function ParentInviteContent() {
   const router = useRouter();
-  const sessionResult = useSession();
-  const session = sessionResult?.data;
-  const status = sessionResult?.status || 'loading';
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('code');
   
   const [loading, setLoading] = useState(true);
   const [inviteDetails, setInviteDetails] = useState<InviteDetails | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Check authentication status
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/status', {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsAuthenticated(!!data.user);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      } finally {
+        setAuthLoading(false);
+      }
+    }
+    checkAuth();
+  }, []);
 
   // Validate the invite code when the component mounts
   useEffect(() => {
@@ -84,8 +103,28 @@ function ParentInviteContent() {
       const data = await response.json();
       
       if (response.ok) {
-        // Redirect to Parents HQ to set up child permissions (APA compliance)
-        router.push('/parents/hq');
+        // Check user's plan status first
+        const authRes = await fetch('/api/auth/status', {
+          credentials: 'include',
+        });
+        
+        if (authRes.ok) {
+          const authData = await authRes.json();
+          const account = authData.user?.account;
+          
+          // If no plan, redirect to choose-plan
+          if (!account?.plan) {
+            console.log('[APA] Parent has no plan, redirecting to choose-plan');
+            router.push('/choose-plan');
+          } else {
+            // Has plan, redirect to Parents HQ to set up child permissions
+            console.log('[APA] Parent has plan, redirecting to parents-hq');
+            router.push('/parents-hq');
+          }
+        } else {
+          // Fallback to parents-hq if auth check fails
+          router.push('/parents-hq');
+        }
       } else {
         setInviteDetails(prev => ({ ...prev!, error: data.error }));
         setLoading(false);
@@ -98,7 +137,7 @@ function ParentInviteContent() {
   };
 
   // Show loading state while checking session and invite
-  if (status === 'loading' || loading) {
+  if (authLoading || loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <LoadingSpinner size="lg" />
@@ -130,7 +169,7 @@ function ParentInviteContent() {
   }
 
   // If user is not logged in, show sign in prompt
-  if (status === 'unauthenticated') {
+  if (!isAuthenticated) {
     return (
       <div className="container max-w-md mx-auto py-12">
         <Card>
@@ -166,10 +205,14 @@ function ParentInviteContent() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
-            <Button className="w-full" onClick={() => router.push(`/register?inviteCode=${inviteCode}`)}>
+            <Button className="w-full" onClick={() => router.push(`/sign-up?invite=${inviteCode}`)}>
               Create Parent Account
             </Button>
-            <Button className="w-full" variant="outline" onClick={() => router.push(`/login?callbackUrl=/invite/parent?code=${inviteCode}`)}>
+            <Button className="w-full" variant="outline" onClick={() => {
+              // Store invite context for redirect after sign-in
+              sessionStorage.setItem('parentInviteContext', JSON.stringify({ inviteCode }));
+              router.push('/sign-in');
+            }}>
               Sign In as Parent/Guardian
             </Button>
           </CardFooter>

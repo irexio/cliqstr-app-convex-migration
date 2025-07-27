@@ -169,6 +169,48 @@ export default function SignInForm() {
 
       console.log(`✅ User signed in: ${profile.role}, profile.isApproved: ${profile.isApproved}, account.isApproved: ${account?.isApproved}, plan: ${account?.plan || 'none'}`);
 
+      // Check if this is a parent coming from approval email
+      const parentApprovalContext = sessionStorage.getItem('parentApprovalContext');
+      if (parentApprovalContext) {
+        try {
+          const { inviteCode, childId } = JSON.parse(parentApprovalContext);
+          sessionStorage.removeItem('parentApprovalContext');
+          console.log('[APA] Parent approval context found, redirecting back to approval page');
+          router.push(`/parent-approval?inviteCode=${inviteCode}&childId=${childId}`);
+          return;
+        } catch (e) {
+          console.error('Failed to parse parent approval context:', e);
+        }
+      }
+
+      // Check if this is a parent coming from invite flow
+      const parentInviteContext = sessionStorage.getItem('parentInviteContext');
+      if (parentInviteContext) {
+        try {
+          const { inviteCode } = JSON.parse(parentInviteContext);
+          sessionStorage.removeItem('parentInviteContext');
+          console.log('[APA] Parent invite context found, redirecting back to invite page');
+          router.push(`/invite/parent?code=${inviteCode}`);
+          return;
+        } catch (e) {
+          console.error('Failed to parse parent invite context:', e);
+        }
+      }
+
+      // Check if this is an adult coming from invite flow
+      const adultInviteContext = sessionStorage.getItem('adultInviteContext');
+      if (adultInviteContext) {
+        try {
+          const { inviteCode } = JSON.parse(adultInviteContext);
+          sessionStorage.removeItem('adultInviteContext');
+          console.log('[APA] Adult invite context found, redirecting back to invite page');
+          router.push(`/invite/adult?code=${inviteCode}`);
+          return;
+        } catch (e) {
+          console.error('Failed to parse adult invite context:', e);
+        }
+      }
+
       // 🎉 Final redirect: Track the redirect with console logs
       console.log('[APA] Authentication successful - redirecting to session-ping');
       console.log('[APA] Session cookie length:', document.cookie.length);

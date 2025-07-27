@@ -98,12 +98,11 @@ export default function ChoosePlanForm() {
       // Refresh Next.js router cache before redirect
       router.refresh();
       
-      // For all plans, use a consistent redirect approach with a short delay
-      // This gives time for the session to be properly updated
+      // For all plans, redirect directly to dashboard after a short delay
+      // This gives time for the success message to be shown
       setTimeout(() => {
-        console.log('[APA] Redirecting to session-ping to confirm session is settled');
-        const url = `/session-ping?t=${Date.now()}`;
-        window.location.replace(url);
+        console.log('[APA] Redirecting to dashboard');
+        router.push('/my-cliqs-dashboard');
       }, 2000);
     } catch (err) {
       console.error('Plan selection error:', err);

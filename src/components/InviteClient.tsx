@@ -110,6 +110,18 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       setTrustedAdultContact('');
       setInviteType('');
       setInviteNote('');
+      
+      // Redirect to invitation sent page with details
+      const recipientName = inviteType === 'child' ? friendFirstName.trim() : trustedAdultContact.trim();
+      const params = new URLSearchParams({
+        name: recipientName,
+        type: inviteType
+      });
+      
+      // Use router to navigate after a brief delay to show success message
+      setTimeout(() => {
+        window.location.href = `/invite/sent?${params.toString()}`;
+      }, 1500);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
