@@ -79,10 +79,8 @@
   }
 }
 
-/* 🌟 Future-safe — add utility or theme overrides here */
-
 @layer components {
-  /* Cliqstr Brand Buttons */
+  /* Brand Buttons */
   .btn-cliqstr {
     @apply bg-black text-white font-semibold px-6 py-3 rounded-full transition-colors duration-200;
   }
@@ -99,48 +97,37 @@
     @apply bg-black text-white;
   }
 
-  /* Typography Components for Info Pages */
-  /* Optimized for clarity across kids, parents, and seniors */
+  /* Typography Components */
 
   .info-page-title {
     @apply text-3xl sm:text-4xl font-bold text-[#202020] font-poppins text-left;
-    /* ~30px mobile → 36px desktop */
+    /* 30px → 36px */
   }
 
   .info-page-subtitle {
     @apply text-xl sm:text-2xl text-gray-700 text-left;
-    /* ~20px → 24px */
+    /* 20px → 24px */
   }
 
   .info-section-title {
     @apply text-2xl sm:text-3xl font-semibold text-[#202020] font-poppins;
-    /* ~24px → 30px */
+    /* 24px → 30px */
+  }
+
+  .info-lead-text {
+    @apply text-base sm:text-lg text-gray-700;
+    /* 16px → 18px — for intro paragraph */
   }
 
   .info-body-text {
-    @apply text-lg sm:text-xl text-gray-700;
-    /* ~18px → 20px */
+    font-size: 0.9375rem; /* 15px exactly */
+    @apply text-gray-700 leading-relaxed;
   }
 
   .info-list {
-    @apply space-y-4 text-gray-700 text-lg sm:text-xl;
-    /* ~18px → 20px */
+    font-size: 0.9375rem; /* 15px */
+    @apply space-y-4 text-gray-700 leading-relaxed;
   }
 }
 
-/* Override UploadThing button colors to be black */
-.ut-button {
-  background-color: black !important;
-  color: white !important;
-}
-
-.ut-button:hover {
-  background-color: rgb(31, 41, 55) !important;
-}
-
-.ut-button.ut-readying,
-.ut-button.ut-uploading {
-  background-color: rgb(107, 114, 128) !important;
-}
-
-/* Force cache invalidation: Sun, Jul 27, 2025  9:24:47 AM */
+/* ✨ Cache busting timestamp: Sun, Jul 27, 2025 – 9:24 PM */
