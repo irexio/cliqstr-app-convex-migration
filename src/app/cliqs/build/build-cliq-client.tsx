@@ -33,6 +33,7 @@ export default function BuildCliqClient() {
   const [bannerImage, setBannerImage] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const stripTags = (input: string) =>
     input.replace(/<[^>]*>?/gm, '').trim(); // 🧽 Strip HTML + trim
@@ -109,15 +110,36 @@ export default function BuildCliqClient() {
           <p className="text-xs text-neutral-500 italic mb-2">
             Recommended size: 1200×400px (landscape). Max file size: 4MB.
           </p>
+          {uploading && (
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                <span className="text-sm text-blue-700">Uploading image...</span>
+              </div>
+            </div>
+          )}
+          
           <UploadDropzone
             endpoint="cliqBanner"
             appearance={{
-              container: 'border-dashed border-2 border-neutral-300 p-4 rounded-lg bg-neutral-50',
+              container: `border-dashed border-2 p-4 rounded-lg ${
+                uploading 
+                  ? 'border-blue-300 bg-blue-50 opacity-50' 
+                  : bannerImage 
+                    ? 'border-green-300 bg-green-50'
+                    : 'border-neutral-300 bg-neutral-50'
+              }`,
               button: 'bg-black text-white rounded-full px-4 py-2 text-sm hover:text-[#c032d1] transition',
               label: 'text-sm text-neutral-700',
             }}
+            onUploadBegin={(name) => {
+              console.log('[CLIQ] Upload beginning:', name);
+              setUploading(true);
+              setError('');
+            }}
             onClientUploadComplete={(res) => {
               console.log('[CLIQ] Banner upload complete:', res);
+              setUploading(false);
               if (res && res.length > 0) {
                 const fileData = res[0] as any;
                 const fileUrl = fileData.url || fileData.fileUrl || fileData.appUrl;
@@ -127,27 +149,33 @@ export default function BuildCliqClient() {
             }}
             onUploadError={(err: Error) => {
               console.error('[CLIQ] Upload error:', err);
+              setUploading(false);
               setError('Image upload failed. Try again.');
             }}
           />
         </div>
 
         {bannerImage && (
-          <div className="w-full max-w-md mt-4">
-            <Image
-              src={bannerImage}
-              alt="Preview"
-              width={600}
-              height={200}
-              className="rounded border object-cover"
-            />
+          <div className="mt-4">
+            <div className="mb-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700">
+              ✅ Banner image uploaded successfully!
+            </div>
+            <div className="w-full max-w-md">
+              <Image
+                src={bannerImage}
+                alt="Banner Preview"
+                width={600}
+                height={200}
+                className="rounded border object-cover w-full"
+              />
+            </div>
           </div>
         )}
 
         {error && <p className="text-red-600 text-sm">{error}</p>}
 
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Cliq'}
+        <Button type="submit" disabled={loading || uploading}>
+          {uploading ? 'Uploading image...' : loading ? 'Creating...' : 'Create Cliq'}
         </Button>
       </form>
     </div>
