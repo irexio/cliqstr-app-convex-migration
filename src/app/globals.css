@@ -14,6 +14,7 @@
   body {
     @apply bg-neutral-100 text-neutral-900 antialiased;
   }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 0%;
@@ -41,6 +42,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
@@ -67,59 +69,62 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* 🌟 Future-safe — add utility or theme overrides here */
 
-/* Cliqstr Brand Button Styles */
 @layer components {
+  /* Cliqstr Brand Buttons */
   .btn-cliqstr {
     @apply bg-black text-white font-semibold px-6 py-3 rounded-full transition-colors duration-200;
   }
-  
+
   .btn-cliqstr:hover {
     @apply bg-cliqstr-hover text-white;
   }
-  
+
   .btn-cliqstr-outline {
     @apply border-2 border-black text-black font-semibold px-6 py-3 rounded-full transition-colors duration-200;
   }
-  
+
   .btn-cliqstr-outline:hover {
     @apply bg-black text-white;
   }
 
   /* Typography Components for Info Pages */
-  /* Designed for readability by children, families, and seniors */
+  /* Optimized for clarity across kids, parents, and seniors */
+
   .info-page-title {
-    @apply text-4xl sm:text-5xl font-bold text-[#202020] font-poppins text-left;
+    @apply text-3xl sm:text-4xl font-bold text-[#202020] font-poppins text-left;
+    /* ~30px mobile → 36px desktop */
   }
 
   .info-page-subtitle {
-    @apply text-lg sm:text-xl text-gray-700 text-left;
+    @apply text-xl sm:text-2xl text-gray-700 text-left;
+    /* ~20px → 24px */
   }
 
   .info-section-title {
     @apply text-2xl sm:text-3xl font-semibold text-[#202020] font-poppins;
+    /* ~24px → 30px */
   }
 
   .info-body-text {
-    @apply text-base sm:text-lg text-gray-700;
+    @apply text-lg sm:text-xl text-gray-700;
+    /* ~18px → 20px */
   }
 
   .info-list {
-    @apply space-y-4 text-gray-700 text-base sm:text-lg;
-  }
-}
-
-
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply space-y-4 text-gray-700 text-lg sm:text-xl;
+    /* ~18px → 20px */
   }
 }
 
@@ -137,4 +142,5 @@
 .ut-button.ut-uploading {
   background-color: rgb(107, 114, 128) !important;
 }
+
 /* Force cache invalidation: Sun, Jul 27, 2025  9:24:47 AM */
