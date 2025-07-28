@@ -1,23 +1,18 @@
-'use client';
-
 import React from 'react';
-import SidebarNav from '@/components/SidebarNav';
+import { InfoPageLayout } from '@/components/InfoPageLayout';
 
 export default function FAQPage() {
-  return (
-    <main className="bg-white text-black font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-8">
-          <aside>
-            <div className="sticky top-24">
-              <SidebarNav />
-            </div>
-          </aside>
+  const breadcrumbs = [
+    { label: 'Home', href: '/' },
+    { label: 'FAQs' }
+  ];
 
-          <section className="space-y-12 max-w-4xl">
-            <div className="space-y-4">
-            <h1 className="info-page-title">Frequently Asked Questions</h1>
-          </div>
+  return (
+    <InfoPageLayout 
+      breadcrumbs={breadcrumbs}
+      title="Frequently Asked Questions"
+    >
+      <div className="space-y-8">
 
           {/* For Everyone */}
           <div className="space-y-6">
@@ -75,9 +70,7 @@ export default function FAQPage() {
               <li><strong>Where is the Cliqstr Safety Page?</strong><br />Linked in the footer of every page, or visit <code>/safety</code> directly.</li>
             </ul>
           </div>
-          </section>
-        </div>
       </div>
-    </main>
+    </InfoPageLayout>
   );
 }

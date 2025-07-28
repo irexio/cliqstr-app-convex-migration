@@ -95,33 +95,56 @@ export default function CliqFeed({ cliqId }: FeedProps) {
   };
 
   return (
-    <div className="space-y-6 max-w-lg mx-auto">
-      <h2 className="text-2xl font-bold mb-2">Cliq Feed</h2>
-      
-      {/* Post creation form */}
-      <form onSubmit={handleSubmit} className="flex gap-2 items-center mb-6 bg-white rounded-lg p-3 shadow-sm border">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src="" alt="Profile" />
-          <AvatarFallback className="bg-gray-200 text-gray-400">
-            <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6"><circle cx="12" cy="8" r="4" fill="#ccc"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4" fill="#ccc"/></svg>
-          </AvatarFallback>
-        </Avatar>
-        <input
-          type="text"
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          placeholder="Share something with your cliq..."
-          className="flex-1 border-b border-gray-200 px-3 py-2 focus:outline-none focus:border-gray-400"
-          disabled={submitting}
-        />
-        <button 
-          type="submit" 
-          className="bg-black text-white px-4 py-2 rounded-full text-sm" 
-          disabled={submitting || !content.trim()}
-        >
-          {submitting ? '...' : 'Send'}
-        </button>
-      </form>
+    <div className="space-y-6">
+      {/* Feed Controls & Composer */}
+      <section className="bg-white rounded-xl p-5 mb-6 shadow-sm">
+        {/* View toggle */}
+        <div className="flex gap-3 mb-5">
+          <button className="px-4 py-2 border border-gray-200 bg-black text-white rounded-full cursor-pointer text-sm transition-all">
+            Inline View
+          </button>
+          <button className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-full cursor-pointer text-sm transition-all hover:border-gray-400">
+            Gallery View
+          </button>
+        </div>
+        
+        {/* Post composer */}
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="flex gap-3 items-start">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src="" alt="Profile" />
+              <AvatarFallback className="bg-gray-200 text-gray-600">
+                <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6"><circle cx="12" cy="8" r="4" fill="#999"/><path d="M4 20c0-4 8-4 8-4s8 0 8 4" fill="#999"/></svg>
+              </AvatarFallback>
+            </Avatar>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="What would you like to share with your cliq?"
+              className="flex-1 border border-gray-200 rounded-3xl px-5 py-3 text-base resize-none min-h-[44px] outline-none transition-colors focus:border-black"
+              disabled={submitting}
+            />
+          </div>
+          <div className="flex gap-2 ml-[52px]">
+            <button type="button" className="px-3 py-1.5 border border-gray-200 bg-white rounded-2xl cursor-pointer text-xs text-gray-600">
+              📷 Photo
+            </button>
+            <button type="button" className="px-3 py-1.5 border border-gray-200 bg-white rounded-2xl cursor-pointer text-xs text-gray-600">
+              📹 Video
+            </button>
+            <button type="button" className="px-3 py-1.5 border border-gray-200 bg-white rounded-2xl cursor-pointer text-xs text-gray-600">
+              📊 Poll
+            </button>
+            <button
+              type="submit"
+              disabled={submitting || !content.trim()}
+              className="px-3 py-1.5 bg-black text-white border-black rounded-2xl cursor-pointer text-xs font-medium ml-auto disabled:opacity-50"
+            >
+              {submitting ? '...' : 'Share'}
+            </button>
+          </div>
+        </form>
+      </section>
       
       {loading && <div className="text-center py-4">Loading feed...</div>}
       {error && <div className="text-red-600 text-center py-2">{error}</div>}

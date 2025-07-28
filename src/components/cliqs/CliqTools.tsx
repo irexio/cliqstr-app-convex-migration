@@ -42,52 +42,58 @@ export default function CliqTools({ cliqId }: { cliqId: string }) {
   }
 
   return (
-    <div className="border-t pt-6 mt-8 flex justify-around items-center gap-2 max-w-lg mx-auto">
-      {/* Feature icons - smaller, consistent size */}
-      <button
-        title="Calendar"
-        className="flex flex-col items-center text-xs font-medium text-black hover:bg-gray-100 transition rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#c032d1]"
-      >
-        <CalendarIcon className="w-5 h-5 mb-1" />
-        Calendar
-      </button>
+    <>
+      {/* Cliq Tools Section */}
+      <section className="bg-white rounded-xl p-6 shadow-sm mb-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">Cliq Tools</h2>
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+          <button className="flex flex-col items-center text-center p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:border-black hover:bg-gray-50">
+            <div className="w-6 h-6 bg-black rounded mb-2"></div>
+            <span className="text-xs text-gray-600 font-medium">Calendar</span>
+          </button>
+          
+          <button className="flex flex-col items-center text-center p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:border-black hover:bg-gray-50">
+            <div className="w-6 h-6 bg-black rounded mb-2"></div>
+            <span className="text-xs text-gray-600 font-medium">Games</span>
+          </button>
+          
+          <button className="flex flex-col items-center text-center p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:border-black hover:bg-gray-50">
+            <div className="w-6 h-6 bg-black rounded mb-2"></div>
+            <span className="text-xs text-gray-600 font-medium">Video Chat</span>
+          </button>
+          
+          <button className="flex flex-col items-center text-center p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:border-black hover:bg-gray-50">
+            <div className="w-6 h-6 bg-black rounded mb-2"></div>
+            <span className="text-xs text-gray-600 font-medium">Photo Album</span>
+          </button>
+          
+          <button className="flex flex-col items-center text-center p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:border-black hover:bg-gray-50">
+            <div className="w-6 h-6 bg-black rounded mb-2"></div>
+            <span className="text-xs text-gray-600 font-medium">Polls</span>
+          </button>
+          
+          <button className="flex flex-col items-center text-center p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:border-black hover:bg-gray-50">
+            <div className="w-6 h-6 bg-black rounded mb-2"></div>
+            <span className="text-xs text-gray-600 font-medium">Events</span>
+          </button>
+        </div>
+      </section>
 
-      <button
-        title="Games"
-        className="flex flex-col items-center text-xs font-medium text-black hover:bg-gray-100 transition rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#c032d1]"
-      >
-        <Gamepad2Icon className="w-5 h-5 mb-1" />
-        Games
-      </button>
-
-      <button
-        title="Video Chat"
-        className="flex flex-col items-center text-xs font-medium text-black hover:bg-gray-100 transition rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#c032d1]"
-      >
-        <VideoIcon className="w-5 h-5 mb-1" />
-        Video
-      </button>
-
-      <button
-        title="Homework Help"
-        className="flex flex-col items-center text-xs font-medium text-black hover:bg-gray-100 transition rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-[#c032d1]"
-      >
-        <BotIcon className="w-5 h-5 mb-1" />
-        Help
-      </button>
-
-      {/* Red Alert Button with confirmation dialog - smaller size */}
-      <>
+      {/* Red Alert Section */}
+      <section className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+        <div className="w-5 h-5 bg-red-500 rounded-full flex-shrink-0"></div>
+        <div className="text-red-800 text-sm font-medium flex-1">
+          🚨 Red Alert: New safety feature available - enable content filters for younger members
+        </div>
         <button
-          title="Red Alert"
-          className="flex flex-col items-center text-xs font-medium text-white bg-red-600 hover:bg-red-700 shadow-sm rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-red-400"
-          style={{ boxShadow: '0 2px 8px rgba(220,38,38,0.15)' }}
+          className="bg-red-600 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-red-700 transition-colors"
           onClick={() => setDialogOpen(true)}
         >
-          <AlertTriangleIcon className="w-5 h-5 mb-1" />
-          <span>Alert</span>
+          Send Alert
         </button>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      </section>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent>
             <DialogTitle>Trigger Red Alert?</DialogTitle>
             <DialogDescription>
@@ -112,8 +118,7 @@ export default function CliqTools({ cliqId }: { cliqId: string }) {
             </div>
           </DialogContent>
         </Dialog>
-      </>
-    </div>
+    </>
   );
 }
 

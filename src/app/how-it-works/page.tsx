@@ -1,25 +1,20 @@
-'use client';
-
-import SidebarNav from '@/components/SidebarNav';
+import { InfoPageLayout } from '@/components/InfoPageLayout';
 
 export default function HowItWorksPage() {
-  return (
-    <main className="bg-white text-black font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-8">
-          <aside>
-            <div className="sticky top-24">
-              <SidebarNav />
-            </div>
-          </aside>
+  const breadcrumbs = [
+    { label: 'Home', href: '/' },
+    { label: 'How It Works' }
+  ];
 
-          <section className="space-y-12 max-w-4xl">
-            <div className="space-y-4">
-            <h1 className="info-page-title mb-2">How Cliqstr Works</h1>
-            <p className="info-page-subtitle max-w-2xl">
-              Cliqstr helps kids, families, and small groups connect safely — without ads, algorithms, or chaos. Here's how to get started.
-            </p>
-          </div>
+  return (
+    <InfoPageLayout 
+      breadcrumbs={breadcrumbs}
+      title="How Cliqstr Works"
+    >
+      <div className="space-y-8">
+        <p className="info-lead-text">
+          Cliqstr helps kids, families, and small groups connect safely — without ads, algorithms, or chaos. Here's how to get started.
+        </p>
 
           <div className="rounded-xl bg-gray-100 shadow-sm p-5 sm:p-6">
             <h2 className="info-section-title mb-2">1. Create Your Cliq</h2>
@@ -68,9 +63,7 @@ export default function HowItWorksPage() {
               Our optional AI support tool helps kids stay focused, explore new topics, and build confidence with their schoolwork. It offers thoughtful prompts and mindset resets — never answers — and supports healthy learning habits at home.
             </p>
           </div>
-          </section>
-        </div>
       </div>
-    </main>
+    </InfoPageLayout>
   );
 }

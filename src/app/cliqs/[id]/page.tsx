@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
 import CliqFeed from "@/components/cliqs/CliqFeed";
 import CliqTools from "@/components/cliqs/CliqTools";
+import CliqBanner from "@/components/cliqs/CliqBanner";
 
 export default async function CliqPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -29,6 +30,9 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
           }
         },
       },
+      _count: {
+        select: { memberships: true }
+      }
     },
   });
 
@@ -40,11 +44,25 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
     return <p className="p-4">You are not a member of this cliq.</p>;
   }
 
+  const membership = cliq.memberships[0];
+  const isOwner = membership.role === 'OWNER';
+
+  // Transform cliq data to match CliqBanner expected types
+  const cliqForBanner = {
+    ...cliq,
+    description: cliq.description || undefined
+  };
+
   return (
-    <div className="max-w-3xl mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-4">{cliq.name}</h1>
-      <CliqFeed cliqId={cliq.id} />
-      <CliqTools cliqId={cliq.id} />
+    <div className="flex-1">
+      {/* Cliq Banner */}
+      <CliqBanner cliq={cliqForBanner} isOwner={isOwner} />
+      
+      {/* Main Content - 800px max width to match feed content */}
+      <main className="max-w-[800px] mx-auto p-6">
+        <CliqFeed cliqId={cliq.id} />
+        <CliqTools cliqId={cliq.id} />
+      </main>
     </div>
   );
 }

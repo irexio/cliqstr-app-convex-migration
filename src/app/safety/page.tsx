@@ -1,26 +1,21 @@
-'use client';
-
-import SidebarNav from '@/components/SidebarNav';
+import { InfoPageLayout } from '@/components/InfoPageLayout';
 
 export default function SafetyPage() {
-  return (
-    <main className="bg-white text-black font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-8">
-          <aside>
-            <div className="sticky top-24">
-              <SidebarNav />
-            </div>
-          </aside>
+  const breadcrumbs = [
+    { label: 'Home', href: '/' },
+    { label: 'Safety' }
+  ];
 
-          <section className="space-y-10 max-w-4xl">
-          <div>
-            <h1 className="info-page-title mb-6">Cliqstr Safety</h1>
-            <p className="info-page-subtitle">
-              Cliqstr is designed from the ground up to protect children, support families, and ensure every member
-              feels safe and respected.
-            </p>
-          </div>
+  return (
+    <InfoPageLayout 
+      breadcrumbs={breadcrumbs}
+      title="Cliqstr Safety"
+    >
+      <div className="space-y-8">
+        <p className="info-lead-text">
+          Cliqstr is designed from the ground up to protect children, support families, and ensure every member
+          feels safe and respected.
+        </p>
 
           <div className="space-y-6 text-gray-700">
             <div>
@@ -53,9 +48,7 @@ export default function SafetyPage() {
               </p>
             </div>
           </div>
-          </section>
-        </div>
       </div>
-    </main>
+    </InfoPageLayout>
   );
 }

@@ -15,6 +15,7 @@ import Footer from '@/components/Footer';
 import SessionProvider from '@/components/SessionProvider';
 import PlanBanner from '@/components/PlanBanner';
 
+
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
@@ -34,12 +35,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={poppins.variable}>
-      <body className="bg-white text-[#202020] font-poppins antialiased min-h-screen flex flex-col">
+      <body className="text-[#202020] font-poppins antialiased">
         <SessionProvider>
-          <Header />
-          <PlanBanner />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <div className="app-container flex flex-col min-h-screen bg-white">
+            <Header />
+            <PlanBanner />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </div>
         </SessionProvider>
       </body>
     </html>

@@ -78,11 +78,9 @@ export default async function ProfilePageServer({ username }: { username: string
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ProfileClientWrapper
-        initialProfile={profileData}
-        initialScrapbookItems={scrapbookItems}
-      />
-    </div>
+    <ProfileClientWrapper
+      initialProfile={profileData}
+      initialScrapbookItems={scrapbookItems}
+    />
   );
 }

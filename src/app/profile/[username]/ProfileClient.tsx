@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import NewProfileClient from '@/components/NewProfileClient';
+import ProfileRedesigned from '@/components/ProfileRedesigned';
 
 interface ProfileClientWrapperProps {
   initialProfile: any;
@@ -27,7 +27,7 @@ export default function ProfileClientWrapper({
   }, [initialProfile.id]);
 
   return (
-    <NewProfileClient
+    <ProfileRedesigned
       profile={initialProfile}
       scrapbookItems={scrapbookItems}
       onRefresh={handleRefresh}

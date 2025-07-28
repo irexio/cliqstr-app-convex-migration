@@ -1,0 +1,471 @@
+.upload-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-1px);
+        }<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimi's Profile - Cliqstr</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        /* Modern Wrapper */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header Navigation */
+        .top-nav {
+            background: white;
+            padding: 12px 24px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+        
+        /* Profile Cover - Remove edit button */
+        .profile-cover {
+            height: 240px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1400&h=240&fit=crop');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        
+        /* Profile Header */
+        .profile-header {
+            background: white;
+            padding: 0 32px 24px;
+            position: relative;
+            margin-top: -60px;
+            z-index: 2;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid white;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" fill="%23ccc" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>');
+            background-size: 60%;
+            background-repeat: no-repeat;
+            background-position: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin-bottom: 16px;
+        }
+        
+        .profile-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .profile-details h1 {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 4px;
+            color: #000;
+        }
+        
+        .profile-username {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        
+        .profile-bio {
+            font-size: 15px;
+            color: #444;
+            line-height: 1.5;
+            max-width: 400px;
+        }
+        
+        .profile-meta {
+            display: flex;
+            gap: 24px;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .edit-profile-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        
+        .edit-profile-btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Main Content Area */
+        .profile-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            flex-grow: 1;
+        }
+        
+        /* Main Profile Content Area */
+        .profile-main {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        /* About Section */
+        .about-section {
+            margin-bottom: 40px;
+        }
+        
+        .about-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #000;
+        }
+        
+        .about-text {
+            font-size: 15px;
+            color: #444;
+            line-height: 1.6;
+        }
+        
+        /* Scrapbook Wall */
+        .scrapbook-wall {
+            margin-bottom: 24px;
+        }
+        
+        .scrapbook-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .scrapbook-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .toggle-btn {
+            padding: 6px 12px;
+            border: 1px solid #e1e5e9;
+            background: white;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 12px;
+            color: #666;
+            transition: all 0.2s;
+        }
+        
+        .toggle-btn.active {
+            background: #000;
+            color: white;
+            border-color: #000;
+        }
+        
+        /* Scrapbook Grid - 5 columns desktop, 3 tablet, 1 mobile */
+        .scrapbook-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .scrapbook-item {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .scrapbook-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .scrapbook-item.photo {
+            background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+            background-image: url('https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=150&h=150&fit=crop');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .scrapbook-item.artwork {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .scrapbook-item.quote {
+            background: #000;
+            color: white;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .scrapbook-item.favorite {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        /* Add Item Button */
+        .add-item {
+            border: 2px dashed #e1e5e9;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 24px;
+        }
+        
+        .add-item:hover {
+            border-color: #000;
+            color: #000;
+            background: white;
+        }
+        
+        /* Remove the cliq memberships section completely */
+        
+        /* Mobile Responsive */
+        /* Tablet responsive - 3 columns */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            .scrapbook-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        /* Mobile responsive - 1 column */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .app-container {
+                border-radius: 16px;
+                min-height: calc(100vh - 20px);
+            }
+            
+            .profile-content {
+                grid-template-columns: 1fr;
+                padding: 24px 16px;
+            }
+            
+            .profile-sidebar {
+                order: 2;
+                position: static;
+            }
+            
+            .profile-header {
+                padding: 0 16px 24px;
+            }
+            
+            .profile-info {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .profile-main {
+                padding: 24px 16px;
+            }
+            
+            .scrapbook-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Navigation -->
+        <nav class="top-nav">
+            <div class="logo">cliqstr</div>
+            <ul class="nav-links">
+                <li><a href="#">Explore Public Cliqs</a></li>
+                <li><a href="#">How It Works</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">FAQs</a></li>
+                <li><a href="#">My Cliqs</a></li>
+            </ul>
+            <div class="user-actions">
+                <span>🔍</span>
+                <span>🔔</span>
+                <span>RO</span>
+            </div>
+        </nav>
+
+        <!-- Profile Cover - No edit button -->
+        <section class="profile-cover">
+        </section>
+
+        <!-- Profile Header -->
+        <header class="profile-header">
+            <div class="profile-avatar"></div>
+            <div class="profile-info">
+                <div class="profile-details">
+                    <h1>Mimi</h1>
+                    <div class="profile-username">@Robyn</div>
+                    <p class="profile-bio">Keeping in touch without the world watching or selling me something!</p>
+                    <div class="profile-meta">
+                        <span>Birthday: July 7</span>
+                        <span>Member of 5 cliqs</span>
+                    </div>
+                </div>
+                <button class="edit-profile-btn">✏️ Edit Profile</button>
+            </div>
+        </header>
+
+        <!-- Profile Content -->
+        <main class="profile-content">
+            <!-- Profile Navigation -->
+            <nav class="profile-nav">
+                <button class="profile-nav-item active">Scrapbook Wall</button>
+                <button class="profile-nav-item">My Cliqs</button>
+                <button class="profile-nav-item">Activity</button>
+            </nav>
+
+            <!-- Scrapbook Wall -->
+            <section class="scrapbook-wall">
+                <div class="scrapbook-header">
+                    <h2 class="scrapbook-title">My Wall</h2>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="view-toggle">
+                            <button class="toggle-btn active">Grid</button>
+                            <button class="toggle-btn">Freeform</button>
+                        </div>
+                        <button class="upload-btn">📷 Upload</button>
+                    </div>
+                </div>
+
+                <div class="scrapbook-grid">
+                    <div class="scrapbook-item add-item">
+                        +
+                    </div>
+                    <div class="scrapbook-item photo"></div>
+                    <div class="scrapbook-item artwork">🎨</div>
+                    <div class="scrapbook-item quote">
+                        "Books are a uniquely portable magic"
+                    </div>
+                    <div class="scrapbook-item favorite">📚</div>
+                    <div class="scrapbook-item photo"></div>
+                    <div class="scrapbook-item favorite">🌿</div>
+                    <div class="scrapbook-item artwork">✏️</div>
+                </div>
+            </section>
+
+            <!-- Cliq Memberships -->
+            <section class="cliq-memberships">
+                <h2 class="memberships-title">My Cliqs</h2>
+                <div class="cliq-list">
+                    <a href="#" class="cliq-card">
+                        <h4>Family Updates</h4>
+                        <p>Private cliq for family news and photos</p>
+                        <div class="cliq-meta">🔒 Private • 8 members</div>
+                    </a>
+                    <a href="#" class="cliq-card">
+                        <h4>Book Club</h4>
+                        <p>Monthly book discussions and recommendations</p>
+                        <div class="cliq-meta">👥 Semi-Private • 12 members</div>
+                    </a>
+                    <a href="#" class="cliq-card">
+                        <h4>Gardening Tips</h4>
+                        <p>Share garden photos and growing advice</p>
+                        <div class="cliq-meta">🌍 Public • 24 members</div>
+                    </a>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

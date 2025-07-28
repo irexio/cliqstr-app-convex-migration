@@ -1,27 +1,22 @@
-'use client';
-
 import React from 'react';
-import SidebarNav from '@/components/SidebarNav';
+import { InfoPageLayout } from '@/components/InfoPageLayout';
 
 export default function AboutPage() {
-  return (
-    <main className="bg-white text-black font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-8">
-          <aside>
-            <div className="sticky top-24">
-              <SidebarNav />
-            </div>
-          </aside>
+  const breadcrumbs = [
+    { label: 'Home', href: '/' },
+    { label: 'About' }
+  ];
 
-          <section className="space-y-12 max-w-4xl">
-            <div className="space-y-4">
-            <h1 className="info-page-title">About Cliqstr</h1>
-            <p className="info-page-subtitle max-w-2xl">
-              Cliqstr is a private, ad-free platform built for kids, families, and anyone seeking a more personal, intentional social experience.
-              We believe people of all ages deserve safe spaces to connect — without being tracked, targeted, or manipulated by algorithms.
-            </p>
-          </div>
+  return (
+    <InfoPageLayout 
+      breadcrumbs={breadcrumbs}
+      title="About Cliqstr"
+    >
+      <div className="space-y-8">
+        <p className="info-lead-text">
+          Cliqstr is a private, ad-free platform built for kids, families, and anyone seeking a more personal, intentional social experience.
+          We believe people of all ages deserve safe spaces to connect — without being tracked, targeted, or manipulated by algorithms.
+        </p>
 
           <div className="space-y-3">
             <h2 className="info-section-title">Why We Exist</h2>
@@ -58,9 +53,7 @@ export default function AboutPage() {
               Features will include VPN-based safeguards, content filtering, and parental controls that align with Cliqstr’s mission.
             </p>
           </div>
-          </section>
-        </div>
       </div>
-    </main>
+    </InfoPageLayout>
   );
 }

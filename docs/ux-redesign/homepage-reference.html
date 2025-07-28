@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliqstr - Modern Homepage</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: white;
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        /* Main App Container */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            min-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header Navigation */
+        .top-nav {
+            background: white;
+            padding: 16px 32px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover {
+            color: #000;
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        
+        .btn-outline {
+            border-color: #e1e5e9;
+            color: #666;
+        }
+        
+        .btn-primary {
+            background: #000;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Hero Section - Keep Your Existing Design */
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 80px 32px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            /* Keep your existing hero styling here */
+        }
+        
+        .hero h1 {
+            font-size: 56px;
+            font-weight: bold;
+            margin-bottom: 24px;
+            line-height: 1.1;
+        }
+        
+        .hero p {
+            font-size: 20px;
+            margin-bottom: 40px;
+            opacity: 0.9;
+            max-width: 600px;
+            line-height: 1.5;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .hero-btn {
+            padding: 16px 32px;
+            border-radius: 28px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .hero-btn-primary {
+            background: white;
+            color: #667eea;
+        }
+        
+        .hero-btn-secondary {
+            border-color: white;
+            color: white;
+        }
+        
+        .hero-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        /* Features Section */
+        .features {
+            background: white;
+            padding: 80px 32px;
+        }
+        
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .features h2 {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #000;
+        }
+        
+        .features p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 60px;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        
+        .feature-card {
+            text-align: left;
+            padding: 32px;
+            border: 1px solid #e1e5e9;
+            border-radius: 16px;
+            transition: all 0.3s;
+        }
+        
+        .feature-card:hover {
+            border-color: #000;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-size: 20px;
+            /* Use your existing icon styling/actual icons here */
+        }
+        
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #000;
+        }
+        
+        .feature-card p {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+        
+        /* CTA Section */
+        .cta {
+            background: #f8f9fa;
+            padding: 80px 32px;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #000;
+        }
+        
+        .cta p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 40px;
+        }
+        
+        .cta-button {
+            background: #000;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 28px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Footer */
+        .footer {
+            background: #1a1a1a;
+            color: white;
+            padding: 60px 32px 32px;
+            border-radius: 0 0 24px 24px;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .footer-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: white;
+        }
+        
+        .footer-section ul {
+            list-style: none;
+        }
+        
+        .footer-section a {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            line-height: 2;
+            transition: color 0.2s;
+        }
+        
+        .footer-section a:hover {
+            color: white;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .app-container {
+                border-radius: 16px;
+                min-height: calc(100vh - 20px);
+            }
+            
+            .top-nav {
+                padding: 12px 20px;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero {
+                padding: 60px 20px;
+            }
+            
+            .hero h1 {
+                font-size: 36px;
+            }
+            
+            .hero p {
+                font-size: 16px;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .features {
+                padding: 60px 20px;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .feature-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header Navigation -->
+        <nav class="top-nav">
+            <div class="logo">cliqstr</div>
+            <ul class="nav-links">
+                <li><a href="#">Explore Public Cliqs</a></li>
+                <li><a href="#">How It Works</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">FAQs</a></li>
+            </ul>
+            <div class="user-actions">
+                <a href="#" class="btn btn-outline">Join with Invite</a>
+                <a href="#" class="btn btn-outline">Sign In</a>
+                <a href="#" class="btn btn-primary">Sign Up</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>Finally, a Private Space Just for Your Cliqs</h1>
+            <p>Cliqstr is invite-only, ad-free, and safe for families, kids, and friends to connect.</p>
+            <div class="hero-buttons">
+                <a href="#" class="hero-btn hero-btn-primary">Try Cliqstr Free</a>
+                <a href="#" class="hero-btn hero-btn-secondary">Learn More</a>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features">
+            <div class="features-container">
+                <h2>Why Choose Cliqstr?</h2>
+                <p>Cliqstr gives you private, semi-private, and public spaces — with full control over who joins and what gets shared.</p>
+                
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h3>Private Cliqs</h3>
+                        <p>Only invited members can view and participate. Perfect for families, small groups, or kids-only zones.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">👥</div>
+                        <h3>Semi-Private Cliqs</h3>
+                        <p>Visible to others, but require a request to join. Ideal for celebrations, creative circles, or extended community.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🌍</div>
+                        <h3>Public Cliqs</h3>
+                        <p>Open for discovery — but never intrusive. You choose when to explore or join what's out there.</p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">⚙️</div>
+                        <h3>Control Your Experience</h3>
+                        <p>You decide who sees what. Your visibility, privacy, and feed are yours to manage — not some algorithm.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta">
+            <h2>Join Your Inner Circle</h2>
+            <p>Cliqstr was built for real relationships — not followers, not noise. Create your first cliq and invite only the people who truly matter.</p>
+            <a href="#" class="cta-button">Start Free Trial</a>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>cliqstr</h3>
+                    <p style="color: #ccc; font-size: 14px; line-height: 1.6;">Social media with privacy at its core. Connect with who matters, without the noise.</p>
+                    <p style="color: #666; font-size: 12px; margin-top: 16px;">🚀 Currently in Beta</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Product</h3>
+                    <ul>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">How It Works</a></li>
+                        <li><a href="#">Pricing</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Support</h3>
+                    <ul>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Privacy</a></li>
+                        <li><a href="#">Terms</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><a href="#">hello@cliqstr.com</a></li>
+                        <li><a href="#">@cliqstr</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                © 2025 Cliqstr. Built with 💜 for families and friends.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
