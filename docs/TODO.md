@@ -296,3 +296,36 @@ Based on recent commits and CLAUDE.md instructions, focusing on critical flow is
 - Build passes with all TypeScript errors resolved
 
 **Status**: Completed - Major architectural refactor successful
+
+---
+
+### Sidebar Navigation Fix (July 27, 2025)
+
+**Issue**: Sidebar navigation was not showing on information pages due to responsive design classes
+
+**Changes Implemented**:
+
+1. **Removed Responsive Hiding Classes**:
+   - Updated all 5 information pages (About, FAQs, How It Works, For Parents, Safety)
+   - Removed `hidden lg:block` classes from aside elements
+   - Sidebar now displays on all screen sizes instead of only on 1024px+ screens
+
+2. **Pages Updated**:
+   - `/about/page.tsx` - Sidebar now visible on all screens
+   - `/faqs/page.tsx` - Sidebar now visible on all screens
+   - `/how-it-works/page.tsx` - Sidebar now visible on all screens
+   - `/for-parents/page.tsx` - Sidebar now visible on all screens
+   - `/safety/page.tsx` - Sidebar now visible on all screens
+
+3. **No Changes to**:
+   - Terms of Service page (as requested, no sidebar)
+   - Privacy page (as requested, no sidebar)
+
+**Key Decisions**:
+- Made sidebar visible on all screen sizes for better navigation accessibility
+- Maintained existing SidebarNav component without modifications
+- Preserved all existing functionality and styling
+- Simple change focused on fixing visibility issue only
+
+**Session Started**: July 27, 2025
+**Status**: Completed - Sidebar navigation now visible on all screen sizes

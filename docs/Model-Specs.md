@@ -107,7 +107,7 @@ All users may post freely within any cliq they are a member of. There are no per
 | Cliq Type        | Who Can View Posts                           |
 |------------------|----------------------------------------------|
 | **Private Cliq** | Invite-only. Only approved members may view or post.  
-| **Semi-Private** | Access via invite or **approval by cliq admin**  
+| **Semi-Private** | Access via invite or may request to join allowed onl by **approval by cliq admin**  
 | **Public Cliq**  | Visible only to **approved cliq members** — even in public cliqs, full content is not open to non-members or global search.  
 
 > 🔐 **Note:** There is no global feed, trending feed, or directory. All access is explicitly governed by APA and user roles.

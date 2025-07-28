@@ -24,37 +24,39 @@ export default function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-2 text-sm font-medium">
-      {navLinks.map(({ href, label, icon: Icon }) => {
-        const isActive = pathname === href;
+    <nav className="bg-black rounded-lg p-4 h-fit">
+      <div className="space-y-1">
+        {navLinks.map(({ href, label, icon: Icon }) => {
+          const isActive = pathname === href;
 
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg transition-colors',
-              'bg-black text-white hover:text-[#c032d1]',
-              isActive && 'bg-black shadow-sm'
-            )}
-          >
-            <Icon
+          return (
+            <Link
+              key={href}
+              href={href}
               className={cn(
-                'h-5 w-5 flex-shrink-0 transition-colors',
-                isActive ? 'text-[#c032d1]' : 'text-white hover:text-[#c032d1]'
-              )}
-            />
-            <span
-              className={cn(
-                'transition-colors',
-                isActive ? 'text-[#c032d1] font-semibold' : 'text-white hover:text-[#c032d1]'
+                'flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-200',
+                'hover:bg-gray-800',
+                isActive && 'bg-gray-800'
               )}
             >
-              {label}
-            </span>
-          </Link>
-        );
-      })}
+              <Icon
+                className={cn(
+                  'h-5 w-5 flex-shrink-0',
+                  isActive ? 'text-[#c032d1]' : 'text-white'
+                )}
+              />
+              <span
+                className={cn(
+                  'text-sm',
+                  isActive ? 'text-[#c032d1] font-semibold' : 'text-white'
+                )}
+              >
+                {label}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }
