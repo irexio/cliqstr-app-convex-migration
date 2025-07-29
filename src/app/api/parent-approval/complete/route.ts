@@ -170,6 +170,7 @@ export async function POST(req: NextRequest) {
       await prisma.account.create({
         data: {
           userId: parentUser.id,
+          birthdate: new Date('1985-01-01'), // Default adult birthdate for parent accounts
           role: 'Parent',
           isApproved: true,
           plan: 'test', // Apply test plan automatically
