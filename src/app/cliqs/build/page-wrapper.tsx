@@ -9,10 +9,8 @@ export default async function BuildCliqPage() {
     redirect('/sign-in');
   }
   
-  // Check if user has a profile
-  if (!user.myProfile) {
-    redirect('/profile/create');
-  }
+  // Profile is optional for cliq creation - users can create cliqs without profiles
+  // They'll use default avatars and can complete their profile later
   
   return <BuildCliqClient />;
 }

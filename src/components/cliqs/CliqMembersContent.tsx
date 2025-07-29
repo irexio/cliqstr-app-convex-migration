@@ -1,15 +1,21 @@
 'use client';
 
+import { UserAvatar } from '@/components/ui/UserAvatar';
+
 // 🔐 APA-HARDENED — Cliq Members Client Component
 // Receives full members array as a prop — no fetchJson required
 // Fully detached from any legacy API routes
 
 interface Member {
   id: string;
-  profile: {
-    username: string;
+  account?: {
     role: string;
     isApproved: boolean;
+  };
+  myProfile?: {
+    username: string;
+    firstName?: string;
+    image?: string;
   };
 }
 
@@ -25,12 +31,20 @@ export default function CliqMembersContent({ members }: CliqMembersContentProps)
   return (
     <div className="space-y-4">
       {members.map((member) => (
-        <div key={member.id} className="p-4 border rounded-md">
-          <p className="font-semibold">Username: {member.profile.username}</p>
-          <p className="text-sm text-gray-600">Role: {member.profile.role}</p>
-          <p className="text-sm text-gray-600">
-            Approved: {member.profile.isApproved ? 'Yes' : 'No'}
-          </p>
+        <div key={member.id} className="flex items-center gap-4 p-4 border rounded-md">
+          <UserAvatar 
+            image={member.myProfile?.image}
+            name={member.myProfile?.username || member.myProfile?.firstName}
+            userId={member.id}
+            size="md"
+          />
+          <div className="flex-1">
+            <p className="font-semibold">{member.myProfile?.username || 'No Profile'}</p>
+            <p className="text-sm text-gray-600">Role: {member.account?.role || 'N/A'}</p>
+            <p className="text-sm text-gray-600">
+              Approved: {member.account?.isApproved ? 'Yes' : 'No'}
+            </p>
+          </div>
         </div>
       ))}
     </div>

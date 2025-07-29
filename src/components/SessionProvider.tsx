@@ -25,8 +25,8 @@ export default function SessionProvider({ children }: SessionProviderProps) {
         }
         if (res.ok) {
           const data = await res.json();
-          if (data.isAuthenticated && data.user?.profile?.role) {
-            setUserRole(data.user.profile.role);
+          if (data.isAuthenticated && data.user?.account?.role) {
+            setUserRole(data.user.account.role);
           }
           if (data.user?.account?.suspended) {
             setSuspended(true);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 interface PostCardBubbleProps {
   post: {
@@ -9,10 +10,11 @@ interface PostCardBubbleProps {
     image?: string;
     createdAt: string;
     author: {
-      profile: {
+      id?: string;
+      myProfile: {
         username: string;
         image?: string;
-      };
+      } | null;
     };
   };
 }
@@ -21,15 +23,22 @@ const emojiOptions = ['👍', '❤️', '😂', '😮', '🎉'];
 
 export default function PostCardBubble({ post }: PostCardBubbleProps) {
   const { content, image, createdAt, author } = post;
-  const { username, image: avatar } = author.profile;
+  const username = author.myProfile?.username || 'Unknown';
+  const avatar = author.myProfile?.image;
+  const hasProfile = author.myProfile !== null;
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
 
   return (
     <div className="flex gap-3 items-start px-4 py-3 bg-white rounded-xl shadow-sm border border-gray-200">
-      <img
-        src={avatar || '/avatar-placeholder.png'}
-        alt={username}
-        className="w-10 h-10 rounded-full object-cover border border-gray-300"
+      <UserAvatar 
+        image={avatar}
+        name={username}
+        userId={author.id}
+        username={username}
+        hasProfile={hasProfile}
+        size="md"
+        className="border border-gray-300"
+        clickable={true}
       />
       <div className="flex flex-col">
         <div className="text-sm font-semibold text-gray-900">{username}</div>

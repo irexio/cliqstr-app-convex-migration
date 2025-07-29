@@ -66,6 +66,7 @@ model ChildSettings {
   id                     String    @id @default(cuid())
   profileId              String    @unique
   canCreatePublicCliqs   Boolean   @default(false)
+  canJoinPublicCliqs     Boolean   @default(false)  // APA-safe: Parent controls child's public cliq access
   canSendInvites         Boolean   @default(false)
   isSilentlyMonitored    Boolean   @default(true)
   aiModerationLevel      String?
@@ -102,12 +103,28 @@ model Cliq {
   deletedAt      DateTime?
   coverImage     String?
   privacy        String          @default("private")
+  minAge         Int?            // Optional minimum age for joining (APA-safe age gating)
+  maxAge         Int?            // Optional maximum age for joining (APA-safe age gating)
   owner          User            @relation("CliqOwner", fields: [ownerId], references: [id])
   invites        Invite[]        @relation("CliqInvites")
   inviteRequests InviteRequest[] @relation("CliqInviteRequests")
   memberships    Membership[]
   posts          Post[]
   redAlerts      RedAlert[]
+  notices        CliqNotice[]  // Notice banners for this cliq
+}
+
+model CliqNotice {
+  id        String    @id @default(cuid())
+  cliqId    String
+  type      String    // birthday, admin, red_alert_open, red_alert_resolved
+  content   String    // message to display
+  createdAt DateTime  @default(now())
+  expiresAt DateTime? // auto-dismissal for birthday/resolved alerts
+  cliq      Cliq      @relation(fields: [cliqId], references: [id], onDelete: Cascade)
+
+  @@index([cliqId])
+  @@index([expiresAt])
 }
 
 model Post {

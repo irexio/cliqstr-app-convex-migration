@@ -17,10 +17,6 @@ import { NextResponse } from 'next/server';
 type User = {
   id: string;
   email?: string;
-  profile?: {
-    role?: string;
-    isApproved?: boolean;
-  };
   account?: {
     role?: string;
     isApproved?: boolean;
@@ -37,9 +33,9 @@ export function enforceAPA(user: User | null): NextResponse | null {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Check if user is an unapproved child
-  const role = user.profile?.role || user.account?.role;
-  const isApproved = user.profile?.isApproved ?? user.account?.isApproved ?? false;
+  // Check if user is an unapproved child - APA uses Account data ONLY
+  const role = user.account?.role;
+  const isApproved = user.account?.isApproved ?? false;
 
   if (role?.toLowerCase() === 'child' && !isApproved) {
     console.log('🚫 APA enforcement: Child not approved', { userId: user.id, email: user.email });

@@ -6,14 +6,20 @@ import React, { useEffect, useState } from 'react';
 import { fetchJson } from '@/lib/fetchJson';
 import PostCardBubble from '@/components/PostCardBubble';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { CliqFeedProfileNudge } from '@/components/ui/ProfileNudge';
 
 interface Profile {
-  username?: string;
-  image?: string; // avatar image URL for feed bubbles
+  username?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  about?: string | null;
+  image?: string | null;
+  bannerImage?: string | null;
 }
 
 interface User {
-  profile?: Profile;
+  id?: string;
+  myProfile?: Profile;
 }
 
 interface Reply {
@@ -40,18 +46,20 @@ interface FormattedPost {
   image?: string;
   createdAt: string;
   author: {
-    profile: {
+    id?: string;
+    myProfile: {
       username: string;
       image?: string;
-    };
+    } | null;
   };
 }
 
 interface FeedProps {
   cliqId: string;
+  currentUserProfile?: Profile | null;
 }
 
-export default function CliqFeed({ cliqId }: FeedProps) {
+export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
@@ -146,6 +154,9 @@ export default function CliqFeed({ cliqId }: FeedProps) {
         </form>
       </section>
       
+      {/* Gentle profile encouragement for better engagement */}
+      <CliqFeedProfileNudge profile={currentUserProfile || null} />
+      
       {loading && <div className="text-center py-4">Loading feed...</div>}
       {error && <div className="text-red-600 text-center py-2">{error}</div>}
       
@@ -159,10 +170,11 @@ export default function CliqFeed({ cliqId }: FeedProps) {
             image: post.image,
             createdAt: post.createdAt,
             author: {
-              profile: {
-                username: post.author?.profile?.username || 'Unknown',
-                image: post.author?.profile?.image
-              }
+              id: post.author?.id,
+              myProfile: post.author?.myProfile ? {
+                username: post.author.myProfile.username || 'Unknown',
+                image: post.author.myProfile.image || undefined
+              } : null
             }
           };
           
@@ -179,10 +191,11 @@ export default function CliqFeed({ cliqId }: FeedProps) {
                       content: reply.content,
                       createdAt: reply.createdAt,
                       author: {
-                        profile: {
-                          username: reply.author?.profile?.username || 'Unknown',
-                          image: reply.author?.profile?.image
-                        }
+                        id: reply.author?.id,
+                        myProfile: reply.author?.myProfile ? {
+                          username: reply.author.myProfile.username || 'Unknown',
+                          image: reply.author.myProfile.image || undefined
+                        } : null
                       }
                     };
                     

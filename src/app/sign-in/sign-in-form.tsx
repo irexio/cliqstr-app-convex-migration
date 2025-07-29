@@ -136,17 +136,17 @@ export default function SignInForm() {
       console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
 
       const account = userData?.user?.account || user.account;
-      const profile = userData?.user?.profile || user.profile;
+      const profile = userData?.user?.myProfile || user.myProfile;
 
       console.log('🔍 User state:', {
         hasProfile: !!profile,
         hasAccount: !!account,
-        role: profile?.role,
+        role: account?.role,
         plan: account?.stripeStatus,
       });
 
       // 🚫 Block unapproved children
-      if (profile?.role === 'Child' && !profile.isApproved) {
+      if (account?.role === 'Child' && !account.isApproved) {
         console.log('Redirecting unapproved child to approval-pending page');
         router.push('/approval-pending');
         return;
@@ -167,7 +167,7 @@ export default function SignInForm() {
         return;
       }
 
-      console.log(`✅ User signed in: ${profile.role}, profile.isApproved: ${profile.isApproved}, account.isApproved: ${account?.isApproved}, plan: ${account?.plan || 'none'}`);
+      console.log(`✅ User signed in: ${account?.role}, account.isApproved: ${account?.isApproved}, plan: ${account?.plan || 'none'}`);
 
       // Check if this is a parent coming from approval email
       const parentApprovalContext = sessionStorage.getItem('parentApprovalContext');

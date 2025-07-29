@@ -96,7 +96,7 @@ Based on extensive parent interviews:
 - 🔐 Secure authentication and sessions
 - 🚫 No contact with non-connected users
 - 📍 No location sharing or tracking
-- 🎂 Age verification and appropriate content
+- 🎂 Age verification using immutable Account.birthdate (not editable Profile.birthdate)
 
 ### Parent-Configurable
 - 👥 Who can send invites to their child

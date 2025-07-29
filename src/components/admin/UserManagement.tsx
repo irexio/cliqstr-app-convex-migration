@@ -5,12 +5,15 @@ import { useState, useEffect } from 'react';
 interface User {
   id: string;
   email: string;
-  profile?: {
+  account?: {
     id: string;
     role: string;
-    username: string;
     plan: string | null;
     isApproved: boolean;
+  };
+  myProfile?: {
+    id: string;
+    username: string;
   };
   createdAt: string;
 }
@@ -34,60 +37,75 @@ export default function UserManagement() {
           {
             id: '1',
             email: 'admin@example.com',
-            profile: {
+            account: {
               id: '101',
               role: 'Admin',
-              username: 'AdminUser',
               plan: 'premium',
               isApproved: true
+            },
+            myProfile: {
+              id: '101',
+              username: 'AdminUser'
             },
             createdAt: '2023-04-01T10:00:00Z'
           },
           {
             id: '2',
             email: 'parent@example.com',
-            profile: {
+            account: {
               id: '102',
               role: 'Parent',
-              username: 'ParentUser',
               plan: 'family',
               isApproved: true
+            },
+            myProfile: {
+              id: '102',
+              username: 'ParentUser'
             },
             createdAt: '2023-04-05T10:00:00Z'
           },
           {
             id: '3',
             email: 'child@example.com',
-            profile: {
+            account: {
               id: '103',
               role: 'Child',
-              username: 'ChildUser',
               plan: null,
               isApproved: false
+            },
+            myProfile: {
+              id: '103',
+              username: 'ChildUser'
             },
             createdAt: '2023-04-10T10:00:00Z'
           },
           {
             id: '4',
             email: 'adult@example.com',
-            profile: {
+            account: {
               id: '104',
               role: 'Adult',
-              username: 'AdultUser',
               plan: 'basic',
               isApproved: true
+            },
+            myProfile: {
+              id: '104',
+              username: 'AdultUser'
             },
             createdAt: '2023-04-15T10:00:00Z'
           },
           {
             id: '5',
             email: 'tester@example.com',
-            profile: {
+            account: {
               id: '105',
               role: 'Adult',
-              username: 'TesterUser',
               plan: 'test',
               isApproved: true
+            },
+            myProfile: {
+              id: '105',
+              username: 'TesterUser'
             },
             createdAt: '2023-05-01T10:00:00Z'
           }
@@ -108,7 +126,7 @@ export default function UserManagement() {
   // Filter users by role
   const filteredUsers = roleFilter === 'All'
     ? users
-    : users.filter(user => user.profile?.role === roleFilter);
+    : users.filter(user => user.account?.role === roleFilter);
 
   // Handle password reset email sending
   const handlePasswordReset = async (userId: string, email: string) => {
@@ -156,11 +174,11 @@ export default function UserManagement() {
       // Mock success - update local state to reflect the change
       if (action === 'approve') {
         setUsers(users.map(user => {
-          if (user.id === userId && user.profile) {
+          if (user.id === userId && user.account) {
             return {
               ...user, 
-              profile: {
-                ...user.profile,
+              account: {
+                ...user.account,
                 isApproved: true
               }
             };
@@ -195,7 +213,7 @@ export default function UserManagement() {
       console.log('Removing all test plan users');
       
       // Mock success - update local state
-      setUsers(users.filter(user => user.profile?.plan !== 'test'));
+      setUsers(users.filter(user => user.account?.plan !== 'test'));
       
     } catch (err) {
       console.error('Error removing test plan users:', err);
@@ -276,21 +294,21 @@ export default function UserManagement() {
               filteredUsers.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="p-3">
-                    <span className="font-medium">{user.profile?.username || 'No Profile'}</span>
+                    <span className="font-medium">{user.myProfile?.username || 'No Profile'}</span>
                   </td>
                   <td className="p-3">{user.email}</td>
-                  <td className="p-3">{user.profile?.role || 'N/A'}</td>
+                  <td className="p-3">{user.account?.role || 'N/A'}</td>
                   <td className="p-3">
-                    {user.profile?.plan ? (
-                      <span className={`${user.profile.plan === 'test' ? 'text-orange-600' : ''}`}>
-                        {user.profile.plan.charAt(0).toUpperCase() + user.profile.plan.slice(1)}
+                    {user.account?.plan ? (
+                      <span className={`${user.account.plan === 'test' ? 'text-orange-600' : ''}`}>
+                        {user.account.plan.charAt(0).toUpperCase() + user.account.plan.slice(1)}
                       </span>
                     ) : (
                       <span className="text-gray-400">None</span>
                     )}
                   </td>
                   <td className="p-3">
-                    {user.profile?.isApproved ? (
+                    {user.account?.isApproved ? (
                       <span className="text-green-600">Approved</span>
                     ) : (
                       <span className="text-orange-600">Pending</span>
@@ -311,7 +329,7 @@ export default function UserManagement() {
                         {passwordResetLoading === user.id ? '...' : '🔐 Reset'}
                       </button>
                       
-                      {!user.profile?.isApproved && (
+                      {!user.account?.isApproved && (
                         <button
                           onClick={() => handleUserAction(user.id, 'approve')}
                           disabled={actionLoading === user.id}

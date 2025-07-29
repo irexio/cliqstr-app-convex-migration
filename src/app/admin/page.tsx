@@ -59,7 +59,7 @@ export default function AdminDashboard() {
         }
 
         // If authenticated but not admin, redirect to not authorized
-        if (data.user?.profile?.role !== 'Admin') {
+        if (data.user?.account?.role !== 'Admin') {
           router.push('/not-authorized');
           return;
         }
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
       if (authCheckRes.ok) {
         const authData = await authCheckRes.json();
         
-        if (authData.user?.profile?.role !== 'Admin') {
+        if (authData.user?.account?.role !== 'Admin') {
           setError('You do not have admin privileges');
           return;
         }

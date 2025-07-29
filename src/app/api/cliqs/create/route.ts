@@ -33,6 +33,8 @@ const schema = z.object({
   description: z.string().optional(),
   privacy: z.enum(['private', 'semi', 'public']),
   coverImage: z.string().url().optional().or(z.literal('')),
+  minAge: z.number().int().min(1).max(100).optional().nullable(),
+  maxAge: z.number().int().min(1).max(100).optional().nullable(),
 });
 
 export async function POST(req: NextRequest) {
@@ -67,7 +69,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
     }
 
-    const { name, description, privacy, coverImage } = parsed.data;
+    const { name, description, privacy, coverImage, minAge, maxAge } = parsed.data;
+
+    // Validate age range if both are provided
+    if (minAge && maxAge && minAge >= maxAge) {
+      return NextResponse.json({ 
+        error: 'Minimum age must be less than maximum age' 
+      }, { status: 400 });
+    }
 
     // Check child permission for public cliqs
     if (user.role === 'Child' && privacy === 'public') {
@@ -98,6 +107,8 @@ export async function POST(req: NextRequest) {
         description,
         privacy: finalPrivacy,
         coverImage: finalCoverImage,
+        minAge: minAge || null,
+        maxAge: maxAge || null,
         ownerId: user.id,
         memberships: {
           create: {

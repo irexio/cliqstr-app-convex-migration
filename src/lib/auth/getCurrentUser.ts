@@ -69,6 +69,7 @@ export async function getCurrentUser() {
             plan: true,
             stripeCustomerId: true,
             suspended: true,
+            birthdate: true, // APA-safe: Immutable birthdate for age verification
           },
         },
       },

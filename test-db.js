@@ -8,22 +8,22 @@ async function checkDatabase() {
     console.log('Total users:', userCount);
     
     // Count profiles
-    const profileCount = await prisma.profile.count();
-    console.log('Total profiles:', profileCount);
+    const profileCount = await prisma.myProfile.count();
+    console.log('Total myProfiles:', profileCount);
     
     // Get first user if exists
     if (userCount > 0) {
       const firstUser = await prisma.user.findFirst({
         include: {
-          profile: true,
+          myProfile: true,
           account: true
         }
       });
       console.log('\nFirst user:', {
         id: firstUser.id,
         email: firstUser.email,
-        hasProfile: !!firstUser.profile,
-        profileUsername: firstUser.profile?.username,
+        hasMyProfile: !!firstUser.myProfile,
+        profileUsername: firstUser.myProfile?.username,
         accountRole: firstUser.account?.role,
         accountApproved: firstUser.account?.isApproved
       });
