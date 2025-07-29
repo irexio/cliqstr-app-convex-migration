@@ -61,6 +61,7 @@ export async function verifyAccount({ userId, method, metadata = {} }: VerifyAcc
       updatedAccount = await prisma.account.create({
         data: {
           userId,
+          birthdate: profile.birthdate || new Date('1990-01-01'), // Use profile birthdate or default
           role,
           isApproved: true,
           stripeStatus: method === 'credit_card' ? 'verified_by_payment' : 

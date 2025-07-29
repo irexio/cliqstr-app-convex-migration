@@ -47,6 +47,7 @@ export async function POST(req: Request) {
           update: { isApproved: true },
           create: {
             userId: user.id,
+            birthdate: new Date('1990-01-01'), // Default adult birthdate for test accounts
             role: 'Adult',
             isApproved: true,
             plan: 'test'
