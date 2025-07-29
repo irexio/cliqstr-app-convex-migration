@@ -1,12 +1,9 @@
-import { generateReactHelpers } from "@uploadthing/react";
-import { generateUploadButton, generateUploadDropzone } from "@uploadthing/react";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
+import { generateReactHelpers } from '@uploadthing/react';
+import { generateUploadButton, generateUploadDropzone } from '@uploadthing/react';
+import type { OurFileRouter } from '@/app/api/uploadthing/core';
 
-// Configure UploadThing helpers - Fixed version without global fetch override
-export const { uploadFiles, useUploadThing } =
-  generateReactHelpers<OurFileRouter>({
-    url: "/api/uploadthing"
-  });
+// ✅ APA-Safe: Standard UploadThing setup using secret-based mode (no manual tokens)
+export const { useUploadThing, uploadFiles } = generateReactHelpers<OurFileRouter>();
 
 export const UploadButton = generateUploadButton<OurFileRouter>();
 export const UploadDropzone = generateUploadDropzone<OurFileRouter>();

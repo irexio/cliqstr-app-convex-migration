@@ -1,56 +1,30 @@
 // app/api/uploadthing/core.ts
 
-import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { createUploadthing, type FileRouter } from 'uploadthing/next';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  avatar: f({ image: { maxFileSize: "1MB" } })
-    .middleware(async ({ req }) => {
-      console.log('[UPLOADTHING] Avatar upload middleware starting');
-      console.log('[UPLOADTHING] Request headers:', req.headers);
-      
-      try {
-        const user = await getCurrentUser();
-        if (!user) {
-          console.error('[UPLOADTHING] No authenticated user found');
-          throw new Error('Not authenticated');
-        }
-        console.log('[UPLOADTHING] User authenticated:', user.id);
-        return { userId: user.id };
-      } catch (error) {
-        console.error('[UPLOADTHING] Middleware error:', error);
-        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
+  avatar: f({ image: { maxFileSize: '1MB' } })
+    .middleware(async () => {
+      const user = await getCurrentUser();
+      if (!user) throw new Error('Unauthorized');
+      return { userId: user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
-      console.log("[UPLOADTHING] Avatar upload complete for userId:", metadata.userId);
-      console.log("[UPLOADTHING] Avatar file url:", file.url);
+    .onUploadComplete(async ({ file, metadata }) => {
+      console.log('✅ Avatar uploaded:', file.url);
       return { uploadedBy: metadata.userId, url: file.url };
     }),
 
-  banner: f({ image: { maxFileSize: "4MB" } })
-    .middleware(async ({ req }) => {
-      console.log('[UPLOADTHING] Banner upload middleware starting');
-      console.log('[UPLOADTHING] Request headers:', req.headers);
-      
-      try {
-        const user = await getCurrentUser();
-        if (!user) {
-          console.error('[UPLOADTHING] No authenticated user found');
-          throw new Error('Not authenticated');
-        }
-        console.log('[UPLOADTHING] User authenticated:', user.id);
-        return { userId: user.id };
-      } catch (error) {
-        console.error('[UPLOADTHING] Middleware error:', error);
-        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      }
+  banner: f({ image: { maxFileSize: '4MB' } })
+    .middleware(async () => {
+      const user = await getCurrentUser();
+      if (!user) throw new Error('Unauthorized');
+      return { userId: user.id };
     })
-    .onUploadComplete(async ({ metadata, file }) => {
-      console.log("[UPLOADTHING] Banner upload complete for userId:", metadata.userId);
-      console.log("[UPLOADTHING] Banner file url:", file.url);
+    .onUploadComplete(async ({ file, metadata }) => {
+      console.log('✅ Banner uploaded:', file.url);
       return { uploadedBy: metadata.userId, url: file.url };
     }),
 
