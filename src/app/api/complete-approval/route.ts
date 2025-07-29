@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     // ✅ Get profile and its userId
     const childProfile = await prisma.myProfile.findUnique({
       where: { id: childId },
-      select: { userId: true }
+      select: { userId: true, birthdate: true }
     });
     
     if (!childProfile) {
@@ -103,6 +103,7 @@ export async function POST(req: Request) {
       await prisma.account.create({
         data: {
           userId: childProfile.userId,
+          birthdate: childProfile.birthdate || new Date('2010-01-01'), // Use child's actual birthdate
           role: 'Child',
           isApproved: plan === 'ebt' ? false : true, // APA: manual approval for EBT
           stripeStatus: plan, // 'free', 'paid', or 'ebt'
