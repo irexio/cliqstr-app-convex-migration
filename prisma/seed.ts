@@ -41,6 +41,7 @@ async function main() {
     await prisma.account.create({
       data: {
         userId: user.id,
+        birthdate: new Date('1985-01-01'), // Admin seed birthdate
         role: 'Parent',
         isApproved: true,
         stripeStatus: 'active',
