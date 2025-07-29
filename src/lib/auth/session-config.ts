@@ -7,7 +7,7 @@ export const sessionOptions: SessionOptions = {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 30 * 60, // 30 minutes
+    maxAge: 7 * 24 * 60 * 60, // 7 days
     path: '/',
   },
 };

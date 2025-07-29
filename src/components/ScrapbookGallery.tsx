@@ -58,6 +58,12 @@ export default function ScrapbookGallery({
     if (!tempImageUrl) return;
 
     try {
+      console.log('[SCRAPBOOK] Saving item with data:', {
+        profileId: userId,
+        imageUrl: tempImageUrl,
+        caption,
+      });
+      
       const response = await fetch('/api/scrapbook/add', {
         method: 'POST',
         headers: {
@@ -72,8 +78,13 @@ export default function ScrapbookGallery({
 
       if (!response.ok) {
         const error = await response.json();
+        console.error('[SCRAPBOOK] API Error:', error);
+        console.error('[SCRAPBOOK] Response status:', response.status);
         throw new Error(error.error || 'Failed to save item');
       }
+      
+      const result = await response.json();
+      console.log('[SCRAPBOOK] Save successful:', result);
 
       // Reset the form
       setTempImageUrl(null);

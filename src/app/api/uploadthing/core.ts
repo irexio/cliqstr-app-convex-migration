@@ -11,13 +11,18 @@ export const ourFileRouter = {
       console.log('[UPLOADTHING] Avatar upload middleware starting');
       console.log('[UPLOADTHING] Request headers:', req.headers);
       
-      const user = await getCurrentUser();
-      if (!user) {
-        console.error('[UPLOADTHING] No authenticated user found');
-        throw new Error('Not authenticated');
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          console.error('[UPLOADTHING] No authenticated user found');
+          throw new Error('Not authenticated');
+        }
+        console.log('[UPLOADTHING] User authenticated:', user.id);
+        return { userId: user.id };
+      } catch (error) {
+        console.error('[UPLOADTHING] Middleware error:', error);
+        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-      console.log('[UPLOADTHING] User authenticated:', user.id);
-      return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("[UPLOADTHING] Avatar upload complete for userId:", metadata.userId);
@@ -30,13 +35,18 @@ export const ourFileRouter = {
       console.log('[UPLOADTHING] Banner upload middleware starting');
       console.log('[UPLOADTHING] Request headers:', req.headers);
       
-      const user = await getCurrentUser();
-      if (!user) {
-        console.error('[UPLOADTHING] No authenticated user found');
-        throw new Error('Not authenticated');
+      try {
+        const user = await getCurrentUser();
+        if (!user) {
+          console.error('[UPLOADTHING] No authenticated user found');
+          throw new Error('Not authenticated');
+        }
+        console.log('[UPLOADTHING] User authenticated:', user.id);
+        return { userId: user.id };
+      } catch (error) {
+        console.error('[UPLOADTHING] Middleware error:', error);
+        throw new Error(`Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-      console.log('[UPLOADTHING] User authenticated:', user.id);
-      return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("[UPLOADTHING] Banner upload complete for userId:", metadata.userId);

@@ -37,10 +37,11 @@ export async function getCurrentUser() {
       return null;
     }
 
-    // Check session age (30 min timeout)
+    // Check session age (4 hour timeout for development, 30 min for production)
+    const timeoutMinutes = process.env.NODE_ENV === 'production' ? 30 : 240; // 4 hours in dev
     const sessionAge = Date.now() - session.createdAt;
-    if (sessionAge > 30 * 60 * 1000) {
-      console.log('[APA] Session expired');
+    if (sessionAge > timeoutMinutes * 60 * 1000) {
+      console.log(`[APA] Session expired after ${Math.round(sessionAge / (60 * 1000))} minutes`);
       // Note: We can't destroy the session here in Server Components
       // The session will be invalid on next request
       return null;

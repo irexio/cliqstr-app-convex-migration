@@ -40,7 +40,7 @@ export default function RootLayout({
           <div className="app-container flex flex-col min-h-screen bg-white">
             <Header />
             <PlanBanner />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pb-5">{children}</main>
             <Footer />
           </div>
         </SessionProvider>

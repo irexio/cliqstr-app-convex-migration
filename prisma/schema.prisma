@@ -81,6 +81,7 @@ model ChildSettings {
 model Account {
   id               String   @id @default(cuid())
   userId           String   @unique
+  birthdate        DateTime // Immutable birthdate for APA age verification
   role             String
   isApproved       Boolean  @default(false)
   stripeStatus     String?

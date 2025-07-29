@@ -27,13 +27,13 @@ export default async function ProfilePageServer({ username }: { username: string
     },
   });
 
-  if (!profile || !profile.user?.id) return notFound();
+  if (!profile) return notFound();
   
   // APA-compliant access control: Check if users share at least one cliq
   // Skip this check if the user is viewing their own profile
-  if (profile.user.id !== currentUser.id) {
+  if (profile.userId !== currentUser.id) {
     try {
-      const hasSharedCliq = await checkSharedCliqMembership(currentUser.id, profile.user.id);
+      const hasSharedCliq = await checkSharedCliqMembership(currentUser.id, profile.userId);
       if (!hasSharedCliq) {
         // Users don't share any cliqs, so they shouldn't see each other's profiles
         return notFound();
@@ -44,7 +44,7 @@ export default async function ProfilePageServer({ username }: { username: string
     }
   }
 
-  const isOwner = profile.user.id === currentUser.id;
+  const isOwner = profile.userId === currentUser.id;
   
   // Fetch scrapbook items (only valid ones - not expired unless pinned)
   const ninetyDaysAgo = new Date();
@@ -74,7 +74,11 @@ export default async function ProfilePageServer({ username }: { username: string
     bannerUrl: profile.bannerImage || undefined,
     isOwner,
     canViewGallery: true, // Since they share a cliq, they can view the gallery
+    showYear: profile.showYear || false,
     galleryLayoutStyle: 'inline' as const,
+    // Include Account data for age verification (optional for backward compatibility)
+    accountBirthdate: undefined, // Will be populated when Account.birthdate is set during signup
+    accountRole: undefined,
   };
 
   return (

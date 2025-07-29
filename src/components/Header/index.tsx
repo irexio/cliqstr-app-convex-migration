@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 import DesktopNav from './DesktopNav';
-import UserDropdown from './UserDropdown';
 import MobileMenu from './MobileMenu';
 import InviteCodeModal from '../InviteCodeModal';
 
@@ -35,6 +34,7 @@ export function HeaderComponent() {
   const [lastActivity, setLastActivity] = useState(Date.now());
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isMobile, setIsMobile] = useState(true); // Default to mobile for SSR
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   // Custom mobile detection
   useEffect(() => {
@@ -254,7 +254,60 @@ export function HeaderComponent() {
           {!isMobile && (
             <div className="flex items-center gap-4 text-sm">
             {isLoggedIn ? (
-              <UserDropdown userData={userData} handleSignOut={handleSignOut} />
+              <div className="relative">
+                <button 
+                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                  className="relative"
+                  aria-label="Account menu"
+                >
+                  <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">
+                    {(userData?.name || userData?.email || 'U').substring(0, 2).toUpperCase()}
+                  </div>
+                </button>
+                
+                {isUserMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium">{userData?.name || userData?.email?.split('@')[0] || 'User'}</p>
+                      <p className="text-sm text-gray-500 capitalize">Role: {userData?.role}</p>
+                      {userData?.account?.plan && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          Plan: <span className="font-medium capitalize">{userData.account.plan}</span>
+                        </p>
+                      )}
+                    </div>
+                    
+                    <Link 
+                      href={`/profile/${userData?.myProfile?.username || userData?.id}`} 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Your Profile
+                    </Link>
+                    
+                    <Link 
+                      href="/account" 
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      Account Settings
+                    </Link>
+                    
+                    <div className="border-t border-gray-100 mt-1">
+                      <button 
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsUserMenuOpen(false);
+                          handleSignOut();
+                        }}
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <>
                 <button

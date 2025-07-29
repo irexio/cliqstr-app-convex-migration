@@ -79,7 +79,7 @@ export default function SetUpProfileClient({
     setError('');
 
     try {
-      const url = isEdit ? '/api/profile/edit' : '/sign-up/invite';
+      const url = isEdit ? '/api/profile/update' : '/sign-up/invite';
 
       const body = {
         userId,
