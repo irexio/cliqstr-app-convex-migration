@@ -93,6 +93,7 @@ export async function POST(req: Request) {
       account = await prisma.account.create({
         data: {
           userId: user.id,
+          birthdate: new Date('1990-01-01'), // Default adult birthdate for plan accounts
           role: user.account?.role || 'Adult', // Default to Adult if no role specified
           isApproved,
           plan: planToSave,
