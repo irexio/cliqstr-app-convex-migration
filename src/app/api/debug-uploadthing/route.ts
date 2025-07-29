@@ -5,19 +5,17 @@ export async function GET() {
     console.log('🔍 Checking UploadThing environment variables...');
     
     const hasSecret = !!process.env.UPLOADTHING_SECRET;
-    const hasToken = !!process.env.UPLOADTHING_TOKEN;
     const hasAppId = !!process.env.UPLOADTHING_APP_ID;
     
     console.log('Environment check:');
     console.log('- UPLOADTHING_SECRET present:', hasSecret);
-    console.log('- UPLOADTHING_TOKEN present:', hasToken);
     console.log('- UPLOADTHING_APP_ID present:', hasAppId);
+    console.log('✅ Using secret-based mode (no token needed)');
     
     return NextResponse.json({
       success: true,
       environment: {
         hasSecret,
-        hasToken,
         hasAppId,
         nodeEnv: process.env.NODE_ENV,
         vercelEnv: process.env.VERCEL_ENV || 'local'
