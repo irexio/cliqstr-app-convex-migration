@@ -103,6 +103,7 @@ export async function POST(req: Request) {
     await prisma.account.create({
       data: {
         userId: newUser.id,
+        birthdate: new Date(birthdate), // CRITICAL: Use actual user birthdate for age verification
         role: invitedRole ?? (isChild ? 'Child' : 'Adult'),
         isApproved: !isChild,
       },

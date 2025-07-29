@@ -33,6 +33,7 @@ async function approveUser() {
       await prisma.account.create({
         data: {
           userId: user.id,
+          birthdate: new Date('1990-01-01'), // Default admin-approved user birthdate
           role: 'Parent',
           isApproved: true,
           stripeStatus: 'verified',

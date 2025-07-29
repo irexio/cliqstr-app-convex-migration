@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
       await prisma.account.create({
         data: {
           userId: childUser.id,
+          birthdate: childBirthdate, // Use calculated birthdate from invite
           role: 'Child',
           isApproved: false, // Will be set to true later
         },
