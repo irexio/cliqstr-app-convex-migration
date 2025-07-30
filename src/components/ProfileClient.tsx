@@ -330,10 +330,12 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
               e.preventDefault();
               const formData = new FormData(e.currentTarget);
               const bioValue = formData.get('bio') as string;
+              const birthdateValue = formData.get('birthdate') as string;
               const showYearValue = formData.get('showYear') === 'on';
               
               handleProfileUpdate({
                 about: bioValue,
+                birthdate: birthdateValue,
                 showYear: showYearValue,
               });
             }}>
@@ -347,6 +349,17 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-black"
                     placeholder="Tell us about yourself..."
                   />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Birthday (Social Display)</label>
+                  <input
+                    type="date"
+                    name="birthdate"
+                    defaultValue={profileData.birthdate}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-black"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">This is for social display only. Your account birthdate for age verification cannot be changed.</p>
                 </div>
                 
                 <div className="flex items-center">
