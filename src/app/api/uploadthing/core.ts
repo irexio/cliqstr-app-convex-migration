@@ -37,6 +37,7 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Post image upload complete for userId:", metadata.userId);
       console.log("Post image file url:", file.url);
+      return { uploadedBy: metadata.userId, url: file.url };
     }),
 
   cliqBanner: f({ image: { maxFileSize: "4MB" } })
@@ -48,6 +49,7 @@ export const ourFileRouter = {
     .onUploadComplete(async ({ metadata, file }) => {
       console.log("Cliq banner upload complete for userId:", metadata.userId);
       console.log("Cliq banner file url:", file.url);
+      return { uploadedBy: metadata.userId, url: file.url };
     }),
 } satisfies FileRouter;
 
