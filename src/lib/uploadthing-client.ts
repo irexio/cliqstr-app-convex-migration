@@ -2,8 +2,12 @@ import { generateReactHelpers } from '@uploadthing/react';
 import { generateUploadButton, generateUploadDropzone } from '@uploadthing/react';
 import type { OurFileRouter } from '@/app/api/uploadthing/core';
 
-// ✅ APA-Safe: Simple configuration - let UploadThing auto-detect the endpoint
-export const { useUploadThing, uploadFiles } = generateReactHelpers<OurFileRouter>();
+// ✅ APA-Safe: Explicit endpoint configuration for production
+const config = {
+  url: '/api/uploadthing',
+};
 
-export const UploadButton = generateUploadButton<OurFileRouter>();
-export const UploadDropzone = generateUploadDropzone<OurFileRouter>();
+export const { useUploadThing, uploadFiles } = generateReactHelpers<OurFileRouter>(config);
+
+export const UploadButton = generateUploadButton<OurFileRouter>(config);
+export const UploadDropzone = generateUploadDropzone<OurFileRouter>(config);
