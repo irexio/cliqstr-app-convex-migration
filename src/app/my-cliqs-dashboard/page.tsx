@@ -131,10 +131,7 @@ export default async function MyCliqsDashboardPage() {
           </div>
         </div>
 
-        {/* Profile Nudge - Smart encouragement without blocking */}
-        <DashboardProfileNudge profile={user.myProfile} />
-
-      {/* Empty State Content */}
+      {/* Cliq Cards - Priority content at top */}
       {!hasCliqs ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-lg border border-gray-200 shadow-sm">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -168,6 +165,9 @@ export default async function MyCliqsDashboardPage() {
           ))}
         </div>
       )}
+
+      {/* Profile Nudge - Below cliq cards for better UX flow */}
+      {hasCliqs && <DashboardProfileNudge profile={user.myProfile} />}
       </div>
     </div>
   );

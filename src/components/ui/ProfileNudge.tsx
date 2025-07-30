@@ -38,16 +38,9 @@ export function ProfileNudge({
     return null;
   }
 
-  // Priority-based styling
+  // Simple black and white styling (keeping color only on button and progress)
   const getPriorityStyles = () => {
-    switch (nudge.priority) {
-      case 'high':
-        return 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 dark:from-blue-950/20 dark:to-purple-950/20 dark:border-blue-800';
-      case 'medium':
-        return 'bg-gradient-to-r from-green-50 to-blue-50 border-green-200 dark:from-green-950/20 dark:to-blue-950/20 dark:border-green-800';
-      case 'low':
-        return 'bg-gradient-to-r from-gray-50 to-blue-50 border-gray-200 dark:from-gray-950/20 dark:to-blue-950/20 dark:border-gray-700';
-    }
+    return 'bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700';
   };
 
   const getIcon = () => {
@@ -137,11 +130,11 @@ export function ProfileNudge({
           {completion.percentage < 60 && (
             <div className="grid grid-cols-2 gap-2 mb-3 text-xs text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
-                <span>🎉</span>
+                <span>•</span>
                 <span>Birthday celebrations</span>
               </div>
               <div className="flex items-center gap-1">
-                <span>💬</span>
+                <span>•</span>
                 <span>3x more engagement</span>
               </div>
             </div>

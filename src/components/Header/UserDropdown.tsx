@@ -87,11 +87,11 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
           </div>
           
           <Link 
-            href={`/profile/${userData.myProfile?.username || userData.id}`} 
+            href={userData.myProfile?.username ? `/profile/${userData.myProfile.username}` : '/profile'} 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={() => setIsUserMenuOpen(false)}
           >
-            Your Profile
+            {userData.myProfile?.username ? 'Your Profile' : 'Create Profile'}
           </Link>
           
           <Link 
