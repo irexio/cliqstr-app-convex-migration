@@ -59,6 +59,8 @@ export async function getCurrentUser() {
             image: true,
             bannerImage: true,
             about: true,
+            birthdate: true,
+            showYear: true,
           },
         },
         account: {

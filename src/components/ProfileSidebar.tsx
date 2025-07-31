@@ -18,12 +18,12 @@ export function ProfileSidebar({ isOwner, onEditProfile, onEditCover }: ProfileS
   return (
     <aside className="hidden md:block bg-black text-white w-64 p-6">
       <nav className="space-y-2">
-        <button
-          onClick={onEditProfile}
+        <Link
+          href="/profile/edit"
           className="w-full flex items-center gap-3 px-4 py-3 text-white no-underline font-medium text-base transition-all duration-200 border-l-[3px] border-transparent hover:bg-gray-900 hover:border-white text-left"
         >
           ✏️ Edit Profile
-        </button>
+        </Link>
         
         <button
           onClick={onEditCover}

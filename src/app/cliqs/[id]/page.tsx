@@ -50,19 +50,27 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
   // Transform cliq data to match CliqBanner expected types
   const cliqForBanner = {
     ...cliq,
-    description: cliq.description || undefined
+    description: cliq.description || undefined,
+    coverImage: cliq.coverImage || undefined
   };
 
   return (
     <div className="flex-1">
-      {/* Cliq Banner */}
-      <CliqBanner cliq={cliqForBanner} isOwner={isOwner} />
-      
-      {/* Main Content - 800px max width to match feed content */}
-      <main className="max-w-[800px] mx-auto p-6">
-        <CliqFeed cliqId={cliq.id} />
-        <CliqTools cliqId={cliq.id} />
-      </main>
+      {/* Consistent width container for header and feed */}
+      <div className="max-w-4xl mx-auto pt-6 px-4 sm:px-6">
+        {/* Cliq Banner */}
+        <CliqBanner cliq={cliqForBanner} isOwner={isOwner} />
+        
+        {/* Feed Section */}
+        <div className="bg-white rounded-xl shadow-sm border mb-6 p-6">
+          <CliqFeed cliqId={cliq.id} />
+        </div>
+        
+        {/* Cliq Tools Section */}
+        <div className="bg-white rounded-xl shadow-sm border mb-6 p-6">
+          <CliqTools cliqId={cliq.id} />
+        </div>
+      </div>
     </div>
   );
 }

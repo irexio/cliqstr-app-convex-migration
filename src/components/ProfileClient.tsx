@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { UploadDropzone, UploadButton } from '@/lib/uploadthing-client';
 import ScrapbookGallery from './ScrapbookGallery';
 import { getAgeGroup } from '@/lib/ageUtils';
@@ -244,12 +245,12 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
           
           {/* Edit Profile Button */}
           {profileData.isOwner && (
-            <button 
-              onClick={() => setIsEditingProfile(true)}
-              className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition"
+            <Link 
+              href="/profile/edit"
+              className="bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition inline-block"
             >
               Edit Profile
-            </button>
+            </Link>
           )}
         </div>
       </div>

@@ -94,6 +94,17 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
             {userData.myProfile?.username ? 'Your Profile' : 'Create Profile'}
           </Link>
           
+          {/* Edit Profile link - only show if user has a profile */}
+          {userData.myProfile?.username && (
+            <Link 
+              href="/profile/edit" 
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              Edit Profile
+            </Link>
+          )}
+          
           <Link 
             href="/account" 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

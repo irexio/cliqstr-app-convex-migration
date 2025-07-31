@@ -6,9 +6,12 @@ import { z } from 'zod';
 export const dynamic = 'force-dynamic';
 
 const updateProfileSchema = z.object({
+  firstName: z.string().max(50).optional().nullable(),
+  lastName: z.string().max(50).optional().nullable(),
   username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_-]+$/, 
     'Username can only contain letters, numbers, underscores and hyphens').optional(),
   about: z.string().max(500).optional().nullable(),
+  birthdate: z.string().datetime().optional().nullable(),
   image: z.string().url().optional().nullable(),
   bannerImage: z.string().url().optional().nullable(),
   showYear: z.boolean().optional(),
@@ -29,7 +32,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { username, about, image, bannerImage, showYear } = parsed.data;
+    const { firstName, lastName, username, about, birthdate, image, bannerImage, showYear } = parsed.data;
 
     // Check if username is already taken (excluding current user) - only if username is provided
     if (username) {
@@ -47,11 +50,13 @@ export async function POST(req: Request) {
 
     // Build update data object with only provided fields
     const updateData: any = {};
+    if (firstName !== undefined) updateData.firstName = firstName || null;
+    if (lastName !== undefined) updateData.lastName = lastName || null;
     if (username !== undefined) updateData.username = username;
     if (about !== undefined) updateData.about = about || null;
+    if (birthdate !== undefined) updateData.birthdate = birthdate ? new Date(birthdate) : null;
     if (image !== undefined) updateData.image = image || null;
     if (bannerImage !== undefined) updateData.bannerImage = bannerImage || null;
-
     if (showYear !== undefined) updateData.showYear = showYear;
 
     // Update profile

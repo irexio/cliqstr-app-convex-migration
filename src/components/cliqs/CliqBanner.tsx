@@ -9,7 +9,7 @@ interface CliqBannerProps {
     name: string;
     description?: string;
     privacy: string;
-    bannerImage?: string;
+    coverImage?: string;
     _count?: {
       memberships: number;
     };
@@ -18,50 +18,26 @@ interface CliqBannerProps {
 }
 
 export default function CliqBanner({ cliq, isOwner = false }: CliqBannerProps) {
-  const router = useRouter();
-
-  const defaultGradient = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-  const bannerStyle = cliq.bannerImage 
-    ? { backgroundImage: `url(${cliq.bannerImage})` }
-    : { background: defaultGradient };
-
   return (
-    <header 
-      className="relative h-60 bg-cover bg-center flex items-end p-6"
-      style={bannerStyle}
-    >
-      {/* Back button */}
-      <button
-        onClick={() => router.push('/my-cliqs-dashboard')}
-        className="absolute top-6 left-6 bg-white/20 text-white border-none py-2 px-4 rounded-full cursor-pointer text-sm backdrop-blur-sm hover:bg-white/30 transition-colors"
-      >
-        ← Back to My Cliqs
-      </button>
-
-      {/* Members button */}
-      <button
-        onClick={() => router.push(`/cliqs/${cliq.id}/members`)}
-        className="absolute top-6 right-6 bg-white/20 text-white border-none py-2 px-4 rounded-full cursor-pointer text-sm backdrop-blur-sm hover:bg-white/30 transition-colors"
-      >
-        👥 Members
-      </button>
-
-      {/* Edit banner button for owners */}
-      {isOwner && (
-        <button
-          className="absolute bottom-6 right-6 bg-black/50 text-white border-none py-2 px-4 rounded-full cursor-pointer text-sm backdrop-blur-sm hover:bg-black/70 transition-colors"
-        >
-          🖼️ Edit Banner
-        </button>
+    <div className="mb-6">
+      {/* Cover Image or Black Fallback */}
+      {cliq.coverImage ? (
+        <img 
+          src={cliq.coverImage} 
+          alt="Cliq Banner" 
+          className="w-full h-48 object-cover rounded-t-xl" 
+        />
+      ) : (
+        <div className="w-full h-48 bg-black rounded-t-xl" />
       )}
-
-      {/* Cliq info */}
-      <div className="text-white">
-        <h1 className="text-3xl font-bold mb-2">{cliq.name}</h1>
+      
+      {/* Cliq Info */}
+      <div className="bg-white rounded-b-xl shadow-sm border border-t-0 p-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">{cliq.name}</h1>
         {cliq.description && (
-          <p className="text-base opacity-90 mb-2">{cliq.description}</p>
+          <p className="text-gray-600 mb-3">{cliq.description}</p>
         )}
-        <div className="flex gap-4 items-center text-sm opacity-80">
+        <div className="flex gap-4 items-center text-sm text-gray-500">
           <span>
             {cliq.privacy === 'PRIVATE' ? '🔒' : cliq.privacy === 'PUBLIC' ? '🌍' : '👥'} 
             {' '}{cliq.privacy.charAt(0) + cliq.privacy.slice(1).toLowerCase()} Cliq
@@ -69,9 +45,8 @@ export default function CliqBanner({ cliq, isOwner = false }: CliqBannerProps) {
           {cliq._count?.memberships && (
             <span>{cliq._count.memberships} members</span>
           )}
-          <span>Active today</span>
         </div>
       </div>
-    </header>
+    </div>
   );
 }

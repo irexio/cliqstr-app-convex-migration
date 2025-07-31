@@ -6,7 +6,6 @@ import React, { useEffect, useState } from 'react';
 import { fetchJson } from '@/lib/fetchJson';
 import PostCardBubble from '@/components/PostCardBubble';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { CliqFeedProfileNudge } from '@/components/ui/ProfileNudge';
 
 interface Profile {
   username?: string | null;
@@ -89,14 +88,17 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
     setSubmitting(true);
     setError('');
     try {
-      await fetchJson(`/api/cliqs/${cliqId}/posts`, {
+      await fetchJson('/api/posts/create', {
         method: 'POST',
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({ 
+          content: content.trim(),
+          cliqId 
+        }),
       });
       setContent('');
       fetchFeed();
     } catch (err: any) {
-      setError(err.message || 'Failed to post.');
+      setError(err.message || 'We couldn\'t share your post. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -154,8 +156,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
         </form>
       </section>
       
-      {/* Gentle profile encouragement for better engagement */}
-      <CliqFeedProfileNudge profile={currentUserProfile || null} />
+
       
       {loading && <div className="text-center py-4">Loading feed...</div>}
       {error && <div className="text-red-600 text-center py-2">{error}</div>}
