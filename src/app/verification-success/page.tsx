@@ -18,7 +18,7 @@ export default function VerificationSuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/my-cliqs'); // Redirect to main dashboard
+          router.push('/my-cliqs-dashboard'); // Redirect to main dashboard
           return 0;
         }
         return prev - 1;

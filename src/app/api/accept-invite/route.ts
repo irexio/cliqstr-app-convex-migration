@@ -29,6 +29,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
+import { validateAgeRequirements } from '@/lib/utils/ageUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,7 +56,10 @@ export async function POST(req: NextRequest) {
           select: {
             id: true,
             name: true,
-            ownerId: true
+            ownerId: true,
+            minAge: true,
+            maxAge: true,
+            privacy: true
           }
         }
       }
@@ -103,6 +107,22 @@ export async function POST(req: NextRequest) {
       });
     }
     
+    // Age gating validation using Account.birthdate (APA-safe)
+    if (user.account?.birthdate) {
+      const ageValidation = validateAgeRequirements(
+        user.account.birthdate,
+        invite.cliq.minAge,
+        invite.cliq.maxAge
+      );
+
+      if (!ageValidation.isValid) {
+        console.log(`[APA] Age restriction blocked user ${user.id} from accepting invite to cliq ${invite.cliqId}:`, ageValidation.reason);
+        return NextResponse.json({ 
+          error: `Age restriction: ${ageValidation.reason}` 
+        }, { status: 403 });
+      }
+    }
+
     // For child invites, we need to check if the user is an adult
     if (inviteType === 'child') {
       // For child invites, we should verify the user is an adult

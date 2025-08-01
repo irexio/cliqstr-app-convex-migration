@@ -32,7 +32,7 @@ export default function PostCardBubble({ post }: PostCardBubbleProps) {
     <div className="flex gap-3 items-start px-4 py-3 bg-white rounded-xl shadow-sm border border-gray-200">
       <UserAvatar 
         image={avatar}
-        name={username}
+        name={null}
         userId={author.id}
         username={username}
         hasProfile={hasProfile}

@@ -25,7 +25,7 @@ import { isValidPlan } from '@/lib/utils/planUtils';
 import { prisma } from '@/lib/prisma';
 import Image from 'next/image';
 import Link from 'next/link';
-import CliqCard from '@/components/cliqs/CliqCard';
+import CliqsGrid from '@/components/cliqs/CliqsGrid';
 import { DashboardProfileNudge } from '@/components/ui/ProfileNudge';
 
 export const dynamic = 'force-dynamic';
@@ -159,11 +159,7 @@ export default async function MyCliqsDashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cliqs.map((cliq) => (
-            <CliqCard key={cliq.id} cliq={cliq} currentUserId={user.id} />
-          ))}
-        </div>
+        <CliqsGrid initialCliqs={cliqs} currentUserId={user.id} />
       )}
 
       {/* Profile Nudge - Below cliq cards for better UX flow */}
