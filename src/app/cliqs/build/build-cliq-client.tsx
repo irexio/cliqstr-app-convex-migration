@@ -109,13 +109,12 @@ export default function BuildCliqClient() {
           </select>
         </div>
 
-        {/* Age Gating Fields - Only for public/semi-private cliqs */}
-        {(privacy === 'public' || privacy === 'semi') && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-blue-900 mb-3">🛡️ Age Restrictions (Optional)</h3>
-            <p className="text-xs text-blue-700 mb-4">
-              Set age limits to control who can join your {privacy} cliq. Leave blank for no restrictions.
-            </p>
+        {/* Age Gating Fields - Available for all cliq types */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-blue-900 mb-3">🛡️ Age Restrictions (Optional)</h3>
+          <p className="text-xs text-blue-700 mb-4">
+            Set age limits to control who can join your {privacy} cliq. Leave blank for no restrictions.
+          </p>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -147,11 +146,10 @@ export default function BuildCliqClient() {
               </div>
             </div>
             
-            {minAge && maxAge && minAge >= maxAge && (
-              <p className="text-red-600 text-xs mt-2">⚠️ Minimum age must be less than maximum age</p>
-            )}
-          </div>
-        )}
+          {minAge && maxAge && minAge >= maxAge && (
+            <p className="text-red-600 text-xs mt-2">⚠️ Minimum age must be less than maximum age</p>
+          )}
+        </div>
 
         <div>
           <Label>Banner Image</Label>
