@@ -5,7 +5,7 @@
 // No fetchJson — rendered via props only -062625 
 
 import Link from 'next/link';
-import CliqCard from '@/components/cliqs/CliqCard';
+import CliqsGrid from '@/components/cliqs/CliqsGrid';
 import { Button } from '@/components/Button';
 
 interface MyCliqsPageProps {
@@ -19,9 +19,10 @@ interface MyCliqsPageProps {
     bannerImage?: string;
     coverImage?: string; // Optional if your CliqCard uses this
   }[];
+  currentUserId: string;
 }
 
-export default function MyCliqsPage({ cliqs }: MyCliqsPageProps) {
+export default function MyCliqsPage({ cliqs, currentUserId }: MyCliqsPageProps) {
   if (!cliqs.length) {
     return (
       <div className="pt-12 pb-8 max-w-2xl mx-auto flex flex-col items-center">
@@ -44,11 +45,7 @@ export default function MyCliqsPage({ cliqs }: MyCliqsPageProps) {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">My Cliqs</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        {cliqs.map((cliq) => (
-          <CliqCard key={cliq.id} cliq={cliq} />
-        ))}
-      </div>
+      <CliqsGrid initialCliqs={cliqs} currentUserId={currentUserId} />
     </div>
   );
 }
