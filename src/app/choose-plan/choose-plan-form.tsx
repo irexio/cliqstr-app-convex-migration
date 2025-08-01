@@ -91,6 +91,19 @@ export default function ChoosePlanForm() {
         console.error('Session refresh error:', refreshErr);
       }
 
+      // 🛠️ SOL'S FIX: Clear invite role data after successful plan selection
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.removeItem('adultInviteContext');
+          sessionStorage.removeItem('parentInviteContext');
+          sessionStorage.removeItem('inviteRole');
+          localStorage.removeItem('inviteRole');
+          console.log('[APA] Cleared invite role data after successful plan selection');
+        } catch (error) {
+          console.error('[APA] Error clearing invite data:', error);
+        }
+      }
+
       // Show success message for any plan
       setStatus('success');
       setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to your dashboard...`);

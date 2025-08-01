@@ -40,11 +40,85 @@ export default async function ChoosePlanPage() {
   console.log('[APA] User plan:', user.plan);
   console.log('[APA] Account plan:', user.account?.plan);
 
-  // Allow both Parents and Adults to select plans per APA guidelines
-  if (user.account?.role !== 'Parent' && user.account?.role !== 'Adult') {
+  // Debug logging for role checking
+  console.log('[APA] User role (user.role):', user.role);
+  console.log('[APA] Account role (user.account?.role):', user.account?.role);
+  console.log('[APA] User object keys:', Object.keys(user));
+  if (user.account) {
+    console.log('[APA] Account object keys:', Object.keys(user.account));
+  }
+
+  // 🛠️ SOL'S FIX: Check for invite role in session/localStorage
+  let inviteRole: string | null = null;
+  let inviteCode: string | null = null;
+  
+  // Check sessionStorage for invite context (set by adult invite page)
+  if (typeof window !== 'undefined') {
+    try {
+      const adultInviteContext = sessionStorage.getItem('adultInviteContext');
+      if (adultInviteContext) {
+        const context = JSON.parse(adultInviteContext);
+        inviteCode = context.inviteCode;
+        inviteRole = 'adult'; // Adult invite page sets this
+        console.log('[APA] Found adult invite context:', context);
+      }
+      
+      // Also check for any stored invite role
+      const storedInviteRole = sessionStorage.getItem('inviteRole') || localStorage.getItem('inviteRole');
+      if (storedInviteRole) {
+        inviteRole = storedInviteRole;
+        console.log('[APA] Found stored invite role:', storedInviteRole);
+      }
+    } catch (error) {
+      console.error('[APA] Error reading invite context:', error);
+    }
+  }
+
+  // 🛠️ SOL'S FIX: Honor invite role for plan access
+  const userRole = (user.role || '').toLowerCase();
+  const accountRole = (user.account?.role || '').toLowerCase();
+  const inviteRoleLower = (inviteRole || '').toLowerCase();
+  
+  console.log('[APA] Role check - User:', userRole, 'Account:', accountRole, 'Invite:', inviteRoleLower);
+  
+  // Allow access if:
+  // 1. User has parent/adult role
+  // 2. OR they were invited as adult/parent
+  // 3. OR fallback for old cliqs (no strict blocking)
+  const hasValidRole = 
+    userRole === 'parent' || userRole === 'adult' ||
+    accountRole === 'parent' || accountRole === 'adult' ||
+    inviteRoleLower === 'parent' || inviteRoleLower === 'adult';
+  
+  if (!hasValidRole) {
+    console.log('[APA] Access denied - no valid role found');
     return (
-      <div className="p-10 text-red-600 text-center">
-        Access denied. Only parents and adults can select a plan.
+      <div className="p-10 text-center">
+        <div className="text-red-600 mb-4">
+          Access denied. Only parents and adults can select a plan.
+        </div>
+        <div className="text-sm text-gray-600 mb-4">
+          Debug: User role: {userRole || 'none'}, Account role: {accountRole || 'none'}, Invite role: {inviteRoleLower || 'none'}
+        </div>
+        {inviteCode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-blue-800 text-sm mb-2">
+              💡 <strong>Were you invited?</strong>
+            </p>
+            <p className="text-blue-700 text-sm mb-3">
+              If you were invited, please re-click your invite link or try again.
+            </p>
+            <button 
+              onClick={() => window.location.href = `/invite/accept?code=${inviteCode}`}
+              className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+            >
+              Re-process Invite
+            </button>
+          </div>
+        )}
+        <div className="text-xs text-gray-500">
+          If you continue to have issues, please contact support.
+        </div>
       </div>
     );
   }

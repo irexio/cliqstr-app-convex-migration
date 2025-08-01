@@ -205,12 +205,20 @@ function ParentInviteContent() {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
-            <Button className="w-full" onClick={() => router.push(`/sign-up?invite=${inviteCode}`)}>
+            <Button className="w-full" onClick={() => {
+              // 🛠️ SOL'S FIX: Store invite role for plan access
+              sessionStorage.setItem('parentInviteContext', JSON.stringify({ inviteCode, inviteRole: 'parent' }));
+              sessionStorage.setItem('inviteRole', 'parent');
+              localStorage.setItem('inviteRole', 'parent'); // Persist through page reloads
+              router.push(`/sign-up?invite=${inviteCode}`);
+            }}>
               Create Parent Account
             </Button>
             <Button className="w-full" variant="outline" onClick={() => {
-              // Store invite context for redirect after sign-in
-              sessionStorage.setItem('parentInviteContext', JSON.stringify({ inviteCode }));
+              // 🛠️ SOL'S FIX: Store invite context AND role for redirect after sign-in
+              sessionStorage.setItem('parentInviteContext', JSON.stringify({ inviteCode, inviteRole: 'parent' }));
+              sessionStorage.setItem('inviteRole', 'parent');
+              localStorage.setItem('inviteRole', 'parent'); // Persist through page reloads
               router.push('/sign-in');
             }}>
               Sign In as Parent/Guardian
