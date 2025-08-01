@@ -59,12 +59,17 @@ export default async function MyCliqsDashboardPage() {
   
 
 
-  // Query both owned cliqs and memberships
+  // Query both owned cliqs and memberships (exclude deleted)
   const cliqs = await prisma.cliq.findMany({
     where: {
-      OR: [
-        { ownerId: user.id },
-        { memberships: { some: { userId: user.id } } },
+      AND: [
+        {
+          OR: [
+            { ownerId: user.id },
+            { memberships: { some: { userId: user.id } } },
+          ],
+        },
+        { deleted: { not: true } }, // Exclude soft-deleted cliqs
       ],
     },
     orderBy: { createdAt: 'desc' },
