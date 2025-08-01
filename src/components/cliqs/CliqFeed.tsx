@@ -108,15 +108,6 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
     <div className="space-y-6">
       {/* Feed Controls & Composer */}
       <section className="bg-white rounded-xl p-5 mb-6 shadow-sm">
-        {/* View toggle */}
-        <div className="flex gap-3 mb-5">
-          <button className="px-4 py-2 border border-gray-200 bg-black text-white rounded-full cursor-pointer text-sm transition-all">
-            Inline View
-          </button>
-          <button className="px-4 py-2 border border-gray-200 bg-white text-gray-600 rounded-full cursor-pointer text-sm transition-all hover:border-gray-400">
-            Gallery View
-          </button>
-        </div>
         
         {/* Post composer */}
         <form onSubmit={handleSubmit} className="space-y-3">
