@@ -28,10 +28,21 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
   const [membersModalOpen, setMembersModalOpen] = useState(false);
   const [manageDropdownOpen, setManageDropdownOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Check if current user is the owner
   const isOwner = currentUserId && cliq.ownerId === currentUserId;
+  
+  // Debug logging
+  console.log('CliqCard Debug:', {
+    cliqId: cliq.id,
+    cliqName: cliq.name,
+    currentUserId,
+    cliqOwnerId: cliq.ownerId,
+    isOwner,
+    hasOnDelete: !!onDelete
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -48,14 +59,16 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
   }, [manageDropdownOpen]);
 
   const handleDelete = async () => {
-    // Show confirmation dialog
-    const confirmed = window.confirm(
-      `Are you sure you want to delete "${cliq.name}"?\n\nThis action cannot be undone. All posts and data in this cliq will be permanently removed.`
-    );
-    
-    if (!confirmed) {
+    // First click: show confirmation state
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      // Auto-reset after 3 seconds
+      setTimeout(() => setConfirmDelete(false), 3000);
       return;
     }
+    
+    // Second click: proceed with deletion
+    setConfirmDelete(false);
 
     setDeleting(true);
     try {
@@ -193,7 +206,7 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
                   <button 
                     onClick={handleDelete}
                     disabled={deleting}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors text-red-600 hover:bg-red-50 ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${confirmDelete ? 'bg-red-100 text-red-800 font-semibold' : 'text-red-600 hover:bg-red-50'} ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3,6 5,6 21,6"></polyline>
@@ -201,7 +214,7 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
                       <line x1="10" y1="11" x2="10" y2="17"></line>
                       <line x1="14" y1="11" x2="14" y2="17"></line>
                     </svg>
-                    {deleting ? 'Deleting...' : 'Delete Cliq'}
+                    {deleting ? 'Deleting...' : confirmDelete ? 'Click again to confirm' : 'Delete Cliq'}
                   </button>
                 </div>
               </div>
