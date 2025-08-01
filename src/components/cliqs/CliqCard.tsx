@@ -171,7 +171,7 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
             
             {/* Dropdown Menu */}
             {manageDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-gray-300 rounded-lg shadow-xl z-[100] max-h-64 overflow-y-auto">
                 <div className="py-1">
                   <button 
                     onClick={() => {
@@ -206,7 +206,7 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
                   <button 
                     onClick={handleDelete}
                     disabled={deleting}
-                    className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors ${confirmDelete ? 'bg-red-100 text-red-800 font-semibold' : 'text-red-600 hover:bg-red-50'} ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full text-left px-4 py-3 text-sm flex items-center gap-2 transition-all duration-200 ${confirmDelete ? 'bg-red-500 text-white font-bold shadow-md border-l-4 border-red-700' : 'text-red-600 hover:bg-red-50'} ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3,6 5,6 21,6"></polyline>
