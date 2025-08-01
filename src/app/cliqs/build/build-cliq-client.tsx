@@ -126,7 +126,7 @@ export default function BuildCliqClient() {
                   max="100"
                   value={minAge}
                   onChange={(e) => setMinAge(e.target.value === '' ? '' : parseInt(e.target.value))}
-                  placeholder="e.g., 13"
+                  placeholder={privacy === 'private' ? 'e.g., 5' : 'e.g., 13'}
                   className="mt-1"
                 />
               </div>
@@ -140,7 +140,7 @@ export default function BuildCliqClient() {
                   max="100"
                   value={maxAge}
                   onChange={(e) => setMaxAge(e.target.value === '' ? '' : parseInt(e.target.value))}
-                  placeholder="e.g., 65"
+                  placeholder={privacy === 'private' ? 'e.g., 17' : 'e.g., 65'}
                   className="mt-1"
                 />
               </div>
