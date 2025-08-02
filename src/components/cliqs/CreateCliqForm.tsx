@@ -32,7 +32,7 @@ export default function CreateCliqForm({ userId }: { userId: string }) {
         }),
       });
 
-      router.push('/my-cliqs');
+      router.push('/my-cliqs-dashboard');
     } catch (err: any) {
       console.error('[CREATE_CLIQ_ERROR]', err);
       setError(err.message || 'Something went wrong.');
