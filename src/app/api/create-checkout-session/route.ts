@@ -50,7 +50,7 @@ export async function POST(req: Request) {
         cliqId: cliqId || '',
         promo: promo || '',
       },
-      success_url: `${domain}/parents-hq`,
+      success_url: `${domain}/parents/hq`,
       cancel_url: `${domain}/choose-plan?canceled=true`,
     });
 

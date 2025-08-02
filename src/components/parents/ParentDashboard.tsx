@@ -23,7 +23,7 @@
 
 import { useEffect, useState } from 'react';
 import { fetchJson } from '@/lib/fetchJson';
-import ParentsHQPage from '@/components/parents/ParentsHQPage';
+
 
 // 🧠 Local definition of child structure
 interface Child {
@@ -157,7 +157,20 @@ export default function ParentDashboard() {
         </div>
       )}
 
-      {selectedChildId && <ParentsHQPage childId={selectedChildId} />}
+      {selectedChildId && (
+        <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200">
+          <h2 className="text-xl font-semibold mb-4">Child Management</h2>
+          <p className="text-gray-600 mb-4">
+            Managing settings for child ID: <span className="font-mono">{selectedChildId}</span>
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 text-sm">
+              🚧 Detailed child permission management interface coming soon.
+              This will include all the permission toggles, monitoring settings, and safety controls.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

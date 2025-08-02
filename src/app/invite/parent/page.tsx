@@ -119,11 +119,11 @@ function ParentInviteContent() {
           } else {
             // Has plan, redirect to Parents HQ to set up child permissions
             console.log('[APA] Parent has plan, redirecting to parents-hq');
-            router.push('/parents-hq');
+            router.push('/parents/hq');
           }
         } else {
           // Fallback to parents-hq if auth check fails
-          router.push('/parents-hq');
+          router.push('/parents/hq');
         }
       } else {
         setInviteDetails(prev => ({ ...prev!, error: data.error }));
