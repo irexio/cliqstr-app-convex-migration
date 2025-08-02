@@ -149,7 +149,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="What would you like to share with your cliq?"
+                placeholder="What would you like to post to your cliq?"
                 className="flex-1 border border-gray-200 rounded-3xl px-5 py-3 text-base resize-none min-h-[44px] outline-none transition-colors focus:border-black"
                 disabled={submitting}
               />
@@ -167,9 +167,9 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
               <button
                 type="submit"
                 disabled={submitting || !content.trim()}
-                className="px-3 py-1.5 bg-black text-white border-black rounded-2xl cursor-pointer text-xs font-medium ml-auto disabled:opacity-50"
+                className="px-4 py-2 bg-black text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
               >
-                {submitting ? '...' : 'Share'}
+                {submitting ? 'Posting...' : 'Post'}
               </button>
             </div>
           </form>
