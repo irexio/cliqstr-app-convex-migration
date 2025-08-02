@@ -136,7 +136,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
     <div className="space-y-6">
       {/* Feed Controls & Composer */}
       <section className="bg-white rounded-xl p-5 mb-6 shadow-sm">
-        {currentUserProfile ? (
+        {currentUserProfile && currentUserProfile.username ? (
           /* Post composer for users with profiles */
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="flex gap-3 items-start">
@@ -236,7 +236,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
               <PostCardBubble post={formattedPost} />
               
               {/* Reply Button */}
-              <div className="mt-3">
+              <div className="mt-3 flex justify-end">
                 <button 
                   onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
                   className="text-sm font-medium px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
