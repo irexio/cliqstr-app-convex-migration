@@ -241,7 +241,8 @@ export async function POST(req: Request) {
         inviterName,
         inviteLink,
         friendFirstName,
-        inviteNote
+        inviteNote,
+        inviteCode
       });
     } else {
       // Send regular invite email for adults
@@ -249,7 +250,8 @@ export async function POST(req: Request) {
         to: targetEmail,
         cliqName: cliq.name,
         inviterName,
-        inviteLink
+        inviteLink,
+        inviteCode
       });
     }
     

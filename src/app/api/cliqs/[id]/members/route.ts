@@ -13,6 +13,7 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { isValidPlan } from '@/lib/utils/planUtils';
 import { prisma } from '@/lib/prisma';
 import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
+import { resolveDisplayName } from '@/lib/utils/nameUtils';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,6 +50,8 @@ export async function GET(
           myProfile: {
             select: {
               username: true,
+              firstName: true,
+              lastName: true,
               image: true,
             },
           },
@@ -57,5 +60,15 @@ export async function GET(
     },
   });
 
-  return NextResponse.json({ members: memberships });
+  // Transform the data to include resolved display names
+  const membersWithNames = memberships.map(membership => ({
+    id: membership.user.id,
+    name: resolveDisplayName(membership.user),
+    email: membership.user.email,
+    role: membership.role,
+    image: membership.user.myProfile?.image,
+    joinedAt: membership.joinedAt
+  }));
+
+  return NextResponse.json({ members: membersWithNames });
 }

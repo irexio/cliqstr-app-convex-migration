@@ -63,6 +63,15 @@ export default async function ChoosePlanPage() {
         console.log('[APA] Found adult invite context:', context);
       }
       
+      // Check for manual invite context (from /invite/manual)
+      const manualInviteContext = sessionStorage.getItem('manualInviteContext');
+      if (manualInviteContext) {
+        const context = JSON.parse(manualInviteContext);
+        inviteCode = context.inviteCode;
+        inviteRole = context.inviteRole || 'adult';
+        console.log('[APA] Found manual invite context:', context);
+      }
+      
       // Also check for any stored invite role
       const storedInviteRole = sessionStorage.getItem('inviteRole') || localStorage.getItem('inviteRole');
       if (storedInviteRole) {

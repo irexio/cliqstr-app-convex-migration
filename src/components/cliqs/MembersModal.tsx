@@ -7,15 +7,18 @@ interface Member {
   name: string;
   email: string;
   role: string;
+  image?: string;
+  joinedAt?: string;
 }
 
 interface MembersModalProps {
   cliqId: string;
   open: boolean;
   onClose: () => void;
+  isOwner?: boolean;
 }
 
-export default function MembersModal({ cliqId, open, onClose }: MembersModalProps) {
+export default function MembersModal({ cliqId, open, onClose, isOwner = false }: MembersModalProps) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,9 +102,9 @@ export default function MembersModal({ cliqId, open, onClose }: MembersModalProp
             <table className="min-w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left py-2 pr-4">Name/Email</th>
+                  <th className="text-left py-2 pr-4">{isOwner ? 'Name/Email' : 'Name'}</th>
                   <th className="text-left py-2 pr-4">Role</th>
-                  <th className="text-left py-2">Set Role</th>
+                  <th className="text-left py-2">{isOwner ? 'Set Role' : ''}</th>
                 </tr>
               </thead>
               <tbody>
@@ -109,26 +112,32 @@ export default function MembersModal({ cliqId, open, onClose }: MembersModalProp
                   <tr key={member.id}>
                     <td className="py-2 pr-4">
                       <div>{member.name}</div>
-                      <div className="text-xs text-gray-500">{member.email}</div>
+                      <div className="text-xs text-gray-500">
+                        {isOwner ? member.email : 'Member'}
+                      </div>
                     </td>
                     <td className="py-2 pr-4">{member.role}</td>
                     <td className="py-2">
-                      <div className="flex gap-2">
-                        <select
-                          className="border rounded px-2 py-1"
-                          value={member.role}
-                          onChange={e => handleRoleChange(member.id, e.target.value)}
-                        >
-                          <option value="Member">Member</option>
-                          <option value="Moderator">Moderator</option>
-                        </select>
-                        <button 
-                          onClick={() => handleRoleChange(member.id, 'remove')} 
-                          className="text-xs text-red-600 hover:text-red-800"
-                        >
-                          Remove
-                        </button>
-                      </div>
+                      {isOwner ? (
+                        <div className="flex gap-2">
+                          <select
+                            className="border rounded px-2 py-1"
+                            value={member.role}
+                            onChange={e => handleRoleChange(member.id, e.target.value)}
+                          >
+                            <option value="Member">Member</option>
+                            <option value="Moderator">Moderator</option>
+                          </select>
+                          <button 
+                            onClick={() => handleRoleChange(member.id, 'remove')} 
+                            className="text-xs text-red-600 hover:text-red-800"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

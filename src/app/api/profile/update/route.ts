@@ -65,7 +65,12 @@ export async function POST(req: Request) {
       data: updateData,
     });
 
-    return NextResponse.json({ success: true, profile: updatedProfile });
+    return NextResponse.json({ 
+      success: true, 
+      profile: updatedProfile,
+      username: updatedProfile.username,
+      message: 'Profile updated successfully'
+    });
   } catch (error) {
     console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

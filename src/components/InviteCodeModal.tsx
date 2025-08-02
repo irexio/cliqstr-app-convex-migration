@@ -99,32 +99,9 @@ export default function InviteCodeModal({ open, setOpen }: InviteCodeModalProps)
       return;
     }
     
-    // If we already validated and have invite data, use it directly
-    if (success && inviteData) {
-      router.push(`/join?code=${inviteCode.trim()}`);
-      return;
-    }
-    
-    // Otherwise, validate again
-    setLoading(true);
-    
-    try {
-      // Check if the invite code exists
-      const response = await fetch(`/api/validate-invite?code=${inviteCode.trim()}`);
-      const data = await response.json();
-      
-      if (data.valid) {
-        // Redirect to the join page with the invite code
-        router.push(`/join?code=${inviteCode.trim()}`);
-      } else {
-        setError(data.message || 'Invalid invite code');
-      }
-    } catch (error) {
-      setError('An error occurred. Please try again.');
-      console.error('Invite code validation error:', error);
-    } finally {
-      setLoading(false);
-    }
+    // Close modal and redirect to manual invite page with the code
+    handleClose();
+    router.push(`/invite/manual?code=${encodeURIComponent(inviteCode.trim())}`);
   };
   
   // Handle pasted content

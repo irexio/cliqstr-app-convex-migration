@@ -64,8 +64,14 @@ export default function EditProfileForm({ profile, avatarUrl, bannerUrl }: EditP
         throw new Error(errorData.error || 'Failed to update profile');
       }
 
-      // Redirect back to My Cliqs dashboard
-      router.push('/my-cliqs-dashboard');
+      const data = await response.json();
+      
+      // Redirect to the user's updated profile
+      if (data.username) {
+        router.push(`/profile/${data.username}`);
+      } else {
+        router.push('/my-cliqs-dashboard'); // fallback
+      }
       router.refresh();
     } catch (err: any) {
       setError(err.message);

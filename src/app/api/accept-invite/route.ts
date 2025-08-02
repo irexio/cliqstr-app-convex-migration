@@ -28,6 +28,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { logInviteAccept } from '@/lib/auth/userActivityLogger';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 import { validateAgeRequirements } from '@/lib/utils/ageUtils';
 
@@ -42,7 +43,7 @@ export async function POST(req: NextRequest) {
     
     // Parse the request body
     const body = await req.json();
-    const { inviteCode } = body;
+    const { inviteCode, method } = body;
     
     if (!inviteCode) {
       return NextResponse.json({ error: 'Missing invite code' }, { status: 400 });
@@ -150,6 +151,8 @@ export async function POST(req: NextRequest) {
     
     // Log the successful invite acceptance
     console.log(`[INVITE_ACCEPTED] User ${user.id} accepted invite to cliq ${invite.cliqId}`);
+    const inviteMethod = method === 'manual' ? 'manual' : 'link';
+    await logInviteAccept(user.id, inviteCode, inviteMethod, req);
     
     return NextResponse.json({
       message: 'Successfully joined cliq',

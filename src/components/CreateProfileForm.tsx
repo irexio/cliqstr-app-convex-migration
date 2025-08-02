@@ -52,13 +52,18 @@ export default function CreateProfileForm() {
     console.log('[PROFILE] Submitting profile data:', profileData);
 
     try {
-      await fetchJson('/api/profile/create', {
+      const response = await fetchJson('/api/profile/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
 
-      router.push('/my-cliqs-dashboard');
+      // Redirect to the user's completed profile
+      if (response.username) {
+        router.push(`/profile/${response.username}`);
+      } else {
+        router.push('/my-cliqs-dashboard'); // fallback
+      }
       router.refresh();
     } catch (err: any) {
       console.error('[PROFILE_CREATE_ERROR]', err);

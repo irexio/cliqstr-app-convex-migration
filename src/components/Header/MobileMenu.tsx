@@ -19,6 +19,7 @@ type UserData = {
 
 type MobileMenuProps = {
   isLoggedIn: boolean;
+  isApproved: boolean;
   userData: UserData | null;
   isMobileMenuOpen: boolean;
   setIsMobileMenuOpen: (isOpen: boolean) => void;
@@ -28,6 +29,7 @@ type MobileMenuProps = {
 
 export function MobileMenu({ 
   isLoggedIn, 
+  isApproved,
   userData, 
   isMobileMenuOpen, 
   setIsMobileMenuOpen,
@@ -78,7 +80,7 @@ export function MobileMenu({
           FAQs
         </Link>
 
-        {isLoggedIn && (
+        {isLoggedIn && isApproved && (
           <Link
             href="/my-cliqs-dashboard"
             className="block font-semibold hover:text-black transition py-3 border-b border-gray-100"

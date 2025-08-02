@@ -234,7 +234,7 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
         )}
       </div>
       <InviteModal cliqId={cliq.id} open={inviteModalOpen} onClose={() => setInviteModalOpen(false)} />
-      <MembersModal cliqId={cliq.id} open={membersModalOpen} onClose={() => setMembersModalOpen(false)} />
+      <MembersModal cliqId={cliq.id} open={membersModalOpen} onClose={() => setMembersModalOpen(false)} isOwner={!!isOwner} />
     </BaseCard>
   );
 }

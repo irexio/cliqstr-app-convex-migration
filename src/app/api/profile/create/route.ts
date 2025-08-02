@@ -116,6 +116,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       success: true, 
       profile,
+      username: profile.username,
       message: 'Profile created successfully' 
     });
   } catch (error) {

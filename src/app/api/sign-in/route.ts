@@ -13,14 +13,15 @@
 
 export const dynamic = 'force-dynamic';
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { compare } from 'bcryptjs';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { logLogin } from '@/lib/auth/userActivityLogger';
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
@@ -104,6 +105,9 @@ export async function POST(req: Request) {
       session.createdAt = Date.now();
       await session.save();
       
+      // Log login activity for unapproved user
+      await logLogin(user.id, req);
+      
       return response;
     }
 
@@ -124,6 +128,9 @@ export async function POST(req: Request) {
     session.userId = user.id;
     session.createdAt = Date.now();
     await session.save();
+
+    // Log login activity
+    await logLogin(user.id, req);
 
     return response;
   } catch (err) {

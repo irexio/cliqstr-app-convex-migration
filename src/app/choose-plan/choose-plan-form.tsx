@@ -96,6 +96,7 @@ export default function ChoosePlanForm() {
         try {
           sessionStorage.removeItem('adultInviteContext');
           sessionStorage.removeItem('parentInviteContext');
+          sessionStorage.removeItem('manualInviteContext');
           sessionStorage.removeItem('inviteRole');
           localStorage.removeItem('inviteRole');
           console.log('[APA] Cleared invite role data after successful plan selection');

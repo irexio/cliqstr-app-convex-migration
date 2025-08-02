@@ -6,9 +6,9 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 interface UserAvatarProps {
-  /** User's uploaded image URL */
+  /** User's uploaded image URL from myProfile.image */
   image?: string | null;
-  /** User's name for fallback generation */
+  /** User's name for alt text (legacy support) */
   name?: string | null;
   /** User's ID for consistent fallback generation */
   userId?: string;
@@ -27,16 +27,16 @@ interface UserAvatarProps {
 /**
  * 🎭 UserAvatar Component
  * 
- * Smart avatar component that handles fallbacks gracefully:
- * 1. Shows uploaded user image if available
- * 2. Falls back to DiceBear generated avatar based on name or userId
- * 3. Final fallback to initials if name is available
+ * Simple avatar component for social profiles:
+ * 1. Shows myProfile.image if available
+ * 2. Falls back to plain grey circular icon
+ * 3. No initials or complex fallback logic
  * 
- * Perfect for users who haven't created profiles yet!
+ * Avatar is tied to social profile only!
  */
 export function UserAvatar({ 
   image, 
-  name, 
+  name, // legacy support
   userId,
   username,
   hasProfile = false,
@@ -45,6 +45,7 @@ export function UserAvatar({
   clickable = true
 }: UserAvatarProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  
   // Size mappings
   const sizeClasses = {
     sm: 'h-8 w-8',
@@ -53,54 +54,23 @@ export function UserAvatar({
     xl: 'h-16 w-16'
   };
 
-  // Generate fallback avatar URL using DiceBear
-  const generateFallbackAvatar = () => {
-    if (name) {
-      // Use name for more personalized avatar
-      const cleanName = name.replace(/[^a-zA-Z0-9]/g, '');
-      return `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(cleanName)}&backgroundColor=c032d1,000000,6366f1,8b5cf6,ec4899&textColor=ffffff`;
-    } else if (userId) {
-      // Use userId as fallback
-      return `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(userId)}&backgroundColor=c032d1,000000,6366f1,8b5cf6,ec4899`;
-    } else {
-      // Generic fallback
-      return `https://api.dicebear.com/7.x/identicon/svg?seed=anonymous&backgroundColor=6b7280`;
-    }
-  };
-
-  // Generate initials for final fallback
-  const getInitials = () => {
-    if (!name) return '?';
-    
-    const names = name.trim().split(' ');
-    if (names.length === 1) {
-      return names[0].charAt(0).toUpperCase();
-    }
-    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
-  };
-
-  const fallbackAvatarUrl = generateFallbackAvatar();
-
   // Avatar content component
   const AvatarContent = () => (
     <Avatar className={cn(sizeClasses[size], className)}>
-      {/* Primary: User uploaded image */}
+      {/* Primary: User uploaded image from myProfile.image */}
       {image && (
         <AvatarImage 
           src={image} 
-          alt={name || 'User avatar'}
+          alt={name || username || 'User avatar'}
         />
       )}
       
-      {/* Secondary: DiceBear generated avatar */}
-      <AvatarImage 
-        src={fallbackAvatarUrl}
-        alt={name ? `${name}'s avatar` : 'Generated avatar'}
-      />
-      
-      {/* Final fallback: Initials */}
-      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-medium">
-        {getInitials()}
+      {/* Fallback: Plain grey circular icon */}
+      <AvatarFallback className="bg-gray-300 text-gray-600">
+        <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
+          <circle cx="12" cy="8" r="4" fill="currentColor"/>
+          <path d="M4 20c0-4 8-4 8-4s8 0 8 4" fill="currentColor"/>
+        </svg>
       </AvatarFallback>
     </Avatar>
   );
@@ -142,20 +112,17 @@ export function UserAvatar({
 }
 
 /**
- * 🎨 Avatar Behavior Matrix (from memory):
+ * 🎨 Avatar Behavior Matrix:
  * 
  * | Condition | Avatar Display |
  * |-----------|----------------|
- * | Has uploaded image | Show uploaded image |
- * | No image + has name | DiceBear initials with name |
- * | No image + no name + has userId | DiceBear identicon with userId |
- * | No data | Generic identicon + "?" initials |
+ * | Has myProfile.image | Show uploaded image |
+ * | No myProfile.image | Plain grey circular icon |
  * 
- * 🌈 Color Palette:
- * - Purple: #c032d1 (Cliqstr brand)
- * - Black: #000000
- * - Blue: #6366f1
- * - Purple: #8b5cf6  
- * - Pink: #ec4899
- * - Gray: #6b7280 (fallback)
+ * 🎨 Design:
+ * - Background: bg-gray-300 (light grey)
+ * - Icon: Generic person silhouette
+ * - Always circular and never empty
+ * - No initials, text, or external services
+ * - Avatar tied to social profile only
  */

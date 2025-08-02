@@ -1,13 +1,14 @@
 // 🔐 APA-HARDENED — Sign-Up API Route
 // Enforces APA requirements: no tokens, session-based auth only, role validation
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { hash } from 'bcryptjs';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
+import { logSignup } from '@/lib/auth/userActivityLogger';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -28,7 +29,7 @@ const signUpSchema = z.object({
   parentEmail: z.string().email('Invalid parent email').optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     // Wrap the initial parsing in a try-catch to handle malformed JSON
     let body;
@@ -108,6 +109,9 @@ export async function POST(req: Request) {
         isApproved: !isChild,
       },
     });
+
+    // Log signup activity
+    await logSignup(newUser.id, inviteCode, req);
 
     // Add membership if invited to a cliq
     if (invitedCliqId) {

@@ -13,6 +13,8 @@ interface PostCardBubbleProps {
       id?: string;
       myProfile: {
         username: string;
+        firstName?: string;
+        lastName?: string;
         image?: string;
       } | null;
     };

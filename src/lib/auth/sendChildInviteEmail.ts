@@ -26,6 +26,7 @@ interface ChildInviteEmailParams {
   inviteLink: string;       // Link to accept the invite
   friendFirstName: string;  // Child's first name
   inviteNote?: string;      // Optional message to the parent
+  inviteCode: string;       // Invite code for manual entry
 }
 
 export async function sendChildInviteEmail({
@@ -34,7 +35,8 @@ export async function sendChildInviteEmail({
   inviterName,
   inviteLink,
   friendFirstName,
-  inviteNote
+  inviteNote,
+  inviteCode
 }: ChildInviteEmailParams) {
   console.log(`[CHILD_INVITE_EMAIL] Sending invite for ${friendFirstName} to ${to}`);
   
@@ -65,6 +67,11 @@ export async function sendChildInviteEmail({
         <a href="${inviteLink}" style="display:inline-block; padding:12px 24px; background:#000000; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
           Accept Invite for ${friendFirstName}
         </a>
+      </div>
+      
+      <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 5px;">
+        <p style="margin: 0 0 8px; font-weight: bold; color: #333;">Your Cliq Code: <span style="font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px;">cliq-${inviteCode}</span></p>
+        <p style="margin: 0; font-size: 14px; color: #666;">Joining from another device? Visit <a href="https://cliqstr.com/invite/manual" style="color: #000;">cliqstr.com/invite/manual</a> and enter this code.</p>
       </div>
       
       <p>

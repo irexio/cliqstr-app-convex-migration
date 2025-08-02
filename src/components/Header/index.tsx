@@ -352,6 +352,7 @@ export function HeaderComponent() {
         {/* Mobile Menu Dropdown */}
         <MobileMenu 
           isLoggedIn={isLoggedIn}
+          isApproved={isApproved}
           userData={userData}
           isMobileMenuOpen={isMobileMenuOpen}
           setIsMobileMenuOpen={setIsMobileMenuOpen}

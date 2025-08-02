@@ -29,6 +29,7 @@ model User {
   Post                Post[]
   redAlertsTriggered  RedAlert[]
   Reply               Reply[]
+  activityLogs        UserActivityLog[]
 }
 
 model MyProfile {
@@ -248,4 +249,14 @@ enum CliqPrivacy {
   private
   semi_private
   public
+}
+
+model UserActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  event     String   // e.g., 'signup', 'login', 'invite-accept'
+  detail    String?  // e.g., IP address, code used, manual vs invite
+  debugId   String?  // for tracking odd flows
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 }

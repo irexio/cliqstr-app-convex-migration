@@ -8,8 +8,8 @@ type DesktopNavProps = {
 };
 
 export function DesktopNav({ isLoggedIn, isApproved }: DesktopNavProps) {
-  // Show My Cliqs for any logged-in user
-  const showMyCliqs = isLoggedIn;
+  // Show My Cliqs for all approved members
+  const showMyCliqs = isLoggedIn && isApproved;
   
   return (
     <nav className="flex items-center gap-6 text-sm font-medium text-[#202020]">
@@ -26,7 +26,7 @@ export function DesktopNav({ isLoggedIn, isApproved }: DesktopNavProps) {
         FAQs
       </Link>
 
-      {/* Show My Cliqs for all logged-in users */}
+      {/* Show My Cliqs for all approved members */}
       {showMyCliqs && (
         <Link href="/my-cliqs-dashboard" className="font-semibold hover:underline transition">
           My Cliqs
