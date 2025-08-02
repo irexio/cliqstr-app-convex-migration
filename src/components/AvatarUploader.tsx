@@ -58,22 +58,20 @@ export default function AvatarUploader({
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4 p-6 bg-gray-50 rounded-lg border">
+    <div className="flex flex-col items-center space-y-4">
       <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Profile Photo</h3>
-        
         {/* Avatar Preview */}
-        <div className="mb-4">
-          <Avatar className="w-24 h-24 mx-auto border-4 border-white shadow-lg">
+        <div className="mb-6">
+          <Avatar className="w-32 h-32 mx-auto border-2 border-gray-300 shadow-sm">
             <AvatarImage src={displayImage || undefined} alt="Profile photo" />
-            <AvatarFallback className="bg-blue-500 text-white text-xl font-semibold">
+            <AvatarFallback className="bg-gray-500 text-white text-2xl font-semibold">
               {initials}
             </AvatarFallback>
           </Avatar>
         </div>
 
         {/* Upload Button */}
-        <div className="flex justify-center">
+        <div className="flex justify-center mb-4">
           <UploadButton
             endpoint="avatar"
             onClientUploadComplete={handleUploadSuccess}
@@ -83,32 +81,32 @@ export default function AvatarUploader({
               setMessage(null);
             }}
             appearance={{
-              button: "bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors",
-              allowedContent: "text-xs text-gray-500 mt-1"
+              button: "bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors shadow-sm",
+              allowedContent: "text-xs text-gray-500 mt-2"
             }}
           />
         </div>
 
         {/* Loading State */}
         {isUploading && (
-          <div className="mt-3 text-sm text-blue-600 font-medium">
-            Uploading avatar...
+          <div className="mb-4 text-sm text-blue-600 font-medium bg-blue-50 p-3 rounded-lg border border-blue-200">
+            📷 Uploading avatar...
           </div>
         )}
 
         {/* Success/Error Messages */}
         {message && (
-          <div className={`mt-3 p-2 rounded-md text-sm font-medium ${
+          <div className={`mb-4 p-3 rounded-lg text-sm font-medium border ${
             message.type === 'success' 
-              ? 'bg-green-100 text-green-800 border border-green-200' 
-              : 'bg-red-100 text-red-800 border border-red-200'
+              ? 'bg-green-50 text-green-800 border-green-200' 
+              : 'bg-red-50 text-red-800 border-red-200'
           }`}>
-            {message.text}
+            {message.type === 'success' ? '✓ ' : '⚠️ '}{message.text}
           </div>
         )}
 
-        <p className="text-xs text-gray-500 mt-2">
-          JPG or PNG files only, max 1MB
+        <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border">
+          📝 JPG or PNG files only, max 1MB. Square images work best
         </p>
       </div>
     </div>
