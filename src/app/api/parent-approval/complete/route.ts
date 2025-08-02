@@ -192,6 +192,7 @@ export async function POST(req: NextRequest) {
     await prisma.parentLink.create({
       data: {
         parentId: parentUser.id,
+        email: parentUser.email,
         childId: childUser.id,
       },
     });

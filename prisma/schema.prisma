@@ -24,6 +24,7 @@ model User {
   inviteRequestsSent  InviteRequest[] @relation("InviteRequestsSent")
   memberships         Membership[]
   myProfile           MyProfile?
+  parentLinks         ParentLink[]    @relation("ParentLinks")
   parentChildLinks    ParentLink[]    @relation("ParentChildLinks")
   Post                Post[]
   redAlertsTriggered  RedAlert[]
@@ -181,13 +182,16 @@ model InviteRequest {
 
 model ParentLink {
   id            String   @id @default(cuid())
-  email         String   // Parent's email
+  parentId      String   // Parent's user ID for control/monitoring
+  email         String   // Parent's email for verification
   childId       String   // Child's user ID
   type          String   @default("family") // "family" or "invited"
   inviteContext String?  // Context for invited children (e.g., "invited to Soccer Team")
   createdAt     DateTime @default(now())
+  parent        User     @relation("ParentLinks", fields: [parentId], references: [id])
   child         User     @relation("ParentChildLinks", fields: [childId], references: [id])
   
+  @@unique([parentId, childId])
   @@unique([email, childId])
 }
 
