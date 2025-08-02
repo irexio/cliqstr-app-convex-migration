@@ -12,6 +12,19 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
   const user = await getCurrentUser();
   if (!user?.id) return <p className="p-4">Unauthorized</p>;
 
+  // Fetch current user's profile
+  const currentUserProfile = await prisma.myProfile.findUnique({
+    where: { userId: user.id },
+    select: {
+      username: true,
+      firstName: true,
+      lastName: true,
+      about: true,
+      image: true,
+      bannerImage: true
+    }
+  });
+
   const cliq = await prisma.cliq.findUnique({
     where: { id },
     include: {
@@ -63,7 +76,7 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
         
         {/* Feed Section */}
         <div className="bg-white rounded-xl shadow-sm border mb-6 p-6">
-          <CliqFeed cliqId={cliq.id} />
+          <CliqFeed cliqId={cliq.id} currentUserProfile={currentUserProfile} />
         </div>
         
         {/* Cliq Tools Section */}
