@@ -17,7 +17,7 @@
  * - Detailed logging for audit trail
  */
 
-import { sendEmail } from '@/lib/email';
+import { sendEmail, BASE_URL } from '@/lib/email';
 
 interface ChildInviteEmailParams {
   to: string;               // Trusted adult's email
@@ -40,46 +40,91 @@ export async function sendChildInviteEmail({
 }: ChildInviteEmailParams) {
   console.log(`[CHILD_INVITE_EMAIL] Sending invite for ${friendFirstName} to ${to}`);
   
-  // Construct the email subject
-  const subject = `${inviterName} invited ${friendFirstName} to join ${cliqName} on Cliqstr`;
+  // Construct the decline link
+  const declineLink = `${BASE_URL}/api/invite/decline?code=${inviteCode}`;
   
-  // Construct the email body with child-specific content
+  // Construct the email subject
+  const subject = `${inviterName} invited your child ${friendFirstName} to Cliqstr — Your approval is required`;
+  
+  // Construct the email body with the new warm, trust-building content
   const html = `
-    <div style="font-family: sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
-      <h2>${friendFirstName} has been invited to join <strong>${cliqName}</strong> on Cliqstr!</h2>
-      <p><strong>${inviterName}</strong> has invited ${friendFirstName} to join their private group.</p>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background: white; padding: 40px 20px;">
       
-      <p>
-        Cliqstr is a safe, private space for families, kids, and trusted groups.
-        No ads. No tracking. Just your people.
+      <h1 style="color: #333; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Hi there,</h1>
+      
+      <p style="color: #555; margin-bottom: 16px;">
+        We know our parent approval process is more involved than most social platforms — and that's intentional. Every step is designed to keep your child and all Cliqstr members safe.
       </p>
       
-      ${inviteNote ? `
-      <div style="margin: 20px 0; padding: 15px; background: #f9f9f9; border-left: 4px solid #000000;">
-        <p style="margin: 0;"><strong>Message from ${inviterName}:</strong></p>
-        <p style="margin: 8px 0 0;">${inviteNote}</p>
+      <p style="color: #555; margin-bottom: 20px;">
+        <strong>${inviterName}</strong> has invited your child, <strong>${friendFirstName}</strong>, to join their private Cliq on Cliqstr.
+      </p>
+      
+      <p style="color: #555; margin-bottom: 16px;">
+        Private Cliqs are small, invitation-only groups — like digital circles of trust — where members can connect safely, without ads, strangers, or pressure.
+      </p>
+      
+      <div style="background: #f8f9fa; border-left: 4px solid #000; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0; color: #333; font-weight: 600; font-size: 16px;">🔐 Before ${friendFirstName} can join, your approval is required.</p>
       </div>
-      ` : ''}
       
-      <p><strong>As ${friendFirstName}'s parent/guardian</strong>, you'll need to create and manage their account.</p>
+      <p style="color: #555; margin-bottom: 8px;">To activate their account, we ask that you:</p>
+      <ul style="color: #555; margin-bottom: 20px; padding-left: 20px;">
+        <li style="margin-bottom: 8px;">Create a Parent account</li>
+        <li style="margin-bottom: 8px;">Confirm your identity with a credit card (you will not be charged)</li>
+        <li style="margin-bottom: 8px;">Review ${friendFirstName}'s invitation and group access</li>
+      </ul>
       
-      <div style="margin: 30px 0;">
-        <a href="${inviteLink}" style="display:inline-block; padding:12px 24px; background:#000000; color:white; border-radius:5px; text-decoration:none; font-weight: bold; font-size: 16px;">
-          Accept Invite for ${friendFirstName}
+      <p style="color: #555; margin-bottom: 24px;">
+        This lets us confirm that an adult is aware and in control of how their child uses Cliqstr.
+      </p>
+      
+      <div style="background: #f0f8ff; border-left: 4px solid #4a90e2; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; color: #333; font-weight: 600;">🎁 Good to know:</p>
+        <ul style="margin: 0; padding-left: 20px; color: #555;">
+          <li style="margin-bottom: 8px;">${friendFirstName} can join this Cliq for free</li>
+          <li style="margin-bottom: 8px;">They will only be able to interact within ${inviterName}'s group</li>
+          <li style="margin-bottom: 0;">You can upgrade later to unlock more features or create new Cliqs — but no payment is required to approve their invite</li>
+        </ul>
+      </div>
+      
+      <div style="background: #f8f9fa; border-left: 4px solid #28a745; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; color: #333; font-weight: 600;">🛡️ Why Parents Trust Cliqstr</p>
+        <ul style="margin: 0; padding-left: 20px; color: #555;">
+          <li style="margin-bottom: 8px;">All child activity is monitored and logged</li>
+          <li style="margin-bottom: 8px;">No ads, no direct messaging between children</li>
+          <li style="margin-bottom: 8px;">Parents can view every post, invite, and cliq</li>
+          <li style="margin-bottom: 0;">Every group is curated and actively moderated</li>
+        </ul>
+      </div>
+      
+      <p style="color: #333; font-size: 18px; font-weight: 600; margin: 32px 0 20px;">✅ What would you like to do?</p>
+      
+      <!-- Approve Button -->
+      <div style="margin: 24px 0;">
+        <a href="${inviteLink}" style="display: inline-block; background: #000; color: white; padding: 16px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
+          Approve ${friendFirstName}'s Invite & Set Up Your Account
         </a>
+        <p style="color: #666; font-size: 14px; margin: 8px 0 0; font-style: italic;">
+          (Takes you to Cliqstr's secure Parent HQ to finish setup)
+        </p>
       </div>
       
-      <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 5px;">
-        <p style="margin: 0 0 8px; font-weight: bold; color: #333;">Your Cliq Code: <span style="font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px;">cliq-${inviteCode}</span></p>
-        <p style="margin: 0; font-size: 14px; color: #666;">Joining from another device? Visit <a href="https://cliqstr.com/invite/manual" style="color: #000;">cliqstr.com/invite/manual</a> and enter this code.</p>
+      <!-- Decline Link -->
+      <div style="margin: 20px 0;">
+        <a href="${declineLink}" style="color: #666; text-decoration: underline; font-size: 14px;">
+          Decline Invitation
+        </a>
+        <p style="color: #666; font-size: 12px; margin: 4px 0 0; font-style: italic;">
+          (Let us know you're not approving ${friendFirstName}'s invite — no further action needed)
+        </p>
       </div>
       
-      <p>
-        <strong>Child Safety:</strong> Cliqstr requires adult verification for all child accounts.
-        Children cannot create their own accounts without parental approval.
-      </p>
+      <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #eee;">
+        <p style="color: #333; font-weight: 600; margin-bottom: 8px;">❤️ From all of us at Cliqstr</p>
+        <p style="color: #666; font-style: italic; margin: 0;">Safe spaces. Real connections. Peace of mind.</p>
+      </div>
       
-      <p style="font-size: 12px; color: #888;">This invite link is valid for 36 hours.</p>
     </div>
   `;
   
