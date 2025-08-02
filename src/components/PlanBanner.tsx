@@ -29,10 +29,9 @@ export default function PlanBanner() {
           
           // Check if user is logged in and needs a plan
           if (data.user) {
-            // Check both user.plan and user.account.plan
-            const hasPlan = 
-              (data.user.plan && data.user.plan !== null) || 
-              (data.user.account && data.user.account.plan && data.user.account.plan !== null);
+            // Check if user has any valid plan
+            const userPlan = data.user.plan || data.user.account?.plan;
+            const hasPlan = userPlan && userPlan !== null && userPlan !== '';
               
             if (!hasPlan) {
               console.log('[PlanBanner] User needs to select a plan');
