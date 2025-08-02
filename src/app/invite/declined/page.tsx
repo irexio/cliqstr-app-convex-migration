@@ -9,8 +9,9 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-export default function DeclinedPage() {
+function DeclinedContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const status = searchParams.get('status');
@@ -115,5 +116,13 @@ export default function DeclinedPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function DeclinedPage() {
+  return (
+    <Suspense fallback={<div className="max-w-xl mx-auto text-center py-20">Loading...</div>}>
+      <DeclinedContent />
+    </Suspense>
   );
 }
