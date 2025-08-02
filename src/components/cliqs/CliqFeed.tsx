@@ -204,7 +204,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
       {error && <div className="text-red-600 text-center py-2">{error}</div>}
       
       {/* Messages feed using PostCardBubble component */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {posts.map(post => {
           // Ensure post has the required structure for PostCardBubble
           const formattedPost: FormattedPost = {
@@ -221,23 +221,34 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
             }
           };
           
+          // Reply button text logic
+          const replyCount = post.replies?.length || 0;
+          let replyButtonText = '💬 Reply';
+          if (replyCount === 1) {
+            replyButtonText = '💬 1 reply';
+          } else if (replyCount > 1) {
+            replyButtonText = `💬 ${replyCount} replies`;
+          }
+          
           return (
-            <div key={post.id} className="mb-4">
+            <div key={post.id} className="rounded-lg border border-gray-200 bg-white shadow-sm p-4 mb-6">
+              {/* Main Post */}
               <PostCardBubble post={formattedPost} />
               
               {/* Reply Button */}
-              <div className="ml-12 mt-2">
+              <div className="mt-3">
                 <button 
                   onClick={() => setReplyingTo(replyingTo === post.id ? null : post.id)}
-                  className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+                  className="text-sm font-medium px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md cursor-pointer min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  aria-label="Reply to post"
                 >
-                  💬 {post.replies?.length || 0} {post.replies?.length === 1 ? 'reply' : 'replies'}
+                  {replyButtonText}
                 </button>
               </div>
 
               {/* Reply Input */}
               {replyingTo === post.id && (
-                <div className="ml-12 mt-3">
+                <div className="mt-4">
                   <div className="flex gap-2 items-start">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={currentUserProfile?.image || ''} alt="Your profile" />
@@ -278,7 +289,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
               
               {/* Existing Replies */}
               {post.replies && post.replies.length > 0 && (
-                <div className="ml-8 mt-3 space-y-2">
+                <div className="pl-4 border-l border-gray-200 mt-4 space-y-3">
                   {post.replies.map(reply => {
                     // Format reply for PostCardBubble
                     const formattedReply: FormattedPost = {
@@ -295,7 +306,7 @@ export default function CliqFeed({ cliqId, currentUserProfile }: FeedProps) {
                     };
                     
                     return (
-                      <div key={reply.id} className="pl-4 border-l-2 border-gray-200">
+                      <div key={reply.id}>
                         <PostCardBubble post={formattedReply} />
                       </div>
                     );
