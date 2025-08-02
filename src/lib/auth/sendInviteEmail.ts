@@ -44,7 +44,7 @@ export async function sendInviteEmail({
       </div>
       
       <div style="margin: 20px 0; padding: 15px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 5px;">
-        <p style="margin: 0 0 8px; font-weight: bold; color: #333;">Your Cliq Code: <span style="font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px;">cliq-${inviteCode}</span></p>
+        <p style="margin: 0 0 8px; font-weight: bold; color: #333;">Your Cliq Code: <span style="font-family: monospace; background: #fff; padding: 2px 6px; border-radius: 3px;">${inviteCode}</span></p>
         <p style="margin: 0; font-size: 14px; color: #666;">Joining from another device? Visit <a href="https://cliqstr.com/invite/manual" style="color: #000;">cliqstr.com/invite/manual</a> and enter this code.</p>
       </div>
       

@@ -256,9 +256,14 @@ export function HeaderComponent() {
             {isLoggedIn ? (
               <div className="relative">
                 <button 
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsUserMenuOpen(!isUserMenuOpen);
+                  }} 
                   className="relative"
                   aria-label="Account menu"
+                  type="button"
                 >
                   <div className="h-8 w-8 rounded-full bg-black text-white flex items-center justify-center text-sm font-medium">
                     {(userData?.name || userData?.email || 'U').substring(0, 2).toUpperCase()}

@@ -52,16 +52,7 @@ model MyProfile {
   scrapbookItems    ScrapbookItem[]
 }
 
-model ParentLink {
-  id        String   @id @default(cuid())
-  childId   String
-  createdAt DateTime @default(now())
-  approved  Boolean  @default(false)
-  parentId  String?
-  email     String?
-  child     User     @relation("ChildLinks", fields: [childId], references: [id])
-  parent    User?    @relation(fields: [parentId], references: [id])
-}
+
 
 model ChildSettings {
   id                     String    @id @default(cuid())
@@ -262,41 +253,6 @@ enum CliqPrivacy {
   private
   semi_private
   public
-}
-
-model ChildSettings {
-  id                           String    @id @default(cuid())
-  profileId                    String    @unique
-  canSendInvites              Boolean   @default(false)
-  canInviteChildren           Boolean   @default(false)
-  canInviteAdults             Boolean   @default(false)
-  childInviteRequiresApproval Boolean   @default(true)
-  adultInviteRequiresApproval Boolean   @default(true)
-  canCreatePrivateCliqs       Boolean   @default(false)
-  canCreateSemiPrivateCliqs   Boolean   @default(false)
-  canCreatePublicCliqs        Boolean   @default(false)
-  canJoinPublicCliqs          Boolean   @default(true)
-  isSilentlyMonitored         Boolean   @default(true)
-  canPostImages               Boolean   @default(true)
-  canShareYouTube             Boolean   @default(false)
-  canAccessGames              Boolean   @default(true)
-  visibilityLevel             String?   @default("flagged")
-  aiModerationLevel           String?   @default("strict")
-  inviteRequiresApproval      Boolean   @default(true)
-  createdAt                   DateTime  @default(now())
-  updatedAt                   DateTime  @updatedAt
-  myProfile                   MyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-}
-
-model ParentAuditLog {
-  id        String   @id @default(cuid())
-  parentId  String
-  childId   String
-  action    String   // e.g., 'update_canSendInvites', 'update_isSilentlyMonitored'
-  oldValue  String?
-  newValue  String?
-  createdAt DateTime @default(now())
-  parent    User     @relation("ParentAuditLogs", fields: [parentId], references: [id])
 }
 
 model UserActivityLog {
