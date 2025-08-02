@@ -48,8 +48,8 @@ export function HeaderComponent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
   
-  // Session timeout in milliseconds (30 minutes)
-  const SESSION_TIMEOUT = 30 * 60 * 1000;
+  // Session timeout in milliseconds (1 hour - balanced for safety and usability)
+  const SESSION_TIMEOUT = 60 * 60 * 1000;
 
   // Function to handle sign out
   const handleSignOut = async () => {
@@ -124,10 +124,10 @@ export function HeaderComponent() {
         console.log('[Header] Session timeout detected');
         handleAutoLogout();
       }
-    }, 60000); // Check every minute
+    }, 5 * 60 * 1000); // Check every 5 minutes instead of every minute
     
     return () => clearInterval(interval);
-  }, [isLoggedIn, lastActivity]);
+  }, [isLoggedIn]); // Remove lastActivity dependency to prevent frequent re-renders
 
   // Fetch user data and authentication status - simplified to just check if logged in
   const fetchUser = async () => {
@@ -230,10 +230,10 @@ export function HeaderComponent() {
   useEffect(() => {
     fetchUser();
     
-    // Set up interval to periodically check auth status (every 5 minutes)
+    // Set up interval to periodically check auth status (every 10 minutes for age gating compliance)
     const interval = setInterval(() => {
       fetchUser();
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
     
     return () => clearInterval(interval);
   }, []);

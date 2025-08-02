@@ -80,7 +80,7 @@ export function MobileMenu({
           FAQs
         </Link>
 
-        {isLoggedIn && isApproved && (
+        {isLoggedIn && (
           <Link
             href="/my-cliqs-dashboard"
             className="block font-semibold hover:text-black transition py-3 border-b border-gray-100"

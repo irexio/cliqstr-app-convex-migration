@@ -52,7 +52,7 @@ export default function EditProfileModal({ onClose, onSave, initialData }: Props
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-lg">
         <div className="relative">
           {/* Banner */}
@@ -91,7 +91,7 @@ export default function EditProfileModal({ onClose, onSave, initialData }: Props
           </div>
         </div>
 
-        <div className="pt-16 px-6 pb-6 space-y-6">
+        <div className="pt-16 px-8 pb-8 space-y-6">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700">Nickname</label>
@@ -158,7 +158,7 @@ export default function EditProfileModal({ onClose, onSave, initialData }: Props
           </div>
 
           {/* Buttons */}
-          <div className="flex justify-end space-x-4 pt-4">
+          <div className="flex justify-end space-x-4 pt-6">
             <button
               onClick={onClose}
               className="px-4 py-2 rounded-md border text-gray-700 hover:bg-gray-100"
