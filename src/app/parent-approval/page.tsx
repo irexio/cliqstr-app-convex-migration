@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 // Loading fallback component
 function LoadingFallback() {
@@ -195,27 +196,25 @@ function ParentApprovalContent() {
 
         <div>
           <Label htmlFor="password">Create Password</Label>
-          <Input
+          <PasswordInput
             id="password"
-            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder="Create a password"
+            autoComplete="new-password"
             required
-            minLength={6}
           />
         </div>
 
         <div>
           <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="••••••••"
+            placeholder="Confirm your password"
+            autoComplete="new-password"
             required
-            minLength={6}
           />
         </div>
 

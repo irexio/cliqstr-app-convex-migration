@@ -54,9 +54,9 @@ export default function ForgotPasswordModal({
     <Dialog
       open={open}
       onClose={() => setOpen(false)}
-      className="fixed z-50 inset-0 flex items-center justify-center bg-black/50"
+      className="fixed z-50 inset-0 flex items-center justify-center bg-black/50 p-4 overflow-y-auto"
     >
-      <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md text-black">
+      <Dialog.Panel className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md text-black max-h-[90vh] overflow-y-auto my-auto">
         <Dialog.Title className="text-xl font-semibold mb-4">
           Reset Your Password
         </Dialog.Title>
@@ -81,11 +81,11 @@ export default function ForgotPasswordModal({
               <p className="text-red-500 text-sm mb-2">{error}</p>
             )}
 
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setOpen(false)}>
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
                 Cancel
               </Button>
-              <Button onClick={handleSubmit}>Send Reset Link</Button>
+              <Button onClick={handleSubmit} className="w-full sm:w-auto">Send Reset Link</Button>
             </div>
           </>
         )}

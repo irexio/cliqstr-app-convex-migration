@@ -22,6 +22,7 @@ import { Switch } from '@headlessui/react';
 import { Button } from '@/components/Button';
 import { fetchJson } from '@/lib/fetchJson';
 import { useRouter } from 'next/navigation';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 interface ProfileSettings {
   canPostImages: boolean;
@@ -178,8 +179,8 @@ export default function ParentsHQPage({ childId }: ParentsHQPageProps) {
       
       {/* Username/Password Setup Modal */}
       {resetDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto my-auto">
             <h3 className="text-xl font-bold mb-4">Set Up Child's Account</h3>
             <p className="text-sm text-gray-600 mb-4">
               Create a username and password for your child. Make sure to share these credentials with your child or help them sign in.
@@ -205,13 +206,13 @@ export default function ParentsHQPage({ childId }: ParentsHQPageProps) {
                 <label htmlFor="childPassword" className="block text-sm font-medium text-gray-700 mb-1">
                   Password
                 </label>
-                <input
+                <PasswordInput
                   id="childPassword"
-                  type="password"
                   value={resetPassword}
                   onChange={(e) => setResetPassword(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="p-2 border border-gray-300 rounded"
                   placeholder="Choose a password"
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -219,17 +220,17 @@ export default function ParentsHQPage({ childId }: ParentsHQPageProps) {
               {resetError && <p className="text-red-600 text-sm">{resetError}</p>}
               {resetSuccess && <p className="text-green-600 text-sm">{resetSuccess}</p>}
               
-              <div className="flex justify-end space-x-3 mt-6">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-6">
                 <Button 
                   type="button" 
                   onClick={() => setResetDialogOpen(false)}
-                  className="bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 w-full sm:w-auto"
                 >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
                   disabled={actionLoading}
                 >
                   {actionLoading ? 'Setting Up...' : 'Set Up Account'}

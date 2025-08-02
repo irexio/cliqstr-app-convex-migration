@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
 import { fetchJson } from '@/lib/fetchJson';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 export default function ResetPasswordForm() {
   const router = useRouter();
@@ -58,11 +59,11 @@ export default function ResetPasswordForm() {
       </h1>
 
       <Label className="mt-4">New Password</Label>
-      <Input
-        type="password"
+      <PasswordInput
         value={newPassword}
         onChange={(e) => setNewPassword(e.target.value)}
-        placeholder="••••••••"
+        placeholder="Enter new password"
+        autoComplete="new-password"
       />
 
       {error && <p className="text-red-500 mt-3">{error}</p>}

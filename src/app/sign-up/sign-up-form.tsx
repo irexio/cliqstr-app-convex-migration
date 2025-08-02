@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
 import { fetchJson } from '@/lib/fetchJson';
+import PasswordInput from '@/components/ui/PasswordInput';
 
 type FlowStep = 'initial' | 'child-parent-email' | 'adult-credentials' | 'child-success' | 'adult-processing';
 
@@ -346,13 +347,13 @@ export default function SignUpForm() {
 
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
-              required
-              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Create a password"
+              autoComplete="new-password"
+              required
             />
           </div>
 
