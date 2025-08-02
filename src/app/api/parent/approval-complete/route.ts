@@ -111,8 +111,18 @@ export async function POST(req: Request) {
       });
     }
 
+    // Find parent user by email
+    const parentUser = await prisma.user.findUnique({
+      where: { email: parentEmail }
+    });
+    
+    if (!parentUser) {
+      return NextResponse.json({ error: 'Parent user not found' }, { status: 400 });
+    }
+
     await prisma.parentLink.create({
       data: {
+        parentId: parentUser.id,
         childId: childProfile.userId,
         email: parentEmail,
       },

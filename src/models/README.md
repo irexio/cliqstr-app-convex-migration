@@ -7,7 +7,7 @@
 
 **Key Relations**:
 - Has one `Account` (system/auth data)
-- Has one `Profile` (social media profile)
+- Has one `MyProfile` (social media profile)
 - Can trigger `RedAlert` (safety feature)
 
 **Important**: User is the central entity - never expose User.password or sensitive fields
