@@ -24,12 +24,12 @@ model User {
   inviteRequestsSent  InviteRequest[] @relation("InviteRequestsSent")
   memberships         Membership[]
   myProfile           MyProfile?
-  children            ParentLink[]    @relation("ChildLinks")
-  parentLinks         ParentLink[]
+  parentChildLinks    ParentLink[]    @relation("ParentChildLinks")
   Post                Post[]
   redAlertsTriggered  RedAlert[]
   Reply               Reply[]
   activityLogs        UserActivityLog[]
+  parentAuditLogs     ParentAuditLog[]    @relation("ParentAuditLogs")
 }
 
 model MyProfile {
@@ -188,14 +188,27 @@ model InviteRequest {
   inviter      User     @relation("InviteRequestsSent", fields: [inviterId], references: [id])
 }
 
+model ParentLink {
+  id            String   @id @default(cuid())
+  email         String   // Parent's email
+  childId       String   // Child's user ID
+  type          String   @default("family") // "family" or "invited"
+  inviteContext String?  // Context for invited children (e.g., "invited to Soccer Team")
+  createdAt     DateTime @default(now())
+  child         User     @relation("ParentChildLinks", fields: [childId], references: [id])
+  
+  @@unique([email, childId])
+}
+
 model ParentAuditLog {
   id        String   @id @default(cuid())
   parentId  String
   childId   String
-  action    String
+  action    String   // e.g., 'update_canSendInvites', 'update_isSilentlyMonitored'
   oldValue  String?
   newValue  String?
   createdAt DateTime @default(now())
+  parent    User     @relation("ParentAuditLogs", fields: [parentId], references: [id])
 }
 
 model RedAlert {
@@ -249,6 +262,41 @@ enum CliqPrivacy {
   private
   semi_private
   public
+}
+
+model ChildSettings {
+  id                           String    @id @default(cuid())
+  profileId                    String    @unique
+  canSendInvites              Boolean   @default(false)
+  canInviteChildren           Boolean   @default(false)
+  canInviteAdults             Boolean   @default(false)
+  childInviteRequiresApproval Boolean   @default(true)
+  adultInviteRequiresApproval Boolean   @default(true)
+  canCreatePrivateCliqs       Boolean   @default(false)
+  canCreateSemiPrivateCliqs   Boolean   @default(false)
+  canCreatePublicCliqs        Boolean   @default(false)
+  canJoinPublicCliqs          Boolean   @default(true)
+  isSilentlyMonitored         Boolean   @default(true)
+  canPostImages               Boolean   @default(true)
+  canShareYouTube             Boolean   @default(false)
+  canAccessGames              Boolean   @default(true)
+  visibilityLevel             String?   @default("flagged")
+  aiModerationLevel           String?   @default("strict")
+  inviteRequiresApproval      Boolean   @default(true)
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @updatedAt
+  myProfile                   MyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model ParentAuditLog {
+  id        String   @id @default(cuid())
+  parentId  String
+  childId   String
+  action    String   // e.g., 'update_canSendInvites', 'update_isSilentlyMonitored'
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+  parent    User     @relation("ParentAuditLogs", fields: [parentId], references: [id])
 }
 
 model UserActivityLog {

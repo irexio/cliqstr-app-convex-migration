@@ -29,7 +29,15 @@ const schema = z.object({
   childId: z.string().min(1),
   settings: z.object({
     canSendInvites: z.boolean().optional(),
+    canInviteChildren: z.boolean().optional(),
+    canInviteAdults: z.boolean().optional(),
+    childInviteRequiresApproval: z.boolean().optional(),
+    adultInviteRequiresApproval: z.boolean().optional(),
+    canCreatePrivateCliqs: z.boolean().optional(),
+    canCreateSemiPrivateCliqs: z.boolean().optional(),
     canCreatePublicCliqs: z.boolean().optional(),
+    isSilentlyMonitored: z.boolean().optional(),
+    // Legacy fields for backward compatibility
     canAccessGames: z.boolean().optional(),
     canPostImages: z.boolean().optional(),
     canShareYouTube: z.boolean().optional(),
@@ -95,22 +103,19 @@ export async function POST(req: Request) {
 
     // Audit log: compare settings
     const auditActions: any[] = [];
-    // Support both inviteRequiresApproval and legacy settings
-    for (const key of Object.keys(settings) as (keyof typeof settings)[]) {
-      const oldValue = childSettings[key as keyof typeof settings];
-      const newValue = settings[key as keyof typeof settings];
-      if (
-        newValue !== undefined &&
-        oldValue !== undefined &&
-        newValue !== oldValue
-      ) {
-        auditActions.push({
-          parentId: parent.id,
-          childId,
-          action: `update_${key}`,
-          oldValue: String(oldValue),
-          newValue: String(newValue),
-        });
+    // Support both new ChildSettings fields and legacy settings
+    for (const [key, newValue] of Object.entries(settings)) {
+      if (newValue !== undefined && key in childSettings) {
+        const oldValue = (childSettings as any)[key];
+        if (oldValue !== newValue) {
+          auditActions.push({
+            parentId: parent.id,
+            childId,
+            action: `update_${key}`,
+            oldValue: String(oldValue),
+            newValue: String(newValue),
+          });
+        }
       }
     }
     // Write audit log entries

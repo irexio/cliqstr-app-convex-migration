@@ -4,15 +4,15 @@ export const dynamic = 'force-dynamic';
  * 🔐 APA-HARDENED ROUTE: /parents-hq
  *
  * Purpose:
- *   - Entry point for parents to manage their children’s permissions
- *   - Renders <ParentDashboard>, which allows switching between children
- *   - Includes toggles, visibility controls, and safe persistence
+ *   - Entry point for parents to manage their children's permissions
+ *   - Renders <ParentDashboard> with complete permission management
+ *   - Includes all permission toggles, Red Alert acceptance, and save functionality
  *
  * Related:
- *   - ParentDashboard.tsx → child picker
- *   - ParentsHQPage.tsx → per-child toggle manager
+ *   - ParentDashboard.tsx → complete parent dashboard with all child management
  *   - /api/parent/children → fetches child list
- *   - /api/parent/settings/update → saves changes
+ *   - /api/parent/child-profile → fetches child profile and settings
+ *   - /api/parent/settings/update → saves all permission changes
  */
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
