@@ -103,27 +103,42 @@ function ParentInviteContent() {
       const data = await response.json();
       
       if (response.ok) {
-        // Check user's plan status first
-        const authRes = await fetch('/api/auth/status', {
-          credentials: 'include',
-        });
-        
-        if (authRes.ok) {
-          const authData = await authRes.json();
-          const account = authData.user?.account;
+        // ✅ APA COMPLIANCE: Handle child invite response
+        if (data.requiresParentApproval && data.inviteType === 'child') {
+          console.log('[APA] Child invite requires parent approval - redirecting to parent approval flow');
           
-          // If no plan, redirect to choose-plan
-          if (!account?.plan) {
-            console.log('[APA] Parent has no plan, redirecting to choose-plan');
-            router.push('/choose-plan');
+          // Check user's plan status first
+          const authRes = await fetch('/api/auth/status', {
+            credentials: 'include',
+          });
+          
+          if (authRes.ok) {
+            const authData = await authRes.json();
+            const account = authData.user?.account;
+            
+            // If no plan, redirect to choose-plan with context
+            if (!account?.plan) {
+              console.log('[APA] Parent has no plan, redirecting to choose-plan with child invite context');
+              // Store invite details for after plan selection
+              sessionStorage.setItem('pendingChildInvite', JSON.stringify({
+                inviteCode,
+                cliqName: data.cliqName,
+                friendFirstName: data.friendFirstName
+              }));
+              router.push('/choose-plan?context=child-invite');
+            } else {
+              // Has plan, redirect to parent approval flow
+              console.log('[APA] Parent has plan, redirecting to parent approval flow');
+              router.push(`/api/parent-approval/start?code=${inviteCode}`);
+            }
           } else {
-            // Has plan, redirect to Parents HQ to set up child permissions
-            console.log('[APA] Parent has plan, redirecting to parents-hq');
-            router.push('/parents/hq');
+            // Fallback to parent approval flow
+            router.push(`/api/parent-approval/start?code=${inviteCode}`);
           }
         } else {
-          // Fallback to parents-hq if auth check fails
-          router.push('/parents/hq');
+          // Regular adult invite - shouldn't happen on this page but handle gracefully
+          console.log('[INVITE] Regular adult invite completed');
+          router.push(`/cliqs/${data.cliqId}`);
         }
       } else {
         setInviteDetails(prev => ({ ...prev!, error: data.error }));

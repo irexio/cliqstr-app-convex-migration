@@ -149,6 +149,7 @@ export async function POST(req: NextRequest) {
         data: {
           email: parentEmail,
           password: hashedPassword,
+          isVerified: true, // ✅ Email verified by clicking invite link
         },
         include: {
           account: true,
@@ -177,12 +178,22 @@ export async function POST(req: NextRequest) {
         },
       });
     } else {
-      // Parent already exists - ensure they have Parent role
+      // Parent already exists - ensure they have Parent role and are verified
       if (parentUser.account && parentUser.account.role !== 'Parent') {
         await prisma.account.update({
           where: { userId: parentUser.id },
           data: {
             role: 'Parent',
+          },
+        });
+      }
+      
+      // Mark existing parent as verified since they clicked the email link
+      if (!parentUser.isVerified) {
+        await prisma.user.update({
+          where: { id: parentUser.id },
+          data: {
+            isVerified: true, // ✅ Email verified by clicking invite link
           },
         });
       }

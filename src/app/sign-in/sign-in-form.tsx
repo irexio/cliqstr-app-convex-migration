@@ -235,6 +235,32 @@ export default function SignInForm() {
         console.error('[APA] Error during session refresh:', refreshErr);
       }
       
+      // ✅ APA COMPLIANCE: Check for parent approval context
+      const returnTo = searchParams.get('returnTo');
+      const storedParentContext = sessionStorage.getItem('parentApprovalContext');
+      
+      if (returnTo && returnTo.includes('parent-approval')) {
+        console.log('[APA] Parent approval context detected, redirecting to:', returnTo);
+        // Force Next.js to rehydrate with updated state
+        router.refresh();
+        // Add a short delay to ensure session cookie is processed
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Redirect to parent approval completion
+        window.location.replace(returnTo);
+        return;
+      }
+      
+      if (storedParentContext) {
+        console.log('[APA] Parent approval context found in sessionStorage, redirecting to /parents/hq');
+        // Force Next.js to rehydrate with updated state
+        router.refresh();
+        // Add a short delay to ensure session cookie is processed
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Redirect to parents HQ for child approval
+        window.location.replace('/parents/hq');
+        return;
+      }
+      
       // Force Next.js to rehydrate with updated state
       router.refresh();
       

@@ -124,12 +124,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // For child invites, we need to check if the user is an adult
+    // ✅ APA COMPLIANCE: Handle child invites differently
     if (inviteType === 'child') {
-      // For child invites, we should verify the user is an adult
-      // Note: Age verification logic would go here if needed
-      // For now, we'll allow the invite acceptance to proceed
+      // For child invites, the current user is the PARENT/GUARDIAN
+      // We need to redirect to the parent approval flow, not add them to the cliq
+      console.log(`[APA] Child invite detected - redirecting to parent approval flow for user ${user.id}`);
+      
+      // Verify the user is an adult (has role 'Adult' or no role set)
+      if (user.role === 'Child') {
+        return NextResponse.json({ 
+          error: 'Child accounts cannot approve child invites. Please have a parent or guardian complete this process.' 
+        }, { status: 403 });
+      }
+      
+      // Don't add the parent to the cliq yet - they need to go through parent approval
+      // Return a special response indicating this is a child invite that needs parent approval
+      return NextResponse.json({
+        message: 'Child invite requires parent approval',
+        inviteType: 'child',
+        requiresParentApproval: true,
+        cliqId: invite.cliqId,
+        cliqName: invite.cliq.name,
+        friendFirstName: typedInvite.friendFirstName
+      });
     }
+    
+    // ✅ ADULT INVITES: Normal flow for adult-to-adult invites
+    console.log(`[INVITE] Adult invite - adding user ${user.id} directly to cliq ${invite.cliqId}`);
     
     // Add the user to the cliq
     await prisma.membership.create({

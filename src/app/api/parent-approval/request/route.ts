@@ -26,7 +26,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
-import { generateInviteCode } from '@/lib/auth/generateInviteCode';
+import { generateInviteCode, normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 import { z } from 'zod';
 
 const parentApprovalSchema = z.object({
@@ -39,9 +39,57 @@ const parentApprovalSchema = z.object({
   parentEmail: z.string().email('Valid parent email is required'),
 });
 
-// Simple GET handler for testing
-export async function GET() {
-  return NextResponse.json({ message: 'Parent approval API is working' });
+// GET handler for child invite approval flow
+export async function GET(req: NextRequest) {
+  try {
+    // Get invite code from query params
+    const { searchParams } = new URL(req.url);
+    const inviteCode = searchParams.get('code');
+    
+    if (!inviteCode) {
+      console.error('[PARENT_APPROVAL] No invite code provided in GET request');
+      return NextResponse.redirect(new URL('/?error=missing-invite-code', req.url));
+    }
+    
+    // Find and validate the invite
+    const invite = await prisma.invite.findUnique({
+      where: { code: normalizeInviteCode(inviteCode) },
+      include: {
+        cliq: {
+          select: {
+            id: true,
+            name: true,
+            ownerId: true
+          }
+        }
+      }
+    });
+    
+    if (!invite) {
+      console.error('[PARENT_APPROVAL] Invite not found:', inviteCode);
+      return NextResponse.redirect(new URL('/?error=invite-not-found', req.url));
+    }
+    
+    // Check if this is a child invite
+    const typedInvite = invite as any;
+    const inviteType = typedInvite.inviteType || 'adult';
+    
+    if (inviteType !== 'child') {
+      console.error('[PARENT_APPROVAL] Not a child invite:', inviteCode);
+      return NextResponse.redirect(new URL(`/invite/adult?code=${inviteCode}`, req.url));
+    }
+    
+    // Redirect to the parent approval completion flow
+    console.log('[PARENT_APPROVAL] Redirecting to parent approval completion for invite:', inviteCode);
+    const redirectUrl = new URL('/api/parent-approval/complete', req.url);
+    redirectUrl.searchParams.set('code', inviteCode);
+    redirectUrl.searchParams.set('action', 'approve');
+    return NextResponse.redirect(redirectUrl);
+    
+  } catch (error) {
+    console.error('[PARENT_APPROVAL_GET_ERROR]', error);
+    return NextResponse.redirect(new URL('/?error=server-error', req.url));
+  }
 }
 
 export async function POST(req: NextRequest) {
