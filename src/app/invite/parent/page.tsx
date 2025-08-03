@@ -244,71 +244,24 @@ function ParentInviteContent() {
     );
   }
 
-  // User is authenticated, show accept invitation UI
+  // User is authenticated - redirect to Parents HQ for proper APA compliance
+  useEffect(() => {
+    if (isAuthenticated && inviteCode) {
+      console.log('[APA] Authenticated user with child invite - redirecting to Parents HQ');
+      router.push(`/parents/hq?inviteCode=${inviteCode}`);
+    }
+  }, [isAuthenticated, inviteCode, router]);
+
+  // Show loading while redirecting
   return (
-    <div className="container max-w-md mx-auto py-12">
-      <Card>
-        <CardHeader>
-          <CardTitle>Child Invitation - Parent Approval</CardTitle>
-          <CardDescription>
-            {inviteDetails.inviterName} has invited {inviteDetails.friendFirstName} to join {inviteDetails.cliqName}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h3 className="font-semibold text-green-900 mb-2">✅ Ready to Approve</h3>
-              <p className="text-green-800 text-sm mb-3">
-                You're signed in and ready to approve {inviteDetails.friendFirstName}'s invitation to join {inviteDetails.cliqName}. 
-                This is a safe, moderated community space.
-              </p>
-              <ul className="text-green-700 text-sm space-y-1">
-                <li>• {inviteDetails.friendFirstName} will be able to participate in group discussions</li>
-                <li>• All activity will be monitored and logged for safety</li>
-                <li>• You can review their interactions anytime</li>
-              </ul>
-            </div>
-
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-200">
-              <h3 className="font-semibold text-blue-800 mb-2">Child Safety Notice:</h3>
-              <p className="text-blue-700">
-                By accepting this invitation, you'll be creating and managing an account for {inviteDetails.friendFirstName}. 
-                You'll be responsible for monitoring their activity and ensuring their safety on the platform.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="font-semibold text-lg mb-2">Choose How You'd Like to Continue:</h3>
-              <div className="bg-gray-50 p-4 rounded-md border border-gray-200 mb-3">
-                <p className="font-medium">✅ Approve This Invite Only (Free)</p>
-                <p className="text-gray-600 text-sm">
-                  Your child will only join "{inviteDetails.cliqName}" — no ability to create cliqs or invite others.
-                </p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-md border border-purple-200">
-                <p className="font-medium">🌟 Create a Full Cliqstr Account (Upgrade Option)</p>
-                <p className="text-purple-600 text-sm">
-                  You'll be able to create cliqs, add more children, and join public parent groups.
-                </p>
-              </div>
-            </div>
-
-            {inviteDetails.error && (
-              <div className="bg-red-50 p-4 rounded-md border border-red-200">
-                <p className="text-red-600">{inviteDetails.error}</p>
-              </div>
-            )}
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between gap-3">
-          <Button variant="outline" onClick={() => router.push('/')} className="flex-1">
-            Decline
-          </Button>
-          <Button onClick={handleAcceptInvite} disabled={loading} className="flex-1">
-            {loading ? <LoadingSpinner size="sm" color="white" /> : `Accept for ${inviteDetails.friendFirstName}`}
-          </Button>
-        </CardFooter>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center bg-white px-4">
+      <div className="max-w-md w-full text-center space-y-8">
+        <h1 className="text-2xl font-bold text-black uppercase tracking-wide">
+          Parent/Guardian Approval
+        </h1>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
+        <p className="text-gray-600">Redirecting to Parent Dashboard...</p>
+      </div>
     </div>
   );
 }
