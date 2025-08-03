@@ -63,9 +63,9 @@ function InviteAcceptContent() {
         console.log('API response data:', data);
         
         if (data.valid) {
-          // Redirect based on invite type
-          if (data.inviteType === 'child') {
-            console.log('Redirecting to parent flow');
+          // Redirect based on invite role (who is being invited)
+          if (data.inviteRole === 'child') {
+            console.log('Redirecting to parent flow for child invite');
             router.push(`/invite/parent?code=${inviteCode}`);
           } else {
             console.log('Redirecting to adult flow');
