@@ -1,5 +1,3 @@
-'use client';
-
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
