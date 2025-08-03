@@ -16,8 +16,12 @@ export async function POST(req: Request) {
     // APA: Use getCurrentUser() for session validation
     const user = await getCurrentUser();
     if (!user?.id) {
-      console.log('[INVITE_ERROR] Unauthorized - no user ID');
-      return NextResponse.json({ error: 'Unauthorized - please sign in again' }, { status: 401 });
+      console.log('[INVITE_ERROR] Session expired during invite creation');
+      
+      return NextResponse.json({ 
+        error: 'Your session has expired. Please sign in again to continue.',
+        code: 'SESSION_EXPIRED'
+      }, { status: 401 });
     }
     
     // Check if user is a child and enforce invite permissions

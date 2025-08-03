@@ -20,16 +20,20 @@
  */
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import toast from '@/components/ui/use-toast';
 
 interface InviteClientProps {
   cliqId: string;
 }
 
 export default function InviteClient({ cliqId }: InviteClientProps) {
+  const router = useRouter();
+  
   // New simplified state for redesigned invite form
   const [friendFirstName, setFriendFirstName] = useState('');
   const [trustedAdultContact, setTrustedAdultContact] = useState('');
@@ -46,6 +50,19 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
     setSuccess(false);
 
     try {
+      // 🔐 Session Check: Verify user is still authenticated before API call
+      const authCheck = await fetch('/api/auth/status');
+      const { user } = await authCheck.json();
+      
+      if (!user) {
+        toast({
+          title: 'Session Expired',
+          description: 'Please sign in again to continue.'
+        });
+        router.push(`/sign-in?returnTo=/cliqs/${cliqId}/invite`);
+        return;
+      }
+      
       // Validate required fields
       if (!inviteType) {
         throw new Error('Please select who this invite is for');
@@ -101,6 +118,15 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       const data = await response.json();
 
       if (!response.ok) {
+        // Handle session expiration gracefully
+        if (response.status === 401) {
+          toast({
+            title: 'Session Expired',
+            description: 'Your session expired. Please sign in again to continue.'
+          });
+          router.push(`/sign-in?returnTo=/cliqs/${cliqId}/invite`);
+          return;
+        }
         throw new Error(data.error || 'Failed to send invite');
       }
 
