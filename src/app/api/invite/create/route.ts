@@ -227,18 +227,16 @@ export async function POST(req: Request) {
     });
     
     console.log('[EMAIL DEBUG] Using inviter name:', inviterName);
-
-// Construct the invite link with the correct base URL and path
-// Child invites go directly to Parents HQ; adult invites use standard flow
-const inviteLink = inviteType === 'child'
-  ? `${BASE_URL}/parents/hq?inviteCode=${inviteCode}`
-  : `${BASE_URL}/invite/accept?code=${inviteCode}`;
-
-console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
-
-// Send the appropriate email based on invite type
-let emailResult;
-
+    
+    // Construct the invite link with the correct base URL and path
+    // All invites use the standard flow through /invite/accept for proper routing
+    const inviteLink = `${BASE_URL}/invite/accept?code=${inviteCode}`;
+    
+    console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
+    
+    // Send the appropriate email based on invite type
+    let emailResult;
+    
     if (inviteType === 'child') {
       // Send email to trusted adult for child invite
       emailResult = await sendChildInviteEmail({
