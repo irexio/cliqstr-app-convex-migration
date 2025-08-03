@@ -5,6 +5,9 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
+// Force dynamic rendering to prevent static generation issues with useSearchParams
+export const dynamic = 'force-dynamic';
+
 function ParentApprovalContent() {
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get('inviteCode') ?? '';
