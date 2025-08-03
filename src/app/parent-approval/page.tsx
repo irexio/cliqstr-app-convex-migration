@@ -1,10 +1,11 @@
 // 🔐 APA-HARDENED — Parent Approval Landing Page
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 
-export default function ParentApprovalPage() {
+function ParentApprovalContent() {
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get('inviteCode') ?? '';
 
@@ -35,5 +36,19 @@ export default function ParentApprovalPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function ParentApprovalPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="max-w-md w-full text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
+        </div>
+      </main>
+    }>
+      <ParentApprovalContent />
+    </Suspense>
   );
 }
