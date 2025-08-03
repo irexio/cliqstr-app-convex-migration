@@ -13,7 +13,7 @@ interface InviteDetails {
   valid: boolean;
   cliqName?: string;
   inviterName?: string;
-  inviteType?: string;
+  inviteRole?: string;
   friendFirstName?: string;
   error?: string;
 }
@@ -58,18 +58,18 @@ function ParentInviteContent() {
       }
 
       try {
-        const response = await fetch(`/api/validate-invite?code=${inviteCode}`);
+        const response = await fetch(`/api/invites/validate?code=${inviteCode}`);
         const data = await response.json();
         
-        if (response.ok && data.valid && data.inviteType === 'child') {
+        if (response.ok && data.valid && data.inviteRole === 'child') {
           setInviteDetails({
             valid: true,
             cliqName: data.cliqName,
             inviterName: data.inviterName,
-            inviteType: data.inviteType,
+            inviteRole: data.inviteRole,
             friendFirstName: data.friendFirstName
           });
-        } else if (response.ok && data.valid && data.inviteType === 'adult') {
+        } else if (response.ok && data.valid && data.inviteRole === 'adult') {
           // Redirect to adult invite page if this is an adult invite
           router.push(`/invite/adult?code=${inviteCode}`);
           return;
