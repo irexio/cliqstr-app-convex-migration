@@ -1,29 +1,7 @@
-/**
- * 🔐 APA-HARDENED ROUTE: POST /api/parent-approval/complete
- *
- * Purpose:
- *   - Completes the parent approval process
- *   - Creates parent account if needed
- *   - Links parent to child account
- *   - Sets child account to approved
- *   - Applies test plan (no Stripe integration)
- *
- * Body Params:
- *   - inviteCode: string (required)
- *   - childId: string (required)
- *   - parentEmail: string (required)
- *   - password: string (required)
- *
- * Returns:
- *   - 200 OK if approval completed successfully
- *   - 400 if missing required params
- *   - 404 if invite not found
- *   - 500 if server error
- */
-
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { hash } from 'bcryptjs';
 import { z } from 'zod';
 import { getIronSession } from 'iron-session';
@@ -32,192 +10,196 @@ import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 export const dynamic = 'force-dynamic';
 
 const approvalSchema = z.object({
-  inviteCode: z.string().min(1, 'Invite code is required'),
-  childId: z.string().min(1, 'Child ID is required'),
-  parentEmail: z.string().email('Valid parent email is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  inviteCode: z.string().min(1),
+  username: z.string().min(3),
+  password: z.string().min(6),
+  redAlertAccepted: z.literal(true),
+  silentMonitoring: z.boolean(),
+  permissions: z.object({
+    canPost: z.boolean(),
+    canComment: z.boolean(),
+    canReact: z.boolean(),
+    canViewProfiles: z.boolean(),
+    canReceiveInvites: z.boolean(),
+  }),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const parsed = approvalSchema.safeParse(body);
-
     if (!parsed.success) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { inviteCode, childId, parentEmail, password } = parsed.data;
+    const { inviteCode, username, password, redAlertAccepted, silentMonitoring, permissions } = parsed.data;
+    const currentUser = await getCurrentUser();
+    if (!currentUser) return NextResponse.json({ error: 'Must be signed in' }, { status: 401 });
+    const parentEmail = currentUser.email;
 
-    // Normalize the invite code
     const normalizedCode = normalizeInviteCode(inviteCode);
-
-    // Find the invite
     const invite = await prisma.invite.findUnique({
       where: { code: normalizedCode },
+      include: {
+        cliq: { select: { name: true } },
+        inviter: { select: { myProfile: { select: { firstName: true, lastName: true } } } },
+      },
     });
+    if (!invite) return NextResponse.json({ error: 'Invalid invite code' }, { status: 404 });
 
-    if (!invite) {
-      return NextResponse.json({ error: 'Invalid invite code' }, { status: 404 });
-    }
-
-    // Find child user - could be by ID or by invite code
     let childUser = null;
-    
     if (invite.inviteType === 'parent-approval') {
-      // For parent approval requests initiated before child account creation
-      // We need to create the child account now
-      
-      // Extract child info from the invite
-      let childFirstName = invite.friendFirstName || 'Child';
-      let childLastName = '';
-      let childBirthdate = new Date();
-      
-      // If we have additional info in the invite note, try to parse it
+      // Create child account from invite note
+      let firstName = invite.friendFirstName || 'Child';
+      let lastName = '';
+      let birthdate = new Date();
       if (invite.inviteNote) {
         const match = invite.inviteNote.match(/Child approval request for (.*?) (.*?), age (\d+)/);
         if (match) {
-          childFirstName = match[1];
-          childLastName = match[2];
-          
-          // Calculate approximate birthdate based on age
-          const age = parseInt(match[3], 10);
-          const now = new Date();
-          childBirthdate = new Date(now.getFullYear() - age, now.getMonth(), now.getDate());
+          firstName = match[1];
+          lastName = match[2];
+          birthdate = new Date(new Date().getFullYear() - parseInt(match[3]), new Date().getMonth(), new Date().getDate());
         }
       }
-      
-      // Create temporary password for child account
-      const tempPassword = Math.random().toString(36).slice(-8);
-      const hashedChildPassword = await hash(tempPassword, 10);
-      
-      // Create child user
+      const hashedTemp = await hash(Math.random().toString(36).slice(-8), 10);
       childUser = await prisma.user.create({
         data: {
-          email: `child-${normalizedCode}@pending.cliqstr.com`, // Temporary email
-          password: hashedChildPassword,
+          email: `child-${normalizedCode}@pending.cliqstr.com`,
+          password: hashedTemp,
         },
       });
-      
-      // Create child profile
       await prisma.myProfile.create({
         data: {
           userId: childUser.id,
-          firstName: childFirstName,
-          lastName: childLastName,
-          birthdate: childBirthdate,
-          username: `child-${childUser.id}`, // Temporary username
+          firstName,
+          lastName,
+          birthdate,
+          username: `child-${childUser.id}`,
         },
       });
-      
-      // Create child account with Child role
       await prisma.account.create({
         data: {
           userId: childUser.id,
-          birthdate: childBirthdate, // Use calculated birthdate from invite
+          birthdate,
           role: 'Child',
-          isApproved: false, // Will be set to true later
+          isApproved: false,
         },
       });
     } else {
-      // For standard flow where child account already exists
       childUser = await prisma.user.findUnique({
-        where: { id: childId },
-        include: {
-          account: true,
-        },
+        where: { id: invite.invitedUserId || undefined },
+        include: { account: true },
       });
-      
-      if (!childUser) {
-        return NextResponse.json({ error: 'Child account not found' }, { status: 404 });
-      }
+      if (!childUser) return NextResponse.json({ error: 'Child account not found' }, { status: 404 });
     }
-    
-    // Check if parent already exists
-    let parentUser = await prisma.user.findUnique({
-      where: { email: parentEmail },
-      include: {
-        account: true,
-      },
-    });
-    
+
+    // Create or update parent
+    let parentUser = await prisma.user.findUnique({ where: { email: parentEmail }, include: { account: true } });
     if (!parentUser) {
-      // Create parent account
-      const hashedPassword = await hash(password, 10);
-      
+      const hashed = await hash(password, 10);
       parentUser = await prisma.user.create({
         data: {
           email: parentEmail,
-          password: hashedPassword,
-          isVerified: true, // ✅ Email verified by clicking invite link
+          password: hashed,
+          isVerified: true,
         },
-        include: {
-          account: true,
-        },
+        include: { account: true },
       });
-      
-      // Create parent profile
       await prisma.myProfile.create({
         data: {
           userId: parentUser.id,
-          firstName: 'Parent', // Default name
-          lastName: '',
-          birthdate: new Date(), // Default birthdate
-          username: `parent-${parentUser.id}`, // Temporary username
+          firstName: 'Parent',
+          birthdate: new Date(),
+          username: `parent-${parentUser.id}`,
         },
       });
-      
-      // Create parent account with Parent role
       await prisma.account.create({
         data: {
           userId: parentUser.id,
-          birthdate: new Date('1985-01-01'), // Default adult birthdate for parent accounts
+          birthdate: new Date('1985-01-01'),
           role: 'Parent',
           isApproved: true,
-          plan: 'test', // Apply test plan automatically
+          plan: 'test',
         },
       });
     } else {
-      // Parent already exists - ensure they have Parent role and are verified
-      if (parentUser.account && parentUser.account.role !== 'Parent') {
-        await prisma.account.update({
-          where: { userId: parentUser.id },
-          data: {
-            role: 'Parent',
-          },
-        });
+      if (parentUser.account?.role !== 'Parent') {
+        await prisma.account.update({ where: { userId: parentUser.id }, data: { role: 'Parent' } });
       }
-      
-      // Mark existing parent as verified since they clicked the email link
       if (!parentUser.isVerified) {
-        await prisma.user.update({
-          where: { id: parentUser.id },
-          data: {
-            isVerified: true, // ✅ Email verified by clicking invite link
-          },
-        });
+        await prisma.user.update({ where: { id: parentUser.id }, data: { isVerified: true } });
       }
     }
-    
-    // Create parent-child link
+
     await prisma.parentLink.create({
       data: {
         parentId: parentUser.id,
         email: parentUser.email,
         childId: childUser.id,
+        type: 'invited',
+        inviteContext: JSON.stringify({
+          inviteCode: normalizedCode,
+          cliqName: invite.cliq?.name || '',
+          inviterName: `${invite.inviter?.myProfile?.firstName || ''} ${invite.inviter?.myProfile?.lastName || ''}`.trim(),
+          redAlertAccepted,
+          silentMonitoring,
+        }),
       },
     });
-    
-    // Update child account to approved
+
+    const childProfile = await prisma.myProfile.findUnique({
+      where: { userId: childUser.id },
+      select: { id: true },
+    });
+
+    if (childProfile) {
+      await prisma.childSettings.upsert({
+        where: { profileId: childProfile.id },
+        update: {
+          canJoinPublicCliqs: permissions.canViewProfiles,
+          canSendInvites: permissions.canReceiveInvites,
+          isSilentlyMonitored: silentMonitoring,
+          canPostImages: permissions.canPost,
+          inviteRequiresApproval: true,
+        },
+        create: {
+          profileId: childProfile.id,
+          canJoinPublicCliqs: permissions.canViewProfiles,
+          canSendInvites: permissions.canReceiveInvites,
+          isSilentlyMonitored: silentMonitoring,
+          canPostImages: permissions.canPost,
+          inviteRequiresApproval: true,
+        },
+      });
+    }
+
+    await prisma.parentAuditLog.create({
+      data: {
+        parentId: parentUser.id,
+        childId: childUser.id,
+        action: 'accepted_red_alert',
+        newValue: 'true',
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: childUser.id },
+      data: { password: await hash(password, 10) },
+    });
+
+    await prisma.myProfile.update({
+      where: { userId: childUser.id },
+      data: { username },
+    });
+
     await prisma.account.update({
       where: { userId: childUser.id },
       data: {
         isApproved: true,
-        plan: 'test', // Apply test plan automatically
+        plan: 'test',
       },
     });
-    
-    // Mark invite as used
+
     await prisma.invite.update({
       where: { code: normalizedCode },
       data: {
@@ -226,8 +208,7 @@ export async function POST(req: NextRequest) {
         invitedUserId: childUser.id,
       },
     });
-    
-    // Create session for parent to automatically log them in
+
     const response = NextResponse.json({
       success: true,
       message: 'Parent approval completed successfully',
@@ -235,19 +216,16 @@ export async function POST(req: NextRequest) {
       childId: childUser.id,
       redirectUrl: '/parents/hq',
     });
-    
-    // Set encrypted session
+
     const session = await getIronSession<SessionData>(req, response, sessionOptions);
     session.userId = parentUser.id;
     session.createdAt = Date.now();
     await session.save();
-    
+
     return response;
   } catch (error) {
     console.error('[PARENT_APPROVAL_COMPLETE_ERROR]', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
-    return NextResponse.json({ 
-      error: `Failed to complete parent approval: ${errorMessage}` 
-    }, { status: 500 });
+    return NextResponse.json({ error: `Failed to complete parent approval: ${errorMessage}` }, { status: 500 });
   }
 }

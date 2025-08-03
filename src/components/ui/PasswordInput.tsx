@@ -13,6 +13,7 @@ interface PasswordInputProps {
   id?: string;
   name?: string;
   autoComplete?: string;
+  minLength?: number;
 }
 
 export default function PasswordInput({
@@ -24,7 +25,8 @@ export default function PasswordInput({
   required = false,
   id,
   name,
-  autoComplete = "current-password"
+  autoComplete = "current-password",
+  minLength
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -48,6 +50,7 @@ export default function PasswordInput({
         id={id}
         name={name}
         autoComplete={autoComplete}
+        minLength={minLength}
       />
       <button
         type="button"
