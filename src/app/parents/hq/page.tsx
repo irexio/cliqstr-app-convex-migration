@@ -2,6 +2,6 @@ export const dynamic = 'force-dynamic';
 
 import ParentsHQPageContent from '@/components/parents/ParentsHQPage';
 
-export default async function Page() {
-  return <ParentsHQPageContent />;
+export default async function Page({ searchParams }: { searchParams: { inviteCode?: string } }) {
+  return <ParentsHQPageContent inviteCode={searchParams?.inviteCode} />;
 }

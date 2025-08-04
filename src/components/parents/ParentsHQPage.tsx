@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import ParentsHQContent from '@/components/parents/ParentsHQContent';
 
-export default async function ParentsHQPageContent() {
+export default async function ParentsHQPageContent({ inviteCode }: { inviteCode?: string }) {
   const user = await getCurrentUser();
   if (!user || user.role !== 'Parent') {
     notFound();
@@ -17,7 +17,7 @@ export default async function ParentsHQPageContent() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
         </div>
       }>
-        <ParentsHQContent />
+        <ParentsHQContent inviteCode={inviteCode} />
       </Suspense>
     </main>
   );
