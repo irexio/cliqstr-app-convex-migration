@@ -1,24 +1,53 @@
-import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
-import ParentsHQContent from '@/components/parents/ParentsHQContent';
+'use client';
 
-export default async function ParentsHQPageContent({ inviteCode }: { inviteCode?: string }) {
-  const user = await getCurrentUser();
-  if (!user || user.role !== 'Parent') {
-    notFound();
+import { useEffect, useState } from 'react';
+
+// ✅ Add this interface to declare props
+interface ParentsHQContentProps {
+  inviteCode?: string;
+}
+
+// ✅ Accept props with correct type
+export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) {
+  const [invite, setInvite] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!inviteCode) {
+      setError('Missing invite code.');
+      return;
+    }
+
+    const fetchInvite = async () => {
+      try {
+        const res = await fetch(`/api/invites/validate?code=${inviteCode}`);
+        if (!res.ok) throw new Error('Invite not found or expired.');
+        const data = await res.json();
+        setInvite(data.invite);
+      } catch (err: any) {
+        setError(err.message || 'Something went wrong.');
+      }
+    };
+
+    fetchInvite();
+  }, [inviteCode]);
+
+  if (error) {
+    return <div className="text-red-600">Error: {error}</div>;
+  }
+
+  if (!invite) {
+    return <div>Loading invite info...</div>;
   }
 
   return (
-    <main className="max-w-3xl mx-auto px-6 py-8">
-      <h1 className="text-3xl font-bold mb-6">Parents HQ</h1>
-      <Suspense fallback={
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-        </div>
-      }>
-        <ParentsHQContent inviteCode={inviteCode} />
-      </Suspense>
-    </main>
+    <div>
+      <p className="mb-4">
+        You’ve been asked to approve <strong>{invite.childName || 'this child'}</strong> to join{' '}
+        <strong>{invite.cliqName || 'a cliq'}</strong>.
+      </p>
+      {/* This is where we’ll plug in ChildInviteApprovalFlow */}
+      <div>✨ Approval form goes here (coming soon)</div>
+    </div>
   );
 }
