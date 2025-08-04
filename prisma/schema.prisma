@@ -18,6 +18,7 @@ model User {
   verificationExpires DateTime?
   verificationToken   String?
   isVerified          Boolean         @default(false)
+  isParent            Boolean         @default(false)
   account             Account?
   ownedCliqs          Cliq[]          @relation("CliqOwner")
   invitesSent         Invite[]        @relation("SentInvites")

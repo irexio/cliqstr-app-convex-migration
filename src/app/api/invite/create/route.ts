@@ -196,12 +196,27 @@ export async function POST(req: Request) {
       }
       
       const invite = await prisma.invite.create({ data: inviteData });
-      
+
       console.log('[INVITE_DEBUG] Invite created successfully', { inviteCode: invite.code });
+      
       inviteCode = invite.code;
       inviteRole = invite.invitedRole;
+      
+      // ✅ APA Upgrade: If user invites their own child, promote them to Parent
+      if (
+        inviteType === 'child' &&
+        targetEmail === user.email &&
+        user.role !== 'Parent'
+      ) {
+        console.log(`[ROLE UPGRADE] ${user.email} is inviting their own child — upgrading to Parent`);
+      
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { isParent: true }
+        });
+      }
     }
-    
+           
     // We'll update the invite link format later
     
     console.log('[EMAIL DEBUG] Sending invite email to', targetEmail);

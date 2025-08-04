@@ -40,24 +40,20 @@ export async function sendChildInviteEmail({
 }: ChildInviteEmailParams) {
   console.log(`[CHILD_INVITE_EMAIL] Sending invite for ${friendFirstName} to ${to}`);
   
-  // Construct the decline link
   const declineLink = `${BASE_URL}/api/invite/decline?code=${inviteCode}`;
-  
-  // Construct the email subject
   const subject = `${inviterName} invited your child ${friendFirstName} to Cliqstr — Your approval is required`;
-  
-  // Construct the email body with the new warm, trust-building content
+
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background: white; padding: 40px 20px;">
       
       <h1 style="color: #333; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Hi there,</h1>
       
-      <p style="color: #555; margin-bottom: 16px;">
-        We know our parent approval process is more involved than most social platforms — and that's intentional. Every step is designed to keep your child and all Cliqstr members safe.
-      </p>
-      
       <p style="color: #555; margin-bottom: 20px;">
         <strong>${inviterName}</strong> has invited your child, <strong>${friendFirstName}</strong>, to join their private Cliq on Cliqstr.
+      </p>
+      
+      <p style="color: #555; margin-bottom: 16px;">
+        We know our parent approval process is more involved than most social platforms — and that's intentional. Every step is designed to keep your child and all Cliqstr members safe.
       </p>
       
       <p style="color: #555; margin-bottom: 16px;">
@@ -100,7 +96,6 @@ export async function sendChildInviteEmail({
       
       <p style="color: #333; font-size: 18px; font-weight: 600; margin: 32px 0 20px;">✅ What would you like to do?</p>
       
-      <!-- Approve Button -->
       <div style="margin: 24px 0;">
         <a href="${inviteLink}" style="display: inline-block; background: #000; color: white; padding: 16px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px;">
           Approve ${friendFirstName}'s Invite & Set Up Your Account
@@ -110,7 +105,6 @@ export async function sendChildInviteEmail({
         </p>
       </div>
       
-      <!-- Decline Link -->
       <div style="margin: 20px 0;">
         <a href="${declineLink}" style="color: #666; text-decoration: underline; font-size: 14px;">
           Decline Invitation
@@ -124,33 +118,21 @@ export async function sendChildInviteEmail({
         <p style="color: #333; font-weight: 600; margin-bottom: 8px;">❤️ From all of us at Cliqstr</p>
         <p style="color: #666; font-style: italic; margin: 0;">Safe spaces. Real connections. Peace of mind.</p>
       </div>
-      
     </div>
   `;
-  
+
   try {
-    // Send the email using our standardized email utility
-    const result = await sendEmail({
-      to,
-      subject,
-      html
-    });
-    
+    const result = await sendEmail({ to, subject, html });
+
     if (result.success) {
       console.log(`[CHILD_INVITE_EMAIL] Successfully sent invite for ${friendFirstName} to ${to}`);
-      return {
-        success: true,
-        messageId: result.messageId
-      };
+      return { success: true, messageId: result.messageId };
     } else {
-      console.error(`[CHILD_INVITE_EMAIL] Failed to send invite for ${friendFirstName} to ${to}:`, result.error);
-      return {
-        success: false,
-        error: result.error
-      };
+      console.error(`[CHILD_INVITE_EMAIL] Failed to send invite:`, result.error);
+      return { success: false, error: result.error };
     }
   } catch (error) {
-    console.error(`[CHILD_INVITE_EMAIL] Exception sending invite for ${friendFirstName} to ${to}:`, error);
+    console.error(`[CHILD_INVITE_EMAIL] Exception:`, error);
     return {
       success: false,
       error: error instanceof Error ? error.message : String(error)
