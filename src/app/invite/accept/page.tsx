@@ -64,7 +64,7 @@ function InviteAcceptContent() {
         
         if (data.valid) {
           // Redirect based on invite role (who is being invited)
-          if (data.inviteRole === 'child') {
+          if (data.invite?.inviteRole === 'child') {
             console.log('Redirecting to parent flow for child invite');
             router.push(`/invite/parent?code=${inviteCode}`);
           } else {

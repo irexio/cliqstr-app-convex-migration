@@ -22,6 +22,9 @@ export async function GET(req: NextRequest) {
             email: true,
           },
         },
+        cliq: {
+          select: { name: true }
+        }
       },
     });
 
@@ -39,9 +42,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       valid: true,
-      inviteRole: invite.invitedRole,
-      cliqId: invite.cliqId,
-      inviterEmail: invite.inviter.email,
+      invite: {
+        friendFirstName: invite.friendFirstName,
+        cliqName: invite.cliq?.name || 'Unknown',
+        inviteRole: invite.invitedRole,
+        cliqId: invite.cliqId,
+        inviterEmail: invite.inviter.email,
+      }
     });
   } catch (error) {
     console.error('Error validating invite code:', error);

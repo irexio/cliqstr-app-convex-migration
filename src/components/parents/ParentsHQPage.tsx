@@ -15,6 +15,7 @@ export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) 
     console.log('🔍 Received inviteCode:', inviteCode);
 
     if (!inviteCode) {
+      console.warn('⚠️ No invite code provided');
       setError('Missing invite code.');
       setLoading(false);
       return;
@@ -23,12 +24,22 @@ export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) 
     const fetchInvite = async () => {
       try {
         const res = await fetch(`/api/invites/validate?code=${inviteCode}`);
-        if (!res.ok) throw new Error('Invite not found or expired.');
+        console.log('🔁 Validation response status:', res.status);
+
         const data = await res.json();
-        console.log('📦 Invite fetched:', data);
+        console.log('📦 Validation response data:', data);
+
+        if (!res.ok || !data.valid) {
+          throw new Error(data.error || 'Invalid or expired invite code');
+        }
+
+        if (!data.invite) {
+          throw new Error('Invite data missing in server response.');
+        }
+
         setInvite(data.invite);
       } catch (err: any) {
-        console.error('❌ Failed to fetch invite:', err);
+        console.error('❌ Failed to fetch or validate invite:', err);
         setError(err.message || 'Something went wrong.');
       } finally {
         setLoading(false);
@@ -38,17 +49,12 @@ export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) 
     fetchInvite();
   }, [inviteCode]);
 
-  if (loading) {
-    return <div>⏳ Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-600">❌ {error}</div>;
-  }
+  if (loading) return <div>⏳ Loading invite details...</div>;
+  if (error) return <div className="text-red-600">❌ {error}</div>;
 
   if (!invite || typeof invite !== 'object') {
-    console.error('🚨 Invalid invite object:', invite);
-    return <div>⚠️ Invite data is invalid or missing required fields.</div>;
+    console.error('🚨 Invalid invite object structure:', invite);
+    return <div className="text-red-600">⚠️ Invite data is invalid or missing required fields.</div>;
   }
 
   const childName = invite?.friendFirstName || 'Unnamed';
