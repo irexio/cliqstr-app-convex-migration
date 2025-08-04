@@ -2,19 +2,21 @@
 
 import { useEffect, useState } from 'react';
 
-// ✅ Add this interface to declare props
 interface ParentsHQContentProps {
   inviteCode?: string;
 }
 
-// ✅ Accept props with correct type
 export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) {
   const [invite, setInvite] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('🔍 Received inviteCode:', inviteCode);
+
     if (!inviteCode) {
       setError('Missing invite code.');
+      setLoading(false);
       return;
     }
 
@@ -25,29 +27,34 @@ export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) 
         const data = await res.json();
         setInvite(data.invite);
       } catch (err: any) {
+        console.error('❌ Failed to fetch invite:', err);
         setError(err.message || 'Something went wrong.');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchInvite();
   }, [inviteCode]);
 
+  if (loading) {
+    return <div>⏳ Loading...</div>;
+  }
+
   if (error) {
-    return <div className="text-red-600">Error: {error}</div>;
+    return <div className="text-red-600">❌ {error}</div>;
   }
 
   if (!invite) {
-    return <div>Loading invite info...</div>;
+    return <div>⚠️ No invite data found.</div>;
   }
 
   return (
-    <div>
-      <p className="mb-4">
-        You’ve been asked to approve <strong>{invite.childName || 'this child'}</strong> to join{' '}
-        <strong>{invite.cliqName || 'a cliq'}</strong>.
-      </p>
-      {/* This is where we’ll plug in ChildInviteApprovalFlow */}
-      <div>✨ Approval form goes here (coming soon)</div>
+    <div className="max-w-xl mx-auto p-4 bg-white rounded-lg shadow">
+      <h2 className="text-xl font-bold mb-4">👨‍👧 Parent Invite Approval</h2>
+      <p><strong>Child Name:</strong> {invite.friendFirstName || 'Unnamed'}</p>
+      <p><strong>Cliq Name:</strong> {invite.cliqName || 'Unknown'}</p>
+      <p className="mt-4 text-gray-600">✅ Invite loaded successfully. Approval form goes here next.</p>
     </div>
   );
 }
