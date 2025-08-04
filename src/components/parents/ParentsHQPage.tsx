@@ -65,7 +65,9 @@ export default function ParentsHQContent({ inviteCode }: ParentsHQContentProps) 
       <h2 className="text-xl font-bold mb-4">👨‍👧 Parent Invite Approval</h2>
       <p><strong>Child Name:</strong> {childName}</p>
       <p><strong>Cliq Name:</strong> {cliqName}</p>
-      <p className="mt-4 text-gray-600">✅ Invite loaded successfully. Approval form goes here next.</p>
+      <p className="mt-4 text-gray-600">
+        ✅ Invite validated! Please <a href={`/parents/hq?inviteCode=${inviteCode}`} className="text-blue-600 underline">complete your child's setup in Parent HQ</a>.
+      </p>
     </div>
   );
 }
