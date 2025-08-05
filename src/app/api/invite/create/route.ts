@@ -90,6 +90,54 @@ export async function POST(req: Request) {
     // For child invites, the inviteeEmail is the trusted adult's email
     const targetEmail = inviteType === 'child' ? trustedAdultContact : inviteeEmail;
     
+    // For child invites, check if parent email already has an account
+    let parentAccountExists = false;
+    if (inviteType === 'child') {
+      const existingParent = await prisma.user.findUnique({
+        where: { email: targetEmail },
+        include: { account: true }
+      });
+      
+      if (existingParent) {
+        const userRole = existingParent.account?.role;
+        
+        if (userRole === 'Parent') {
+          // User is already a parent - streamlined flow
+          parentAccountExists = true;
+          console.log('[INVITE_INFO] Parent email already has Parent account:', {
+            email: targetEmail,
+            isVerified: existingParent.isVerified,
+            role: userRole,
+            hasPayment: !!existingParent.account?.stripeCustomerId
+          });
+          
+          if (!existingParent.account?.stripeCustomerId) {
+            console.log('[INVITE_WARNING] Parent account exists but no payment method verified');
+          }
+        } else if (userRole === 'Adult') {
+          // User exists but is Adult role - needs upgrade to Parent
+          parentAccountExists = false; // Treat as new parent for email flow
+          console.log('[INVITE_INFO] Email belongs to Adult account, will need to upgrade to Parent role:', {
+            email: targetEmail,
+            currentRole: userRole,
+            isVerified: existingParent.isVerified
+          });
+        } else {
+          // User exists but has other role (Child, etc.) - this shouldn't happen for parent emails
+          console.log('[INVITE_ERROR] Parent email belongs to non-adult account:', {
+            email: targetEmail,
+            role: userRole
+          });
+          return NextResponse.json({ 
+            error: 'This email address is associated with a child account. Please use a different parent/guardian email address.',
+            code: 'INVALID_PARENT_EMAIL'
+          }, { status: 400 });
+        }
+      } else {
+        console.log('[INVITE_INFO] Parent email is new, will need to create account and verify payment');
+      }
+    }
+    
     // Verify user is a member of the cliq
     const membership = await prisma.membership.findFirst({
       where: {
@@ -170,11 +218,15 @@ export async function POST(req: Request) {
         invitedRole: inviteType === 'child' ? 'child' : 'adult'
       });
       
-      // Prepare the invite data
+      // Prepare the invite data with 36-hour expiry
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 36);
+      
       const inviteData: any = {
         code: await generateInviteCode(),
         maxUses: 1,
         used: false,
+        expiresAt,
         invitedRole: inviteType === 'child' ? 'child' : 'adult',
         inviteeEmail: targetEmail,
         inviteType,
@@ -191,7 +243,8 @@ export async function POST(req: Request) {
         Object.assign(inviteData, {
           friendFirstName,
           trustedAdultContact,
-          inviteNote: inviteNote || undefined
+          inviteNote: inviteNote || undefined,
+          parentAccountExists // Store whether parent already has account
         });
       }
       
@@ -266,7 +319,8 @@ export async function POST(req: Request) {
         inviteLink,
         friendFirstName,
         inviteNote,
-        inviteCode
+        inviteCode,
+        parentAccountExists
       });
     } else {
       // Send regular invite email for adults

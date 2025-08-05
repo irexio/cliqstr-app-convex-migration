@@ -123,11 +123,32 @@ export async function POST(req: NextRequest) {
         },
       });
     } else {
-      if (parentUser.account?.role !== 'Parent') {
-        await prisma.account.update({ where: { userId: parentUser.id }, data: { role: 'Parent' } });
+      // Parent user already exists - update role if needed
+      const currentRole = parentUser.account?.role;
+      
+      if (currentRole !== 'Parent') {
+        console.log('[PARENT_APPROVAL] Upgrading user from Adult to Parent role:', {
+          email: parentEmail,
+          currentRole,
+          newRole: 'Parent'
+        });
+        await prisma.account.update({ 
+          where: { userId: parentUser.id }, 
+          data: { role: 'Parent' } 
+        });
+      } else {
+        console.log('[PARENT_APPROVAL] Parent user already has correct role:', {
+          email: parentEmail,
+          role: currentRole
+        });
       }
+      
       if (!parentUser.isVerified) {
-        await prisma.user.update({ where: { id: parentUser.id }, data: { isVerified: true } });
+        console.log('[PARENT_APPROVAL] Verifying parent user email');
+        await prisma.user.update({ 
+          where: { id: parentUser.id }, 
+          data: { isVerified: true } 
+        });
       }
     }
 

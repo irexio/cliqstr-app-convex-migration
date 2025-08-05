@@ -27,14 +27,73 @@ function ParentInviteContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
-  // 1. Check authentication
+  // Handle authenticated user routing per Sol's logic
+  const handleAuthenticatedUser = async (user: any) => {
+    if (!inviteCode) return;
+
+    console.log('[PARENT_INVITE] Handling authenticated user:', {
+      role: user.role,
+      plan: user.account?.plan,
+      email: user.email
+    });
+
+    if (user.role === 'Parent') {
+      // ✅ Already a Parent - redirect to Parent HQ
+      console.log('[PARENT_INVITE] User is already Parent, redirecting to HQ');
+      router.push(`/parents/hq?inviteCode=${inviteCode}`);
+    } else if (user.role === 'Adult' && user.account?.plan && user.account.plan !== 'free') {
+      // ✅ Adult with paid plan - auto-upgrade to Parent
+      console.log('[PARENT_INVITE] Adult with paid plan, auto-upgrading to Parent');
+      try {
+        const response = await fetch('/api/auth/upgrade-to-parent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inviteCode })
+        });
+        
+        if (response.ok) {
+          router.push(`/parents/hq?inviteCode=${inviteCode}`);
+        } else {
+          console.error('[PARENT_INVITE] Failed to upgrade to Parent');
+          // Fallback to manual upgrade flow
+          router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
+        }
+      } catch (error) {
+        console.error('[PARENT_INVITE] Error upgrading to Parent:', error);
+        router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
+      }
+    } else if (user.role === 'Adult') {
+      // ❌ Adult with free plan - redirect to verification (child invites are free)
+      console.log('[PARENT_INVITE] Adult with free plan, redirecting to verify-parent');
+      router.push(`/verify-parent?inviteCode=${inviteCode}`);
+    } else {
+      // ❌ Child account - block with error
+      console.log('[PARENT_INVITE] Child account detected, blocking');
+      setInviteDetails({ 
+        valid: false, 
+        error: 'This account cannot be used to approve a child invite. Please enter the email of a parent or guardian.' 
+      });
+      setLoading(false);
+      setAuthLoading(false);
+    }
+  };
+
+  // 1. Check authentication and handle role-based routing
   useEffect(() => {
     fetch('/api/auth/status', { credentials: 'include' })
       .then((res) => res.ok ? res.json() : null)
-      .then((data) => setIsAuthenticated(!!data?.user))
+      .then((data) => {
+        if (data?.user) {
+          setIsAuthenticated(true);
+          // Handle role-based routing per Sol's logic
+          handleAuthenticatedUser(data.user);
+        } else {
+          setIsAuthenticated(false);
+        }
+      })
       .catch(() => setIsAuthenticated(false))
       .finally(() => setAuthLoading(false));
-  }, []);
+  }, [inviteCode]);
 
   // 2. Validate the invite
   useEffect(() => {
@@ -65,12 +124,7 @@ function ParentInviteContent() {
       .finally(() => setLoading(false));
   }, [inviteCode, router]);
 
-  // 3. If already authenticated, go to Parents HQ
-  useEffect(() => {
-    if (isAuthenticated && inviteCode) {
-      router.push(`/parents/hq?inviteCode=${inviteCode}`);
-    }
-  }, [isAuthenticated, inviteCode, router]);
+  // 3. Role-based routing is now handled in handleAuthenticatedUser
 
   // 4. UI - not logged in
   if (authLoading || loading) {

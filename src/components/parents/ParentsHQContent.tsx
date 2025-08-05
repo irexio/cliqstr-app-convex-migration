@@ -13,10 +13,67 @@ export default function ParentsHQContent() {
   const router = useRouter();
 
   const [status, setStatus] = useState<InviteStatus>('loading');
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [needsVerification, setNeedsVerification] = useState(false);
+
+  // Check authentication and role before allowing access
+  // Re-run when URL changes (e.g., after verification redirect)
+  useEffect(() => {
+    const checkAuth = () => {
+      fetch('/api/auth/status', { credentials: 'include' })
+        .then((res) => res.ok ? res.json() : null)
+        .then((data) => {
+          if (!data?.user) {
+            // Not authenticated - redirect to sign in
+            router.push(`/sign-in?redirect=/parents/hq&inviteCode=${inviteCode}`);
+            return;
+          }
+
+          if (data.user.role !== 'Parent') {
+            // Not a parent - needs verification
+            if (data.user.role === 'Adult' && inviteCode) {
+              console.log('[PARENT_HQ] Adult user needs verification for child invite');
+              setNeedsVerification(true);
+            } else {
+              // Redirect to appropriate flow
+              router.push(`/invite/parent?code=${inviteCode}`);
+            }
+            return;
+          }
+
+          // Valid parent user - clear verification flag
+          console.log('[PARENT_HQ] Valid parent user authenticated');
+          setNeedsVerification(false);
+          setUser(data.user);
+        })
+        .catch((err) => {
+          console.error('[PARENT_HQ] Auth check failed:', err);
+          router.push('/sign-in');
+        })
+        .finally(() => setAuthLoading(false));
+    };
+
+    checkAuth();
+    
+    // Also check when the page becomes visible (e.g., after redirect)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('[PARENT_HQ] Page became visible, re-checking auth');
+        setAuthLoading(true);
+        checkAuth();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [inviteCode, router]);
 
   useEffect(() => {
-    if (!inviteCode) {
-      setStatus('valid'); // no invite → show dashboard
+    if (!user || !inviteCode) {
+      if (!inviteCode) {
+        setStatus('valid'); // no invite → show dashboard
+      }
       return;
     }
 
@@ -42,7 +99,28 @@ export default function ParentsHQContent() {
     checkInvite();
   }, [inviteCode]);
 
-  if (status === 'loading') {
+  // Show verification required screen
+  if (needsVerification) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-4">
+        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 text-center">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Adult Verification Required</h2>
+          <p className="text-gray-700 mb-6">
+            To complete this invitation, you must verify that you are the child's parent or guardian. 
+            This is required for safety and access to Parent HQ, even on our free plan.
+          </p>
+          <button 
+            onClick={() => router.push(`/verify-parent?inviteCode=${inviteCode}`)}
+            className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors"
+          >
+            Complete Verification
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  if (authLoading || status === 'loading') {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <p className="text-gray-500 text-sm">Checking invite status...</p>

@@ -61,7 +61,10 @@ model ChildSettings {
   profileId              String    @unique
   canCreatePublicCliqs   Boolean   @default(false)
   canJoinPublicCliqs     Boolean   @default(false)  // APA-safe: Parent controls child's public cliq access
+  canCreateCliqs         Boolean   @default(false)  // General cliq creation permission
   canSendInvites         Boolean   @default(false)
+  canInviteChildren      Boolean   @default(false)  // Child can invite other children
+  canInviteAdults        Boolean   @default(false)  // Child can invite adults
   isSilentlyMonitored    Boolean   @default(true)
   aiModerationLevel      String?
   canAccessGames         Boolean   @default(false)

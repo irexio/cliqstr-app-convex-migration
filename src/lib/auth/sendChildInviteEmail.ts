@@ -27,6 +27,7 @@ interface ChildInviteEmailParams {
   friendFirstName: string;  // Child's first name
   inviteNote?: string;      // Optional message to the parent
   inviteCode: string;       // Invite code for manual entry
+  parentAccountExists?: boolean; // Whether parent already has account
 }
 
 export async function sendChildInviteEmail({
@@ -36,7 +37,8 @@ export async function sendChildInviteEmail({
   inviteLink,
   friendFirstName,
   inviteNote,
-  inviteCode
+  inviteCode,
+  parentAccountExists = false
 }: ChildInviteEmailParams) {
   console.log(`[CHILD_INVITE_EMAIL] Sending invite for ${friendFirstName} to ${to}`);
   
@@ -66,9 +68,13 @@ export async function sendChildInviteEmail({
       
       <p style="color: #555; margin-bottom: 8px;">To activate their account, we ask that you:</p>
       <ul style="color: #555; margin-bottom: 20px; padding-left: 20px;">
-        <li style="margin-bottom: 8px;">Create a Parent account</li>
-        <li style="margin-bottom: 8px;">Confirm your identity with a credit card (you will not be charged)</li>
-        <li style="margin-bottom: 8px;">Review ${friendFirstName}'s invitation and group access</li>
+        ${parentAccountExists 
+          ? `<li style="margin-bottom: 8px;">Sign in to your existing Cliqstr account</li>
+             <li style="margin-bottom: 8px;">Review ${friendFirstName}'s invitation and group access</li>`
+          : `<li style="margin-bottom: 8px;">Create a Parent account</li>
+             <li style="margin-bottom: 8px;">Confirm your identity with a credit card (you will not be charged)</li>
+             <li style="margin-bottom: 8px;">Review ${friendFirstName}'s invitation and group access</li>`
+        }
       </ul>
       
       <p style="color: #555; margin-bottom: 24px;">

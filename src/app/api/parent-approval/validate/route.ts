@@ -26,83 +26,68 @@ export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const inviteCode = url.searchParams.get('inviteCode');
-    const childId = url.searchParams.get('childId');
 
-    if (!inviteCode || !childId) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    if (!inviteCode) {
+      return NextResponse.json({ error: 'Missing invite code' }, { status: 400 });
     }
 
     // Normalize the invite code
     const normalizedCode = normalizeInviteCode(inviteCode);
 
-    // Find the invite
+    // Find the invite with related data
     const invite = await prisma.invite.findUnique({
       where: { code: normalizedCode },
+      include: {
+        cliq: {
+          select: { name: true }
+        },
+        inviter: {
+          select: {
+            myProfile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }
+      }
     });
 
     if (!invite) {
       return NextResponse.json({ error: 'Invalid invite code' }, { status: 404 });
     }
 
-    // For parent approval requests, the childId might be the invite code itself
-    // or it might be an actual user ID if the child already started sign-up
-    // Define the type for childInfo
-    type ChildInfo = {
-      firstName: string;
-      lastName: string;
-      age?: number;
+    // Check if invite is expired
+    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+      return NextResponse.json({ error: 'Invite has expired' }, { status: 410 });
+    }
+
+    // Check if invite is already used
+    if (invite.used) {
+      return NextResponse.json({ error: 'Invite has already been used' }, { status: 409 });
+    }
+
+    // Extract child info from invite
+    const childInfo = {
+      firstName: invite.friendFirstName || 'Child',
+      lastName: '', // Can be added later if needed
+      age: undefined // Can be calculated if birthdate provided
     };
-    
-    let childInfo: ChildInfo | null = null;
 
-    if (invite.inviteType === 'parent-approval') {
-      // Extract child info from the invite
-      childInfo = {
-        firstName: invite.friendFirstName || 'Child',
-        lastName: ''
-        // age is optional, so we don't need to set it
-      };
+    // Get inviter name
+    const inviterName = invite.inviter?.myProfile?.firstName && invite.inviter?.myProfile?.lastName
+      ? `${invite.inviter.myProfile.firstName} ${invite.inviter.myProfile.lastName}`
+      : invite.inviter?.myProfile?.firstName || 'Someone';
 
-      // If we have additional info in the invite note, try to parse it
-      if (invite.inviteNote) {
-        const match = invite.inviteNote.match(/Child approval request for (.*?) (.*?), age (\d+)/);
-        if (match) {
-          childInfo.firstName = match[1];
-          childInfo.lastName = match[2];
-          childInfo.age = parseInt(match[3], 10) || undefined;
-        }
-      }
-    } else {
-      // Try to find the child user
-      const childUser = await prisma.user.findUnique({
-        where: { id: childId },
-        include: {
-          myProfile: true,
-        },
-      });
-
-      if (childUser && childUser.myProfile) {
-        // Calculate age from birthdate
-        const birthdate = childUser.myProfile.birthdate;
-        const ageDifMs = Date.now() - birthdate.getTime();
-        const ageDate = new Date(ageDifMs);
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-
-        childInfo = {
-          firstName: childUser.myProfile.firstName || 'Child',
-          lastName: childUser.myProfile.lastName || '',
-          age: age
-        };
-      }
-    }
-
-    if (!childInfo) {
-      return NextResponse.json({ error: 'Child information not found' }, { status: 404 });
-    }
+    // Get cliq name
+    const cliqName = invite.cliq?.name || 'Unknown Cliq';
 
     return NextResponse.json({
       success: true,
       childInfo,
+      inviterName,
+      cliqName
     });
   } catch (error) {
     console.error('[PARENT_APPROVAL_VALIDATE_ERROR]', error);
