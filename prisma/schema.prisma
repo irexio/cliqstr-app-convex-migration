@@ -167,6 +167,7 @@ model Invite {
   inviteNote          String?
   inviteType          String?
   trustedAdultContact String?
+  parentAccountExists Boolean?
   cliq                Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
   inviter             User      @relation("SentInvites", fields: [inviterId], references: [id])
 }
