@@ -63,9 +63,9 @@ function ParentInviteContent() {
         router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
       }
     } else if (user.role === 'Adult') {
-      // ❌ Adult with free plan - redirect to verification (child invites are free)
-      console.log('[PARENT_INVITE] Adult with free plan, redirecting to verify-parent');
-      router.push(`/verify-parent?inviteCode=${inviteCode}`);
+      // ✅ Adult with free plan - redirect directly to Parent HQ (child invites are free)
+      console.log('[PARENT_INVITE] Adult with free plan, redirecting to Parent HQ');
+      router.push(`/parents/hq?inviteCode=${inviteCode}`);
     } else {
       // ❌ Child account - block with error
       console.log('[PARENT_INVITE] Child account detected, blocking');

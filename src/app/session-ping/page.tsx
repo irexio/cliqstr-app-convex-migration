@@ -6,8 +6,9 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SessionPingPage() {
+export default async function SessionPingPage({ searchParams }: { searchParams: { inviteCode?: string, code?: string } }) {
   const user = await getCurrentUser();
+  const inviteCode = searchParams.inviteCode || searchParams.code;
 
   if (!user) {
     console.log('[APA] No session found in session-ping. Redirecting to sign-in.');
@@ -25,9 +26,15 @@ export default async function SessionPingPage() {
   });
 
   // If user is approved (check both user.approved and account.isApproved), send them directly to dashboard
+  // BUT preserve invite codes for parent approval flows
   if (user.approved === true || user.account?.isApproved === true) {
-    console.log('[APA] User is approved. Redirecting directly to dashboard.');
-    redirect('/my-cliqs-dashboard');
+    if (inviteCode) {
+      console.log('[APA] User is approved but has invite code. Redirecting to invite flow.');
+      redirect(`/invite/accept?code=${inviteCode}`);
+    } else {
+      console.log('[APA] User is approved. Redirecting directly to dashboard.');
+      redirect('/my-cliqs-dashboard');
+    }
   }
   
   // For test plan users, redirect to email-confirmation per APA flow document
@@ -47,7 +54,11 @@ export default async function SessionPingPage() {
   redirect('/choose-plan');
   
   console.log('[APA] Session confirmed. Redirecting to dashboard.');
-  redirect('/my-cliqs-dashboard');
+  if (inviteCode) {
+    redirect(`/invite/accept?code=${inviteCode}`);
+  } else {
+    redirect('/my-cliqs-dashboard');
+  }
   
   // This will never render, but added for completeness
   return (

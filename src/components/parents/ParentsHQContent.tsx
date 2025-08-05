@@ -31,10 +31,33 @@ export default function ParentsHQContent() {
           }
 
           if (data.user.role !== 'Parent') {
-            // Not a parent - needs verification
+            // Not a parent - auto-upgrade Adult to Parent for child invites
             if (data.user.role === 'Adult' && inviteCode) {
-              console.log('[PARENT_HQ] Adult user needs verification for child invite');
-              setNeedsVerification(true);
+              console.log('[PARENT_HQ] Adult user with child invite - auto-upgrading to Parent');
+              
+              // Auto-upgrade Adult to Parent role
+              fetch('/api/auth/upgrade-to-parent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ inviteCode })
+              })
+              .then(res => res.json())
+              .then(upgradeData => {
+                if (upgradeData.success) {
+                  console.log('[PARENT_HQ] Successfully upgraded to Parent, refreshing auth');
+                  // Refresh auth status to get updated role
+                  checkAuth();
+                } else {
+                  console.error('[PARENT_HQ] Failed to upgrade to Parent:', upgradeData.error);
+                  setNeedsVerification(true);
+                }
+              })
+              .catch(err => {
+                console.error('[PARENT_HQ] Error upgrading to Parent:', err);
+                setNeedsVerification(true);
+              });
+              
+              return;
             } else {
               // Redirect to appropriate flow
               router.push(`/invite/parent?code=${inviteCode}`);
