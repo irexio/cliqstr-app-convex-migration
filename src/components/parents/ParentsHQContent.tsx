@@ -23,7 +23,7 @@ export default function ParentsHQContent() {
     // Validate the invite
     const checkInvite = async () => {
       try {
-        const res = await fetch(`/api/invite/validate?code=${inviteCode}`);
+        const res = await fetch(`/api/invites/validate?code=${inviteCode}`);
         const data = await res.json();
 
         if (res.ok && data.valid) {
