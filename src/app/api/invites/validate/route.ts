@@ -9,12 +9,17 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const code = url.searchParams.get('code');
 
+    console.log('[INVITE_VALIDATE] Raw code from URL:', code);
+
     if (!code) {
       return NextResponse.json({ valid: false, reason: 'missing_code' }, { status: 400 });
     }
 
+    const normalizedCode = normalizeInviteCode(code);
+    console.log('[INVITE_VALIDATE] Normalized code:', normalizedCode);
+
     const invite = await prisma.invite.findUnique({
-      where: { code: normalizeInviteCode(code) },
+      where: { code: normalizedCode },
       include: {
         inviter: {
           select: {
@@ -28,7 +33,19 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    console.log('[INVITE_VALIDATE] Invite found:', !!invite);
+    if (invite) {
+      console.log('[INVITE_VALIDATE] Invite details:', {
+        id: invite.id,
+        code: invite.code,
+        used: invite.used,
+        expiresAt: invite.expiresAt,
+        invitedRole: invite.invitedRole
+      });
+    }
+
     if (!invite) {
+      console.log('[INVITE_VALIDATE] No invite found for code:', normalizedCode);
       return NextResponse.json({ valid: false, reason: 'not_found' }, { status: 404 });
     }
 

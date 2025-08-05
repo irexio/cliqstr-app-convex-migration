@@ -197,7 +197,12 @@ export async function POST(req: Request) {
       
       const invite = await prisma.invite.create({ data: inviteData });
 
-      console.log('[INVITE_DEBUG] Invite created successfully', { inviteCode: invite.code });
+      console.log('[INVITE_DEBUG] Invite created successfully', { 
+        inviteCode: invite.code,
+        inviteId: invite.id,
+        invitedRole: invite.invitedRole,
+        targetEmail: invite.inviteeEmail
+      });
       
       inviteCode = invite.code;
       inviteRole = invite.invitedRole;
