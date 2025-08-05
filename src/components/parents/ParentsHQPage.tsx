@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from 'react';
 
+/**
+ * @deprecated - This component is deprecated in favor of ChildInviteApprovalFlow
+ * which serves as the main Parent HQ interface for child permission setup.
+ * 
+ * All child permission setup now happens in ChildInviteApprovalFlow component.
+ * This ensures every child has parents complete required permissions.
+ */
+
 interface ParentsHQContentProps {
   inviteCode?: string;
 }

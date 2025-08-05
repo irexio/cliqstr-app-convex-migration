@@ -1,28 +1,33 @@
 /**
- * 🔐 APA-HARDENED COMPONENT: ParentDashboard
+ * 🛡️ PARENT HQ - Main Parent Dashboard
  *
  * Purpose:
- *   - Provides a parent-friendly interface to manage settings for multiple children
- *   - Fetches all linked children via /api/parent/children
- *   - Displays a dropdown menu to select a child
- *   - Renders the <ParentsHQPage> for the selected child
+ *   - THE Parent HQ for managing ALL children (invited + directly created)
+ *   - Comprehensive child permission management interface
+ *   - Accessible to parents from their account for ongoing management
+ *   - Handles both invite approval AND ongoing child management
+ *
+ * Features:
+ *   - Create new child accounts
+ *   - Manage existing children permissions
+ *   - Handle child invite approvals
+ *   - Update child credentials
+ *   - Set all child safety permissions
  *
  * Used In:
- *   - /parents-hq/page.tsx or anywhere a parent needs child management tools
+ *   - /parents/hq/page.tsx - Main Parent HQ access point
+ *   - Any parent needing child management tools
  *
  * Requirements:
  *   - Logged-in user must be a verified parent
- *   - Each child must have a profile and be linked via ParentLink
- *
- * Related Routes:
- *   - GET /api/parent/children → fetches all children linked to this parent
- *   - POST /api/parent/settings/update → updates individual child settings
+ *   - ALL children on Cliqstr require parent approval through this interface
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { fetchJson } from '@/lib/fetchJson';
+import ChildPermissionManager from './ChildPermissionManager';
 
 
 // 🧠 Local definition of child structure
@@ -158,18 +163,7 @@ export default function ParentDashboard() {
       )}
 
       {selectedChildId && (
-        <div className="mt-8 p-6 bg-white rounded-lg border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4">Child Management</h2>
-          <p className="text-gray-600 mb-4">
-            Managing settings for child ID: <span className="font-mono">{selectedChildId}</span>
-          </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-blue-800 text-sm">
-              🚧 Detailed child permission management interface coming soon.
-              This will include all the permission toggles, monitoring settings, and safety controls.
-            </p>
-          </div>
-        </div>
+        <ChildPermissionManager childId={selectedChildId} />
       )}
     </div>
   );

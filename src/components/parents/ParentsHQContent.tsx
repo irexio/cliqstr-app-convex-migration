@@ -150,10 +150,28 @@ export default function ParentsHQContent() {
     );
   }
 
-  // If valid, render invite approval flow or dashboard
+  // If valid, render invite approval flow or main Parent HQ dashboard
   if (inviteCode) {
-    return <ChildInviteApprovalFlow inviteCode={inviteCode} />;
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">🛡️ Parent HQ</h1>
+          <p className="text-gray-600">Child Invite Approval</p>
+        </div>
+        <ChildInviteApprovalFlow inviteCode={inviteCode} />
+      </div>
+    );
   }
 
-  return <ParentDashboard />;
+  // Main Parent HQ Dashboard
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-6 text-center">
+        <h1 className="text-3xl font-bold text-gray-900">🛡️ Parent HQ</h1>
+        <p className="text-gray-600 mt-2">Comprehensive child management and safety controls</p>
+        <p className="text-sm text-blue-600">Every child on Cliqstr requires parent approval through this interface</p>
+      </div>
+      <ParentDashboard />
+    </div>
+  );
 }

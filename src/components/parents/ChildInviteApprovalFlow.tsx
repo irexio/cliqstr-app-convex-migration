@@ -21,15 +21,18 @@ interface ChildInviteApprovalFlowProps {
 }
 
 /**
- * 🔐 APA-HARDENED COMPONENT: ChildInviteApprovalFlow
+ * 🔐 APA-HARDENED COMPONENT: Parent HQ - Child Invite Approval Flow
  * 
  * Purpose:
- *   - Complete child invite approval interface
+ *   - PARENT HQ: Complete child permission setup interface
  *   - Fetches invite details and shows child info
- *   - Collects all required parent approvals and settings
- *   - Creates child account only after full approval
+ *   - Collects ALL required parent permissions and settings
+ *   - Creates child account only after FULL Parent HQ approval
  * 
- * Critical: Invite is NOT marked as used until final approval submission
+ * Critical: 
+ *   - This IS the Parent HQ for child invite approval
+ *   - Every child MUST have parents complete these permissions
+ *   - Invite is NOT marked as used until final Parent HQ approval
  */
 export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteApprovalFlowProps) {
   const router = useRouter();
@@ -49,7 +52,12 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
     canComment: true,
     canReact: true,
     canViewProfiles: false,
-    canReceiveInvites: false
+    canReceiveInvites: false,
+    canCreatePublicCliqs: false,
+    canInviteChildren: false,
+    canInviteAdults: false,
+    canCreateCliqs: false,
+    canUploadVideos: true
   });
 
   // Fetch invite details
@@ -163,10 +171,11 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
 
   return (
     <div className="space-y-6">
-      {/* Child Invite Information */}
+      {/* Parent HQ Header */}
       <Card className="border-blue-200 bg-blue-50">
         <CardHeader>
-          <CardTitle className="text-blue-900">Child Invite Approval</CardTitle>
+          <CardTitle className="text-blue-900">🛡️ Parent HQ - Child Permission Setup</CardTitle>
+          <p className="text-blue-700 text-sm">Every child must have parents complete these permissions before account creation</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-blue-800">
@@ -263,9 +272,10 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
               </p>
             </div>
 
-            {/* Permissions */}
+            {/* Parent HQ: Child Permissions */}
             <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-3">Permissions for {inviteDetails?.friendFirstName}</h4>
+              <h4 className="font-medium mb-3">🛡️ Parent HQ: Set Permissions for {inviteDetails?.friendFirstName}</h4>
+              <p className="text-gray-600 text-xs mb-3">These permissions are required for every child account</p>
               <div className="space-y-2">
                 {Object.entries(permissions).map(([key, value]) => (
                   <div key={key} className="flex items-center space-x-2">
@@ -282,6 +292,11 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
                       {key === 'canReact' && 'Can react to posts'}
                       {key === 'canViewProfiles' && 'Can view other profiles'}
                       {key === 'canReceiveInvites' && 'Can receive invites to other cliqs'}
+                      {key === 'canCreatePublicCliqs' && 'Can create public cliqs'}
+                      {key === 'canInviteChildren' && 'Can invite other children'}
+                      {key === 'canInviteAdults' && 'Can invite adults'}
+                      {key === 'canCreateCliqs' && 'Can create private cliqs'}
+                      {key === 'canUploadVideos' && 'Can upload videos'}
                     </Label>
                   </div>
                 ))}
@@ -308,7 +323,7 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
                 disabled={submitting || !redAlertAccepted}
                 className="flex-1"
               >
-                {submitting ? 'Creating Account...' : `Approve & Create Account for ${inviteDetails?.friendFirstName}`}
+                {submitting ? 'Creating Account...' : `🛡️ Parent HQ: Complete Setup for ${inviteDetails?.friendFirstName}`}
               </Button>
             </div>
           </form>
