@@ -129,6 +129,8 @@ export default function SignUpForm() {
       // This ensures we have it even if there's an error
       localStorage.setItem('pendingVerificationEmail', email);
       
+
+      
       const res = await fetchJson('/api/sign-up', {
         method: 'POST',
         body: JSON.stringify(body),

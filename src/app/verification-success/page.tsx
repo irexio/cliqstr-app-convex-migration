@@ -18,7 +18,19 @@ export default function VerificationSuccessPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/my-cliqs-dashboard'); // Redirect to main dashboard
+          
+          // Check for parent invite context (from dedicated parent sign-up)
+          const parentInviteCode = localStorage.getItem('parentInviteCode');
+          if (parentInviteCode) {
+            // Clear the stored context
+            localStorage.removeItem('parentInviteCode');
+            // Redirect to Parent HQ with invite code
+            router.push(`/parents/hq?inviteCode=${parentInviteCode}`);
+            return 0;
+          }
+          
+          // Default redirect to main dashboard
+          router.push('/my-cliqs-dashboard');
           return 0;
         }
         return prev - 1;

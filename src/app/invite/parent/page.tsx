@@ -88,7 +88,11 @@ function ParentInviteContent() {
           // Handle role-based routing per Sol's logic
           handleAuthenticatedUser(data.user);
         } else {
+          // New user - needs to sign up with verification
+          console.log('[PARENT_INVITE] New user detected, redirecting to dedicated parent sign-up');
           setIsAuthenticated(false);
+          // Redirect to dedicated parent invite sign-up page
+          router.push(`/invite/parent/signup?inviteCode=${inviteCode}`);
         }
       })
       .catch(() => setIsAuthenticated(false))

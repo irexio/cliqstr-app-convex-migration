@@ -27,6 +27,8 @@ const signUpSchema = z.object({
   }, 'Birthdate is required')),
   inviteCode: z.string().optional(),
   parentEmail: z.string().email('Invalid parent email').optional(),
+  preVerified: z.boolean().optional(), // For parent invites - skip email verification
+  context: z.string().optional(), // Track signup context
 });
 
 export async function POST(req: NextRequest) {
@@ -46,7 +48,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { firstName, lastName, email, password, birthdate, inviteCode, parentEmail } = parsed.data;
+    const { firstName, lastName, email, password, birthdate, inviteCode, parentEmail, preVerified, context } = parsed.data;
 
     // Check for existing user
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -89,12 +91,16 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await hash(password, 10);
 
-    // Create user
+    // Create user (pre-verified if parent invite)
     const newUser = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        // isVerified field is tracked via verificationToken presence/absence
+        // For parent invites, mark as verified since they clicked email invite
+        isVerified: preVerified || false,
+        // No verification token needed if pre-verified
+        verificationToken: preVerified ? null : undefined,
+        verificationExpires: preVerified ? null : undefined,
       },
     });
 
@@ -133,8 +139,8 @@ export async function POST(req: NextRequest) {
         childId: newUser.id,
         inviteCode: inviteCode ?? undefined,
       });
-    } else if (!isChild) {
-      // For adult accounts, send a verification email (now required)
+    } else if (!isChild && !preVerified) {
+      // For adult accounts, send a verification email (unless pre-verified)
       try {
         // Create verification token regardless of email success
         // This ensures the account is marked as needing verification
@@ -185,18 +191,32 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    // For adult accounts, return success and redirect to verification pending page
-    // Store email in localStorage for the verification pending page
-    return NextResponse.json(
-      { 
-        success: true, 
-        userId: newUser.id,
-        isChild: false,
-        redirectUrl: '/verification-pending',
-        email: email // Pass email to be stored in localStorage
-      },
-      { headers }
-    );
+    // For adult accounts, handle based on verification status
+    if (preVerified) {
+      // Pre-verified parent invite - ready to proceed
+      return NextResponse.json(
+        { 
+          success: true, 
+          userId: newUser.id,
+          isChild: false,
+          isVerified: true,
+          context: context || 'parent-invite'
+        },
+        { headers }
+      );
+    } else {
+      // Regular adult - needs email verification
+      return NextResponse.json(
+        { 
+          success: true, 
+          userId: newUser.id,
+          isChild: false,
+          redirectUrl: '/verification-pending',
+          email: email // Pass email to be stored in localStorage
+        },
+        { headers }
+      );
+    }
   } catch (error) {
     console.error('Sign-up route error:', error);
     // More detailed error logging
