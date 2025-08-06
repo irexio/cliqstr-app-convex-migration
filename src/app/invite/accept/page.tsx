@@ -5,16 +5,6 @@ export const dynamic = 'force-dynamic';
 /**
  * 🔐 APA-HARDENED — Invite Acceptance Page
  * 🔄 REDIRECT HELPER
- * 
- * This page handles invite acceptance redirects.
- * It receives an invite code via URL query parameter and redirects to the invite page.
- * 
- * Tags: Helper, Redirect, Internal
- * 
- * Security notes:
- * - No direct account creation happens here
- * - This is just a redirect to the main invite page where proper verification happens
- * - Invite codes are validated server-side
  */
 
 import { useEffect, Suspense } from 'react';
@@ -29,57 +19,60 @@ function InviteAcceptContent() {
   useEffect(() => {
     async function checkInviteType() {
       if (!inviteCode) {
-        // If no code is provided, redirect to home
+        console.warn('[INVITE_ACCEPT] No invite code provided. Redirecting to home.');
         router.push('/');
         return;
       }
 
       try {
-        console.log('Validating invite code:', inviteCode);
-        
-        // Create a timeout promise to prevent infinite hanging
+        console.log('[INVITE_ACCEPT] Validating invite code:', inviteCode);
+
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Request timeout')), 10000); // 10 second timeout
+          setTimeout(() => reject(new Error('Request timeout')), 10000);
         });
-        
-        // Race the fetch against the timeout
+
         const fetchPromise = fetch(`/api/invites/validate?code=${inviteCode}`, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          cache: 'no-cache'
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-cache',
         });
-        
+
         const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-        
-        console.log('API response status:', response.status);
-        
+
         if (!response.ok) {
-          console.error('API returned error status:', response.status);
-          throw new Error(`API returned ${response.status}`);
+          console.error('[INVITE_ACCEPT] API returned error status:', response.status);
+          router.push('/invite/invalid');
+          return;
         }
-        
+
         const data = await response.json();
-        console.log('API response data:', data);
-        
-        if (data.valid) {
-          // Redirect based on invite role (who is being invited)
-          if (data.invite?.inviteRole === 'child') {
-            console.log('Redirecting to parent flow for child invite');
-            router.push(`/invite/parent?code=${inviteCode}`);
-          } else {
-            console.log('Redirecting to adult flow');
-            router.push(`/invite/adult?code=${inviteCode}`);
-          }
-        } else {
-          console.log('Invalid invite, redirecting with error');
-          router.push(`/invite/adult?code=${inviteCode}&error=invalid`);
+        console.log('[INVITE_ACCEPT] API response data:', data);
+
+        // 🚫 If the invite is invalid or missing role, go to fallback
+        if (!data.valid || !data.inviteRole) {
+          console.warn('[INVITE_ACCEPT] Invalid or missing role. Redirecting to /invite/invalid');
+          router.push('/invite/invalid');
+          return;
         }
+
+        // ✅ Route by invite role
+        if (data.inviteRole === 'child') {
+          console.log('[INVITE_ACCEPT] Routing to parent invite flow');
+          router.push(`/invite/parent?code=${inviteCode}`);
+          return;
+        }
+
+        if (data.inviteRole === 'adult') {
+          console.log('[INVITE_ACCEPT] Routing to adult invite flow');
+          router.push(`/invite/adult?code=${inviteCode}`);
+          return;
+        }
+
+        // 🚨 Fallback if role is unsupported
+        console.warn('[INVITE_ACCEPT] Unknown inviteRole:', data.inviteRole);
+        router.push('/invite/invalid');
       } catch (error) {
-        console.error('Error checking invite type:', error);
-        console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-        // On error, show error in adult page with error param
-        router.push(`/invite/adult?code=${inviteCode}&error=server`);
+        console.error('[INVITE_ACCEPT] Error validating invite:', error);
+        router.push('/invite/invalid');
       }
     }
 
