@@ -24,82 +24,10 @@ function ParentInviteContent() {
 
   const [loading, setLoading] = useState(true);
   const [inviteDetails, setInviteDetails] = useState<InviteDetails | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Handle authenticated user routing per Sol's logic
-  const handleAuthenticatedUser = async (user: any) => {
-    if (!inviteCode) return;
-
-    console.log('[PARENT_INVITE] Handling authenticated user:', {
-      role: user.role,
-      plan: user.account?.plan,
-      email: user.email
-    });
-
-    if (user.role === 'Parent') {
-      // ✅ Already a Parent - redirect to Parent HQ
-      console.log('[PARENT_INVITE] User is already Parent, redirecting to HQ');
-      router.push(`/parents/hq?inviteCode=${inviteCode}`);
-    } else if (user.role === 'Adult' && user.account?.plan && user.account.plan !== 'free') {
-      // ✅ Adult with paid plan - auto-upgrade to Parent
-      console.log('[PARENT_INVITE] Adult with paid plan, auto-upgrading to Parent');
-      try {
-        const response = await fetch('/api/auth/upgrade-to-parent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ inviteCode })
-        });
-        
-        if (response.ok) {
-          router.push(`/parents/hq?inviteCode=${inviteCode}`);
-        } else {
-          console.error('[PARENT_INVITE] Failed to upgrade to Parent');
-          // Fallback to manual upgrade flow
-          router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
-        }
-      } catch (error) {
-        console.error('[PARENT_INVITE] Error upgrading to Parent:', error);
-        router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
-      }
-    } else if (user.role === 'Adult') {
-      // ✅ Adult with free plan - redirect directly to Parent HQ (child invites are free)
-      console.log('[PARENT_INVITE] Adult with free plan, redirecting to Parent HQ');
-      router.push(`/parents/hq?inviteCode=${inviteCode}`);
-    } else {
-      // ❌ Child account - block with error
-      console.log('[PARENT_INVITE] Child account detected, blocking');
-      setInviteDetails({ 
-        valid: false, 
-        error: 'This account cannot be used to approve a child invite. Please enter the email of a parent or guardian.' 
-      });
-      setLoading(false);
-      setAuthLoading(false);
-    }
-  };
-
-  // 1. Check authentication and handle role-based routing
-  useEffect(() => {
-    fetch('/api/auth/status', { credentials: 'include' })
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => {
-        if (data?.user) {
-          setIsAuthenticated(true);
-          // Handle role-based routing per Sol's logic
-          handleAuthenticatedUser(data.user);
-        } else {
-          // New user - needs to sign up with verification
-          console.log('[PARENT_INVITE] New user detected, redirecting to dedicated parent sign-up');
-          setIsAuthenticated(false);
-          // Redirect to dedicated parent invite sign-up page
-          router.push(`/invite/parent/signup?inviteCode=${inviteCode}`);
-        }
-      })
-      .catch(() => setIsAuthenticated(false))
-      .finally(() => setAuthLoading(false));
-  }, [inviteCode]);
-
-  // 2. Validate the invite
+  // 🔒 Validate invite on mount
   useEffect(() => {
     if (!inviteCode) {
       setInviteDetails({ valid: false, error: 'No invite code provided' });
@@ -119,7 +47,7 @@ function ParentInviteContent() {
             friendFirstName: data.friendFirstName
           });
         } else {
-          router.push(`/invite/adult?code=${inviteCode}&error=invalid`);
+          router.push(`/invite/invalid`);
         }
       })
       .catch(() => {
@@ -128,9 +56,74 @@ function ParentInviteContent() {
       .finally(() => setLoading(false));
   }, [inviteCode, router]);
 
-  // 3. Role-based routing is now handled in handleAuthenticatedUser
+  // 🧠 Role-based redirect logic
+  const handleAuthenticatedUser = async (user: any) => {
+    if (!inviteCode) return;
 
-  // 4. UI - not logged in
+    console.log('[PARENT_INVITE] Authenticated user:', {
+      role: user.role,
+      plan: user.account?.plan,
+      email: user.email
+    });
+
+    if (user.role === 'Parent') {
+      router.push(`/parents/hq?inviteCode=${inviteCode}`);
+      return;
+    }
+
+    if (user.role === 'Adult' && user.account?.plan && user.account.plan !== 'free') {
+      try {
+        const response = await fetch('/api/auth/upgrade-to-parent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ inviteCode })
+        });
+
+        if (response.ok) {
+          router.push(`/parents/hq?inviteCode=${inviteCode}`);
+        } else {
+          router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
+        }
+      } catch (err) {
+        console.error('[PARENT_INVITE] Upgrade error:', err);
+        router.push(`/choose-plan?context=child-invite&inviteCode=${inviteCode}`);
+      }
+      return;
+    }
+
+    if (user.role === 'Adult') {
+      router.push(`/parents/hq?inviteCode=${inviteCode}`);
+      return;
+    }
+
+    if (user.role === 'Child') {
+      // Block child account — force sign out
+      await fetch('/api/auth/sign-out', { method: 'POST' });
+      router.push(`/invite/invalid?reason=child-role`);
+      return;
+    }
+  };
+
+  // 🔍 Check auth status
+  useEffect(() => {
+    fetch('/api/auth/status', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.user) {
+          setIsAuthenticated(true);
+          handleAuthenticatedUser(data.user);
+        } else {
+          setIsAuthenticated(false);
+          router.push(`/invite/parent/signup?inviteCode=${inviteCode}`);
+        }
+      })
+      .catch(() => {
+        setIsAuthenticated(false);
+        router.push(`/invite/parent/signup?inviteCode=${inviteCode}`);
+      })
+      .finally(() => setAuthLoading(false));
+  }, [inviteCode]);
+
   if (authLoading || loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
@@ -141,9 +134,19 @@ function ParentInviteContent() {
   }
 
   if (!inviteDetails?.valid) {
-    return <div className="text-red-600">Invalid or expired invite.</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <p className="text-red-600">Invalid or expired invite.</p>
+      </div>
+    );
   }
 
+  // 🚫 If session is valid, no need to render fallback UI
+  if (isAuthenticated) {
+    return null;
+  }
+
+  // 🧾 If unauthenticated, show manual sign-up prompt
   return (
     <div className="container max-w-md mx-auto py-12">
       <Card>
