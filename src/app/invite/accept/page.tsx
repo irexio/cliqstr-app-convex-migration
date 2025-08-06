@@ -47,28 +47,29 @@ function InviteAcceptContent() {
         const data = await response.json();
         console.log('[INVITE_ACCEPT] API response data:', data);
 
-        // 🚫 If the invite is invalid or missing role, go to fallback
-        if (!data.valid || !data.inviteRole) {
+        // 🔁 Normalize invite role from API
+        const inviteRole = data.inviteRole || data.invitedRole;
+
+        if (!data.valid || !inviteRole) {
           console.warn('[INVITE_ACCEPT] Invalid or missing role. Redirecting to /invite/invalid');
           router.push('/invite/invalid');
           return;
         }
 
-        // ✅ Route by invite role
-        if (data.inviteRole === 'child') {
+        if (inviteRole === 'child') {
           console.log('[INVITE_ACCEPT] Routing to parent invite flow');
           router.push(`/invite/parent?code=${inviteCode}`);
           return;
         }
 
-        if (data.inviteRole === 'adult') {
+        if (inviteRole === 'adult') {
           console.log('[INVITE_ACCEPT] Routing to adult invite flow');
           router.push(`/invite/adult?code=${inviteCode}`);
           return;
         }
 
         // 🚨 Fallback if role is unsupported
-        console.warn('[INVITE_ACCEPT] Unknown inviteRole:', data.inviteRole);
+        console.warn('[INVITE_ACCEPT] Unknown inviteRole:', inviteRole);
         router.push('/invite/invalid');
       } catch (error) {
         console.error('[INVITE_ACCEPT] Error validating invite:', error);
