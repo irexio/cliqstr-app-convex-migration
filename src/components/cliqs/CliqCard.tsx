@@ -28,9 +28,10 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [membersModalOpen, setMembersModalOpen] = useState(false);
   const [manageModalOpen, setManageModalOpen] = useState(false);
-  
+
   // Check if current user is the owner
   const isOwner = currentUserId && cliq.ownerId === currentUserId;
+  const canInvite = !!isOwner || cliq.privacy === 'public';
   
   // Debug logging
   console.log('CliqCard Debug:', {
@@ -80,18 +81,20 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
           </svg>
           <span className="text-sm font-medium">View</span>
         </Link>
-        
+
         {/* Invite Button */}
-        <button onClick={() => setInviteModalOpen(true)} className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
-            <line x1="3" y1="10" x2="21" y2="10"></line>
-          </svg>
-          <span className="text-sm font-medium">Invite</span>
-        </button>
-        
+        {canInvite && (
+          <button onClick={() => setInviteModalOpen(true)} className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span className="text-sm font-medium">Invite</span>
+          </button>
+        )}
+
         {/* Manage/Members Button */}
-        <button 
+        <button
           onClick={() => setManageModalOpen(true)}
           className="flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-colors"
         >
@@ -116,11 +119,18 @@ export default function CliqCard({ cliq, currentUserId, onDelete }: CliqCardProp
           )}
         </button>
       </div>
-      <InviteModal cliqId={cliq.id} open={inviteModalOpen} onClose={() => setInviteModalOpen(false)} />
+      {canInvite && (
+        <InviteModal
+          cliqId={cliq.id}
+          open={inviteModalOpen}
+          onClose={() => setInviteModalOpen(false)}
+          canInvite={canInvite}
+        />
+      )}
       <MembersModal cliqId={cliq.id} open={membersModalOpen} onClose={() => setMembersModalOpen(false)} isOwner={!!isOwner} />
-      <CliqManageModal 
-        cliq={cliq} 
-        open={manageModalOpen} 
+      <CliqManageModal
+        cliq={cliq}
+        open={manageModalOpen}
         onClose={() => setManageModalOpen(false)}
         onDelete={onDelete}
         onOpenMembers={() => setMembersModalOpen(true)}
