@@ -1,136 +1,166 @@
 // 🔐 APA-HARDENED ROUTE: POST /api/parent/approval-complete
-// Finalizes child account setup after parent approval (invite or direct sign-up)
+// Finalizes child approval atomically from Parents HQ
 
 import { NextResponse } from 'next/server';
 import { hash } from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
-import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const {
+    // Auth: require logged-in parent
+    const parent = await getCurrentUser();
+    if (!parent?.id || !parent?.email) {
+      return new NextResponse('Unauthorized', { status: 401 });
+    }
+
+    const body = await req.json().catch(() => ({} as any));
+    const inviteCode: string | undefined = body.inviteCode?.trim();
+    const childUsername: string | undefined = body.childUsername?.trim();
+    const childPassword: string | undefined = body.childPassword?.trim();
+    const permissions: Record<string, any> = body.permissions || {};
+
+    if (!inviteCode) {
+      return NextResponse.json({ ok: false, reason: 'missing_invite_code' }, { status: 400 });
+    }
+
+    // Load invite
+    const invite = await prisma.invite.findUnique({
+      where: { code: inviteCode },
+      select: {
+        id: true,
+        status: true,
+        used: true,
+        expiresAt: true,
+        invitedRole: true,
+        cliqId: true,
+        invitedUserId: true,
+      },
+    });
+
+    const now = new Date();
+    const expired = !!invite?.expiresAt && invite.expiresAt.getTime() < now.getTime();
+
+    console.log('[PARENT/APPROVE/CHECK]', {
       inviteCode,
-      childId,
-      username,
-      password,
-      parentEmail,
-      plan,
-    } = body;
+      found: !!invite,
+      status: invite?.status,
+      used: invite?.used,
+      expired,
+      role: invite?.invitedRole,
+      cliqId: invite?.cliqId,
+    });
 
-    if (
-      !childId ||
-      !username ||
-      !password ||
-      !parentEmail ||
-      !plan ||
-      !['free', 'paid', 'ebt'].includes(plan)
-    ) {
-      return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 400 });
+    if (!invite) {
+      return NextResponse.json({ ok: false, reason: 'not_found' }, { status: 404 });
     }
 
-    // ✅ Optional invite logic
-    if (inviteCode) {
-      const invite = await prisma.invite.findUnique({ where: { code: normalizeInviteCode(inviteCode) } });
+    const role = (invite.invitedRole || '').toLowerCase();
+    if (role !== 'child') {
+      return NextResponse.json({ ok: false, reason: 'wrong_role' }, { status: 400 });
+    }
 
-      if (!invite || invite.status !== 'pending') {
-        return NextResponse.json({ error: 'Invalid or used invite' }, { status: 400 });
-      }
+    if (expired) {
+      return NextResponse.json({ ok: false, reason: 'expired' }, { status: 400 });
+    }
 
-      if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-        return NextResponse.json({ error: 'Invite has expired' }, { status: 400 });
-      }
-
-      await prisma.invite.update({
-        where: { code: normalizeInviteCode(inviteCode) },
-        data: { status: 'used' },
+    // Idempotent path: already used and bound to a child
+    if ((invite.used || invite.status !== 'pending') && invite.invitedUserId) {
+      const existingLink = await prisma.parentLink.findFirst({
+        where: { parentId: parent.id, childId: invite.invitedUserId },
       });
-    }
-
-    const hashedPassword = await hash(password, 10);
-
-    // ✅ Get profile and its userId
-    const childProfile = await prisma.myProfile.findUnique({
-      where: { id: childId },
-      select: { userId: true, birthdate: true }
-    });
-    
-    if (!childProfile) {
-      return NextResponse.json({ error: 'Child profile not found' }, { status: 400 });
-    }
-
-    // Update profile
-    await prisma.myProfile.update({
-      where: { id: childId },
-      data: {
-        username,
-      },
-    });
-
-    // Update account approval status (APA: manual approval for EBT)
-    await prisma.account.update({
-      where: { userId: childProfile.userId },
-      data: {
-        isApproved: plan !== 'ebt',
-      },
-    });
-    
-    // Update user password
-    await prisma.user.update({
-      where: { id: childProfile.userId },
-      data: {
-        password: hashedPassword
+      if (!existingLink) {
+        await prisma.parentLink.create({
+          data: { parentId: parent.id, childId: invite.invitedUserId, email: parent.email, type: 'family' },
+        });
       }
-    });
-    
-    // Create or update account with subscription data
-    const existingAccount = await prisma.account.findUnique({
-      where: { userId: childProfile.userId }
-    });
-    
-    if (existingAccount) {
-      await prisma.account.update({
-        where: { id: existingAccount.id },
+      return NextResponse.json({ ok: true, childId: invite.invitedUserId }, { headers: { 'Cache-Control': 'no-store' } });
+    }
+
+    // Transaction: create/approve/link
+    const result = await prisma.$transaction(async (tx) => {
+      // 1) Create child account if credentials provided
+      if (!childUsername || !childPassword) {
+        // For this flow, credentials are required to create the child account
+        throw Object.assign(new Error('missing_child_credentials'), { code: 'missing_child_credentials' });
+      }
+
+      // Ensure username is unique at profile level
+      const existingProfile = await tx.myProfile.findUnique({
+        where: { username: childUsername },
+        select: { id: true, userId: true },
+      });
+      if (existingProfile) {
+        throw Object.assign(new Error('username_taken'), { code: 'username_taken' });
+      }
+
+      const pwd = await hash(childPassword, 10);
+
+      const childUser = await tx.user.create({
         data: {
-          stripeStatus: plan,
-          plan: plan === 'paid' ? 'premium' : 'basic'
-        }
+          email: `${childUsername}@child.cliqstr`,
+          password: pwd,
+          isVerified: true,
+        },
+        select: { id: true },
       });
-    } else {
-      await prisma.account.create({
+
+      await tx.myProfile.create({
         data: {
-          userId: childProfile.userId,
-          birthdate: childProfile.birthdate || new Date('2010-01-01'), // Use child's actual birthdate
-          role: 'Child',
-          isApproved: plan !== 'ebt',
-          stripeStatus: plan,
-          plan: plan === 'paid' ? 'premium' : 'basic'
-        }
+          userId: childUser.id,
+          username: childUsername,
+          birthdate: new Date(2008, 0, 1),
+        },
       });
-    }
 
-    // Find parent user by email
-    const parentUser = await prisma.user.findUnique({
-      where: { email: parentEmail }
+      // Initialize/ensure settings and mark approved
+      const profile = await tx.myProfile.findUnique({ where: { userId: childUser.id }, select: { id: true } });
+      if (profile?.id) {
+        await tx.childSettings.upsert({
+          where: { profileId: profile.id },
+          update: { inviteRequiresApproval: false, ...permissions },
+          create: { profileId: profile.id, inviteRequiresApproval: false, ...permissions },
+        });
+      }
+
+      // 2) Link parent ↔ child (idempotent)
+      const link = await tx.parentLink.findFirst({ where: { parentId: parent.id, childId: childUser.id } });
+      if (!link) {
+        await tx.parentLink.create({ data: { parentId: parent.id, childId: childUser.id, email: parent.email, type: 'family' } });
+      }
+
+      // 3) Mark invite as accepted/used and bind to child
+      await tx.invite.update({
+        where: { code: inviteCode },
+        data: { status: 'accepted', used: true, invitedUserId: childUser.id },
+      });
+
+      // 4) Optional membership add
+      if (invite.cliqId) {
+        const existingMember = await tx.membership.findFirst({
+          where: { userId: childUser.id, cliqId: invite.cliqId },
+        });
+        if (!existingMember) {
+          await tx.membership.create({ data: { userId: childUser.id, cliqId: invite.cliqId, role: 'Member' } });
+        }
+      }
+
+      return { childId: childUser.id };
     });
-    
-    if (!parentUser) {
-      return NextResponse.json({ error: 'Parent user not found' }, { status: 400 });
+
+    const res = NextResponse.json({ ok: true, childId: result.childId });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  } catch (err: any) {
+    if (err?.code === 'username_taken') {
+      return NextResponse.json({ ok: false, reason: 'username_taken' }, { status: 409 });
     }
-
-    await prisma.parentLink.create({
-      data: {
-        parentId: parentUser.id,
-        childId: childProfile.userId,
-        email: parentEmail,
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error('[PARENT_APPROVAL_COMPLETE_ERROR]', err);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+    if (err?.code === 'missing_child_credentials') {
+      return NextResponse.json({ ok: false, reason: 'missing_child_credentials' }, { status: 400 });
+    }
+    console.error('[PARENT/APPROVE] error', err);
+    return NextResponse.json({ ok: false, reason: 'server_error' }, { status: 500 });
   }
 }

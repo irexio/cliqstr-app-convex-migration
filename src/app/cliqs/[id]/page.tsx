@@ -6,8 +6,10 @@ import { prisma } from '@/lib/prisma';
 import CliqFeed from "@/components/cliqs/CliqFeed";
 import CliqTools from "@/components/cliqs/CliqTools";
 import CliqBanner from "@/components/cliqs/CliqBanner";
+import { guardPendingChildToAwaitingApproval } from '@/lib/guards';
 
 export default async function CliqPage({ params }: { params: Promise<{ id: string }> }) {
+  await guardPendingChildToAwaitingApproval();
   const { id } = await params;
   const user = await getCurrentUser();
   if (!user?.id) return <p className="p-4">Unauthorized</p>;

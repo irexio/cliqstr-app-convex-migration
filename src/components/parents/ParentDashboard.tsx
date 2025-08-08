@@ -58,25 +58,29 @@ export default function ParentDashboard() {
     setCreating(true);
     
     try {
-      const newChild = await fetchJson('/api/parent/create-child', {
+      // Create child via canonical endpoint
+      const newChild = await fetchJson('/api/parent/children', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           username: createForm.username,
-          password: createForm.password
-        })
+          password: createForm.password,
+        }),
       });
-      
-      // Add new child to list and select it
-      setChildren(prev => [...prev, newChild]);
-      setSelectedChildId(newChild.id);
-      
+
+      // Refresh list and select the new child
+      const refreshed = await fetchJson('/api/parent/children');
+      setChildren(refreshed);
+
+      if (newChild?.id) {
+        setSelectedChildId(newChild.id);
+      }
+
       // Reset form
       setCreateForm({ username: '', password: '' });
       setShowCreateForm(false);
-      
-      alert('Child account created successfully!');
     } catch (error) {
+      console.error('[PARENT/CHILDREN] create failed', error);
       alert('Failed to create child account. Please try again.');
     } finally {
       setCreating(false);

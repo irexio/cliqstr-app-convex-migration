@@ -27,10 +27,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import CliqsGrid from '@/components/cliqs/CliqsGrid';
 import { DashboardProfileNudge } from '@/components/ui/ProfileNudge';
+import { guardPendingChildToAwaitingApproval } from '@/lib/guards';
 
 export const dynamic = 'force-dynamic';
 
 export default async function MyCliqsDashboardPage() {
+  await guardPendingChildToAwaitingApproval();
   const user = await getCurrentUser();
 
   if (!user?.id) {

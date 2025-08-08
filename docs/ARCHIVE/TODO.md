@@ -5,19 +5,19 @@
 
 ---
 
-## ✅ COMPLETED TASKS
+## ✅ INCOMPLETED TASKS
 
-* [x] Replace `/invite/parent` landing with simplified approval interface
-* [x] Route `/invite/parent` → `/parents/hq?inviteCode=xxx`
-* [x] Implement `ChildInviteApprovalFlow.tsx`
-* [x] Add Red Alert and Silent Monitoring controls
-* [x] Create `ParentLink` and `ChildSettings` on approval
-* [x] Log Red Alert acceptance in `ParentAuditLog`
-* [x] Enforce `invite.used = true` **after** approval
-* [x] Use `upsert` for `ChildSettings` to prevent conflict
-* [x] Clean unused approval components
-* [x] Create `/docs/README.md` index
-* [x] Add docs folder classification and APA routing documentation
+* [] Replace `/invite/parent` landing with simplified approval interface
+* [] Route `/invite/parent` → `/parents/hq?inviteCode=xxx`
+* [] Implement `ChildInviteApprovalFlow.tsx`
+* [] Add Red Alert and Silent Monitoring controls
+* [] Create `ParentLink` and `ChildSettings` on approval
+* [] Log Red Alert acceptance in `ParentAuditLog`
+* [] Enforce `invite.used = true` **after** approval
+* [] Use `upsert` for `ChildSettings` to prevent conflict
+* [] Clean unused approval components
+* [] Create `/docs/README.md` index
+* [] Add docs folder classification and APA routing documentation
 
 ---
 

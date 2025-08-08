@@ -16,10 +16,10 @@ Create a digital space where:
 
 ## 🚸 Key Safety Features
 
-### For Children (17 and under)
+### For Children (13 and under)
 - **Parent-approved accounts** - No child creates an account alone
 - **Customizable freedoms** - Parents decide what their child can do
-- **No strangers** - Only connect with people you know in real life
+- **No strangers** - Only connect with people you know in real life without parental approval
 - **Age-appropriate content** - Built-in protections based on age
 - **Red Alert** - Emergency button that notifies all trusted adults
 
@@ -35,7 +35,7 @@ Create a digital space where:
 - **No algorithms** - No manipulation or echo chambers
 - **Invite-only** - No public profiles or unwanted contact
 - **Private by default** - Share only with your chosen cliqs
-- **Family-friendly** - Designed for ages 8 to 80+
+- **Family-friendly** - Designed for ages 6 to 80+
 
 ## 🔐 Technical Security
 
@@ -153,7 +153,7 @@ We welcome contributions that align with our mission of child safety and family 
 
 ## 🛡️ Security Reporting
 
-Found a security issue? Please email security@cliqstr.com immediately. Do NOT create public issues for security vulnerabilities.
+Found a security issue? Please email mimi@cliqstr.com immediately. Do NOT create public issues for security vulnerabilities.
 
 ## 📜 License
 
@@ -161,7 +161,7 @@ Found a security issue? Please email security@cliqstr.com immediately. Do NOT cr
 
 ## 🙏 Acknowledgments
 
-Built with love by parents who believe children deserve better than today's social media landscape.
+Built with love by parents and people who believe children deserve better than today's social media landscape.
 
 Special thanks to:
 - The dozens of parents who shared their concerns and shaped our permission system

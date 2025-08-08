@@ -1,187 +1,128 @@
-export const dynamic = 'force-dynamic';
-
-/**
- * 🔐 APA-HARDENED ROUTE: POST /api/accept-invite
- *
- * Purpose:
- *   - Accepts an invite using the provided invite code
- *   - Adds the current user to the cliq
- *   - Marks the invite as used
- *   - Handles different invite types (adult vs child)
- *
- * Body Params:
- *   - inviteCode: string (required)
- *
- * Returns:
- *   - 200 OK with cliqId if successful
- *   - 400 if no code is provided
- *   - 401 if user is not authenticated
- *   - 404 if invite is not found
- *   - 410 if invite is already used or expired
- *
- * Security:
- *   - Requires user authentication
- *   - For child invites, requires adult verification
- *   - Enforces APA-compliant access control
- */
-
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { logInviteAccept } from '@/lib/auth/userActivityLogger';
-import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
-import { validateAgeRequirements } from '@/lib/utils/ageUtils';
 
-export async function POST(req: NextRequest) {
+type AcceptBody = { code?: string };
+
+export async function POST(req: Request) {
   try {
-    // Get the current user session using APA-compliant auth
     const user = await getCurrentUser();
-    
     if (!user?.id) {
-      return NextResponse.json({ error: 'You must be signed in to accept an invite' }, { status: 401 });
+      return new NextResponse('Unauthorized', { status: 401 });
     }
-    
-    // Parse the request body
-    const body = await req.json();
-    const { inviteCode, method } = body;
-    
-    if (!inviteCode) {
-      return NextResponse.json({ error: 'Missing invite code' }, { status: 400 });
+    const userId = user.id;
+
+    const body = (await req.json().catch(() => ({}))) as AcceptBody;
+    const code = body?.code?.trim();
+    if (!code) {
+      return NextResponse.json({ ok: false, reason: 'missing_code' }, { status: 400 });
     }
-    
-    // Find the invite
+
+    // Fetch invite and basic cliq context
     const invite = await prisma.invite.findUnique({
-      where: { code: normalizeInviteCode(inviteCode) },
-      include: {
-        cliq: {
-          select: {
-            id: true,
-            name: true,
-            ownerId: true,
-            minAge: true,
-            maxAge: true,
-            privacy: true
-          }
-        }
-      }
+      where: { code },
+      select: {
+        id: true,
+        status: true,         // 'pending' | 'accepted' | ...
+        used: true,
+        expiresAt: true,
+        invitedRole: true,    // 'adult' | 'child' (casing may vary)
+        cliqId: true,
+        inviterId: true,
+        inviteeEmail: true,
+        trustedAdultContact: true,
+        invitedUserId: true,
+      },
     });
-    
+
+    const now = new Date();
+    const expired = !!invite?.expiresAt && invite.expiresAt.getTime() < now.getTime();
+
+    // Basic trace
+    console.log('[ACCEPT/INVITE/CHECK]', {
+      code,
+      found: !!invite,
+      status: invite?.status,
+      used: invite?.used,
+      expired,
+      role: invite?.invitedRole,
+      cliqId: invite?.cliqId,
+    });
+
     if (!invite) {
-      return NextResponse.json({ error: 'Invite not found' }, { status: 404 });
+      return NextResponse.json({ ok: false, reason: 'not_found' }, { status: 404 });
     }
-    
-    if (invite.status !== 'pending') {
-      return NextResponse.json({ error: 'Invite already used' }, { status: 410 });
+
+    // Adult-only endpoint
+    const role = (invite.invitedRole || '').toLowerCase();
+    if (role !== 'adult') {
+      return NextResponse.json({ ok: false, reason: 'wrong_role' }, { status: 400 });
     }
-    
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-      return NextResponse.json({ error: 'Invite expired' }, { status: 410 });
-    }
-    
-    // Use type assertion for new fields
-    const typedInvite = invite as any;
-    const inviteType = typedInvite.inviteType || 'adult';
-    
-    // Check if user is already a member of the cliq
-    const existingMembership = await prisma.membership.findUnique({
-      where: {
-        userId_cliqId: {
-          userId: user.id,
-          cliqId: invite.cliqId
-        }
+
+    // If already used/accepted, but the user is already a member, treat as idempotent success
+    if ((invite.used || invite.status !== 'pending') && invite.cliqId) {
+      const existing = await prisma.membership.findUnique({
+        where: { userId_cliqId: { userId, cliqId: invite.cliqId } },
+      });
+      if (existing) {
+        console.log('[ACCEPT/INVITE] idempotent success (already member)', { code, userId, cliqId: invite.cliqId });
+        return NextResponse.json({ ok: true });
       }
-    });
-    
-    if (existingMembership) {
-      // Mark the invite as used
-      await prisma.invite.update({
-        where: { id: invite.id },
+      // If invite was consumed by someone else, fail
+      if (invite.used && invite.invitedUserId && invite.invitedUserId !== userId) {
+        return NextResponse.json({ ok: false, reason: 'invite_already_used' }, { status: 409 });
+      }
+      // If status not pending but unused edge case, continue to upsert membership below
+    }
+
+    if (expired) {
+      return NextResponse.json({ ok: false, reason: 'expired' }, { status: 400 });
+    }
+
+    // At this point: role=adult, not expired. Proceed in a transaction.
+    if (!invite.cliqId) {
+      return NextResponse.json({ ok: false, reason: 'missing_cliq' }, { status: 400 });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 1) Upsert membership (idempotent via composite unique)
+      const membership = await tx.membership.upsert({
+        where: { userId_cliqId: { userId, cliqId: invite.cliqId! } },
+        create: { userId, cliqId: invite.cliqId!, role: 'Member' },
+        update: {}, // already a member → no change
+      });
+
+      // 2) Mark invite accepted/used + bind to this user (idempotent-safe)
+      await tx.invite.update({
+        where: { code },
         data: {
           status: 'accepted',
-          invitedUserId: user.id
-        }
+          used: true,
+          invitedUserId: userId,
+        },
       });
-      
-      return NextResponse.json({
-        message: 'You are already a member of this cliq',
-        cliqId: invite.cliqId
-      });
-    }
-    
-    // Age gating validation using Account.birthdate (APA-safe)
-    if (user.account?.birthdate) {
-      const ageValidation = validateAgeRequirements(
-        user.account.birthdate,
-        invite.cliq.minAge,
-        invite.cliq.maxAge
-      );
 
-      if (!ageValidation.isValid) {
-        console.log(`[APA] Age restriction blocked user ${user.id} from accepting invite to cliq ${invite.cliqId}:`, ageValidation.reason);
-        return NextResponse.json({ 
-          error: `Age restriction: ${ageValidation.reason}` 
-        }, { status: 403 });
-      }
-    }
-
-    // ✅ APA COMPLIANCE: Handle child invites differently
-    if (inviteType === 'child') {
-      // For child invites, the current user is the PARENT/GUARDIAN
-      // We need to redirect to the parent approval flow, not add them to the cliq
-      console.log(`[APA] Child invite detected - redirecting to parent approval flow for user ${user.id}`);
-      
-      // Verify the user is an adult (has role 'Adult' or no role set)
-      if (user.role === 'Child') {
-        return NextResponse.json({ 
-          error: 'Child accounts cannot approve child invites. Please have a parent or guardian complete this process.' 
-        }, { status: 403 });
-      }
-      
-      // Don't add the parent to the cliq yet - they need to go through parent approval
-      // Return a special response indicating this is a child invite that needs parent approval
-      return NextResponse.json({
-        message: 'Child invite requires parent approval',
-        inviteType: 'child',
-        requiresParentApproval: true,
-        cliqId: invite.cliqId,
-        cliqName: invite.cliq.name,
-        friendFirstName: typedInvite.friendFirstName
+      // 3) Mark the user's email verified (safe even if already true)
+      await tx.user.update({
+        where: { id: userId },
+        data: { isVerified: true },
       });
-    }
-    
-    // ✅ ADULT INVITES: Normal flow for adult-to-adult invites
-    console.log(`[INVITE] Adult invite - adding user ${user.id} directly to cliq ${invite.cliqId}`);
-    
-    // Add the user to the cliq
-    await prisma.membership.create({
-      data: {
-        userId: user.id,
-        cliqId: invite.cliqId,
-        role: invite.invitedRole || 'member'
-      }
+
+      return { membershipId: membership.id };
     });
-    
-    // Mark the invite as used
-    await prisma.invite.update({
-      where: { id: invite.id },
-      data: {
-        status: 'accepted',
-        invitedUserId: user.id
-      }
+
+    console.log('[ACCEPT/INVITE] success', {
+      code,
+      userId,
+      cliqId: invite.cliqId,
+      membershipId: result.membershipId,
     });
-    
-    // Log the successful invite acceptance
-    console.log(`[INVITE_ACCEPTED] User ${user.id} accepted invite to cliq ${invite.cliqId}`);
-    const inviteMethod = method === 'manual' ? 'manual' : 'link';
-    await logInviteAccept(user.id, inviteCode, inviteMethod, req);
-    
-    return NextResponse.json({
-      message: 'Successfully joined cliq',
-      cliqId: invite.cliqId
-    });
-    
-  } catch (error) {
-    console.error('[ACCEPT_INVITE_ERROR]', error);
-    return NextResponse.json({ error: 'Failed to accept invite' }, { status: 500 });
+
+    const res = NextResponse.json({ ok: true });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  } catch (err) {
+    console.error('[ACCEPT/INVITE] error', err);
+    return NextResponse.json({ ok: false, reason: 'server_error' }, { status: 500 });
   }
 }

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -9,149 +9,119 @@ type InviteStatus = 'valid' | 'used' | 'invalid' | 'loading';
 
 export default function ParentsHQContent() {
   const searchParams = useSearchParams();
-  const inviteCode = searchParams.get('inviteCode');
+  const inviteCode = searchParams.get('inviteCode')?.trim() || '';
   const router = useRouter();
 
   const [status, setStatus] = useState<InviteStatus>('loading');
-  const [user, setUser] = useState<any>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [needsVerification, setNeedsVerification] = useState(false);
 
-  // Check authentication and role before allowing access
-  // Re-run when URL changes (e.g., after verification redirect)
+  // 1) Auth gate: require login, allow Adult or Parent, block Child
   useEffect(() => {
-    const checkAuth = () => {
-      fetch('/api/auth/status', { credentials: 'include' })
-        .then((res) => res.ok ? res.json() : null)
-        .then((data) => {
-          if (!data?.user) {
-            // Not authenticated - redirect to sign in
-            router.push(`/sign-in?redirect=/parents/hq&inviteCode=${inviteCode}`);
-            return;
-          }
+    let cancelled = false;
 
-          if (data.user.role !== 'Parent') {
-            // Not a parent - auto-upgrade Adult to Parent for child invites
-            if (data.user.role === 'Adult' && inviteCode) {
-              console.log('[PARENT_HQ] Adult user with child invite - auto-upgrading to Parent');
-              
-              // Auto-upgrade Adult to Parent role
-              fetch('/api/auth/upgrade-to-parent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ inviteCode })
-              })
-              .then(res => res.json())
-              .then(upgradeData => {
-                if (upgradeData.success) {
-                  console.log('[PARENT_HQ] Successfully upgraded to Parent, refreshing auth');
-                  // Refresh auth status to get updated role
-                  checkAuth();
-                } else {
-                  console.error('[PARENT_HQ] Failed to upgrade to Parent:', upgradeData.error);
-                  setNeedsVerification(true);
-                }
-              })
-              .catch(err => {
-                console.error('[PARENT_HQ] Error upgrading to Parent:', err);
-                setNeedsVerification(true);
-              });
-              
-              return;
-            } else {
-              // Redirect to appropriate flow
-              router.push(`/invite/parent?code=${inviteCode}`);
-            }
-            return;
-          }
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/status', {
+          credentials: 'include',
+          cache: 'no-store',
+        });
+        const data = res.ok ? await res.json() : null;
 
-          // Valid parent user - clear verification flag
-          console.log('[PARENT_HQ] Valid parent user authenticated');
-          setNeedsVerification(false);
-          setUser(data.user);
-        })
-        .catch((err) => {
-          console.error('[PARENT_HQ] Auth check failed:', err);
-          router.push('/sign-in');
-        })
-        .finally(() => setAuthLoading(false));
-    };
+        if (!data?.user) {
+          const rt = `/parents/hq${inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : ''}`;
+          router.replace(`/sign-in?returnTo=${encodeURIComponent(rt)}`);
+          return;
+        }
+
+        // Block children from HQ
+        if (data.user.role === 'Child') {
+          router.replace('/awaiting-approval');
+          return;
+        }
+      } catch (err) {
+        console.error('[PARENTS_HQ] auth check failed:', err);
+        const rt = `/parents/hq${inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : ''}`;
+        router.replace(`/sign-in?returnTo=${encodeURIComponent(rt)}`);
+        return;
+      } finally {
+        if (!cancelled) setAuthLoading(false);
+      }
+    }
 
     checkAuth();
-    
-    // Also check when the page becomes visible (e.g., after redirect)
-    const handleVisibilityChange = () => {
+
+    // Re-check when tab regains focus (avoids stale session)
+    const vis = () => {
       if (!document.hidden) {
-        console.log('[PARENT_HQ] Page became visible, re-checking auth');
         setAuthLoading(true);
         checkAuth();
       }
     };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener('visibilitychange', vis);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', vis);
+    };
   }, [inviteCode, router]);
 
+  // 2) Invite validation (only when inviteCode present)
   useEffect(() => {
-    if (!user || !inviteCode) {
-      if (!inviteCode) {
-        setStatus('valid'); // no invite → show dashboard
-      }
-      return;
-    }
+    let cancelled = false;
 
-    // Validate the invite
-    const checkInvite = async () => {
+    async function validateInvite() {
+      if (!inviteCode) {
+        setStatus('valid'); // No invite → show dashboard
+        return;
+      }
+      setStatus('loading');
+
       try {
-        const res = await fetch(`/api/invites/validate?code=${inviteCode}`);
+        const res = await fetch(`/api/invites/validate?code=${encodeURIComponent(inviteCode)}`, {
+          headers: { 'Content-Type': 'application/json' },
+          cache: 'no-store',
+        });
         const data = await res.json();
 
-        if (res.ok && data.valid) {
-          setStatus('valid');
-        } else if (data.reason === 'used') {
-          setStatus('used');
+        if (!res.ok) {
+          // Prefer explicit reason if present
+          if (data?.reason === 'used') {
+            if (!cancelled) setStatus('used');
+          } else {
+            if (!cancelled) setStatus('invalid');
+          }
+          return;
+        }
+
+        if (data?.valid) {
+          if (!cancelled) setStatus('valid');
+        } else if (data?.reason === 'used') {
+          if (!cancelled) setStatus('used');
         } else {
-          setStatus('invalid');
+          if (!cancelled) setStatus('invalid');
         }
       } catch (err) {
-        console.error('[APA] Invite validation failed:', err);
-        setStatus('invalid');
+        console.error('[PARENTS_HQ] invite validate failed:', err);
+        if (!cancelled) setStatus('invalid');
       }
-    };
+    }
 
-    checkInvite();
+    validateInvite();
+    return () => {
+      cancelled = true;
+    };
   }, [inviteCode]);
 
-  // Show verification required screen
-  if (needsVerification) {
-    return (
-      <main className="min-h-screen flex items-center justify-center p-4">
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6 text-center">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Adult Verification Required</h2>
-          <p className="text-gray-700 mb-6">
-            To complete this invitation, you must verify that you are the child's parent or guardian. 
-            This is required for safety and access to Parent HQ, even on our free plan.
-          </p>
-          <button 
-            onClick={() => router.push(`/verify-parent?inviteCode=${inviteCode}`)}
-            className="w-full bg-black text-white py-3 px-4 rounded-lg font-medium hover:bg-gray-800 transition-colors"
-          >
-            Complete Verification
-          </button>
-        </div>
-      </main>
-    );
-  }
-
+  // 3) Loading states
   if (authLoading || status === 'loading') {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Checking invite status...</p>
+        <p className="text-gray-500 text-sm">Checking your access…</p>
       </main>
     );
   }
 
-  if (status === 'used') {
+  // 4) Invite error states (only apply when inviteCode present)
+  if (inviteCode && status === 'used') {
     return (
       <main className="min-h-screen flex items-center justify-center text-center text-gray-600">
         <div>
@@ -162,23 +132,24 @@ export default function ParentsHQContent() {
     );
   }
 
-  if (status === 'invalid') {
+  if (inviteCode && status === 'invalid') {
     return (
       <main className="min-h-screen flex items-center justify-center text-center text-gray-600">
         <div>
-          <h1 className="text-xl font-bold text-red-600">Invalid Invitation</h1>
-          <p className="mt-2">This invite link is no longer valid. You may request a new invite from the user who sent it.</p>
+          <h1 className="text-xl font-bold text-red-600">Invalid or Expired Invitation</h1>
+          <p className="mt-2">This invite link is no longer valid. Please request a new invite from the sender.</p>
         </div>
       </main>
     );
   }
 
-  // If valid, render invite approval flow or main Parent HQ dashboard
-  if (inviteCode) {
+  // 5) Happy paths
+  if (inviteCode && status === 'valid') {
+    // Child invite approval flow
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">🛡️ Parent HQ</h1>
+          <h1 className="text-2xl font-bold text-gray-900">🛡️ Parents HQ</h1>
           <p className="text-gray-600">Child Invite Approval</p>
         </div>
         <ChildInviteApprovalFlow inviteCode={inviteCode} />
@@ -186,11 +157,11 @@ export default function ParentsHQContent() {
     );
   }
 
-  // Main Parent HQ Dashboard
+  // Default: Parent dashboard (ongoing child management)
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="mb-6 text-center">
-        <h1 className="text-3xl font-bold text-gray-900">🛡️ Parent HQ</h1>
+        <h1 className="text-3xl font-bold text-gray-900">🛡️ Parents HQ</h1>
         <p className="text-gray-600 mt-2">Comprehensive child management and safety controls</p>
         <p className="text-sm text-blue-600">Every child on Cliqstr requires parent approval through this interface</p>
       </div>

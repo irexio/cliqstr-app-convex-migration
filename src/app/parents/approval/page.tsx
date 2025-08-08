@@ -1,15 +1,26 @@
-// 🔐 APA-HARDENED — Parent Approval Landing Page
-export default function ParentApprovalPage() {
-  return (
-    <main className="max-w-xl mx-auto p-8 text-center text-gray-700">
-      <h1 className="text-2xl font-bold mb-4">Awaiting Parent Approval</h1>
-      <p className="mb-4">
-        Your parent has been notified. Once they approve your account,
-        you’ll be able to access Cliqstr and join your Cliqs.
-      </p>
-      <p className="text-sm text-neutral-500">
-        If they didn’t receive the email, please ask them to check their spam folder or try again.
-      </p>
-    </main>
-  );
+import { redirect } from 'next/navigation';
+
+const USE_LEGACY = process.env.USE_LEGACY_PARENTS_HQ === 'true';
+
+// NOTE: target for this stub
+// - parents/approval/page.tsx → target = '/parents/hq'
+
+export default async function Page({ searchParams }: { searchParams?: { code?: string } }) {
+  console.warn('[DEPRECATED_PAGE_HIT]', { file: __filename, searchParams });
+
+  // Optional legacy render if present and kill switch is on
+  if (USE_LEGACY) {
+    try {
+      const Legacy = (await import('@/legacy/parents-hq-invites/LegacyFallback')).default;
+      return <Legacy />;
+    } catch {
+      // Fall through to canonical redirect
+    }
+  }
+
+  // Canonical redirect
+  const base = '/parents/hq';
+  redirect(base);
 }
+
+// This file is a deprecation stub. See docs/DEPRECATION — ParentsHQ & Invites.md

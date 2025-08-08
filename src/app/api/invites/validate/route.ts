@@ -1,74 +1,93 @@
-export const dynamic = 'force-dynamic';
-
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 
-export async function GET(req: NextRequest) {
+export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const code = url.searchParams.get('code');
-
-    console.log('[INVITE_VALIDATE] Raw code from URL:', code);
+    const code = url.searchParams.get('code')?.trim();
 
     if (!code) {
-      return NextResponse.json({ valid: false, reason: 'missing_code' }, { status: 400 });
+      return NextResponse.json(
+        { valid: false, reason: 'missing_code' },
+        { status: 400 }
+      );
     }
 
-    const normalizedCode = normalizeInviteCode(code);
-    console.log('[INVITE_VALIDATE] Normalized code:', normalizedCode);
-
     const invite = await prisma.invite.findUnique({
-      where: { code: normalizedCode },
-      include: {
-        inviter: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        cliq: {
-          select: { name: true }
-        }
+      where: { code },
+      select: {
+        id: true,
+        status: true,            // 'pending' | 'accepted' | ...
+        used: true,
+        expiresAt: true,
+        invitedRole: true,       // 'adult' | 'child' (may vary in casing)
+        cliqId: true,
+        inviteeEmail: true,
+        trustedAdultContact: true,
       },
     });
 
-    console.log('[INVITE_VALIDATE] Invite found:', !!invite);
-    if (invite) {
-      console.log('[INVITE_VALIDATE] Invite details:', {
-        id: invite.id,
-        code: invite.code,
-        used: invite.used,
-        expiresAt: invite.expiresAt,
-        invitedRole: invite.invitedRole
-      });
-    }
+    const now = new Date();
+    const expired =
+      !!invite?.expiresAt && invite.expiresAt.getTime() < now.getTime();
+
+    // Log once for traceability (no PII beyond code)
+    console.log('[INVITE/VALIDATE]', {
+      code,
+      found: !!invite,
+      status: invite?.status,
+      used: invite?.used,
+      expired,
+      role: invite?.invitedRole,
+    });
 
     if (!invite) {
-      console.log('[INVITE_VALIDATE] No invite found for code:', normalizedCode);
-      return NextResponse.json({ valid: false, reason: 'not_found' }, { status: 404 });
+      return NextResponse.json(
+        { valid: false, reason: 'not_found' },
+        { status: 404 }
+      );
     }
 
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-      return NextResponse.json({ valid: false, reason: 'expired' }, { status: 410 });
+    if (expired) {
+      return NextResponse.json(
+        { valid: false, reason: 'expired' },
+        { status: 400 }
+      );
     }
 
-    if (invite.used && invite.maxUses <= 1) {
-      return NextResponse.json({ valid: false, reason: 'used' }, { status: 409 });
+    if (invite.status !== 'pending') {
+      return NextResponse.json(
+        { valid: false, reason: 'not_pending' },
+        { status: 400 }
+      );
     }
 
-    return NextResponse.json({
+    if (invite.used) {
+      return NextResponse.json(
+        { valid: false, reason: 'used' },
+        { status: 400 }
+      );
+    }
+
+    const inviteRole = (invite.invitedRole || '').toLowerCase();
+    const recipientEmail =
+      invite.inviteeEmail || invite.trustedAdultContact || null;
+
+    const res = NextResponse.json({
       valid: true,
-      invite: {
-        friendFirstName: invite.friendFirstName,
-        cliqName: invite.cliq?.name || 'Unknown',
-        inviteRole: invite.invitedRole,
-        cliqId: invite.cliqId,
-        inviterEmail: invite.inviter.email,
-      }
+      inviteRole,         // 'adult' | 'child'
+      inviteId: invite.id,
+      cliqId: invite.cliqId,
+      recipientEmail,     // used to prefill sign-up
+      reason: null,
     });
-  } catch (error) {
-    console.error('Error validating invite code:', error);
-    return NextResponse.json({ valid: false, reason: 'server_error' }, { status: 500 });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  } catch (err) {
+    console.error('[INVITE/VALIDATE] error', err);
+    return NextResponse.json(
+      { valid: false, reason: 'server_error' },
+      { status: 500 }
+    );
   }
 }

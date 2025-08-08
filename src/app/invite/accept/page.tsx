@@ -2,11 +2,6 @@
 
 export const dynamic = 'force-dynamic';
 
-/**
- * 🔐 APA-HARDENED — Invite Acceptance Page
- * 🔄 REDIRECT HELPER
- */
-
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoadingSpinner } from '../../../components/LoadingSpinner';
@@ -14,88 +9,120 @@ import { LoadingSpinner } from '../../../components/LoadingSpinner';
 function InviteAcceptContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const inviteCode = searchParams?.get('code');
+  const inviteCode = searchParams?.get('code')?.trim() || '';
 
   useEffect(() => {
-    async function checkInviteType() {
+    let cancelled = false;
+
+    async function run() {
+      // 1) Require a code
       if (!inviteCode) {
-        console.warn('[INVITE_ACCEPT] No invite code provided. Redirecting to home.');
-        router.push('/');
+        router.replace('/invite/invalid'); // missing code
         return;
       }
 
+      // 2) Check auth; if not signed in, bounce to sign-in with returnTo back here
       try {
-        console.log('[INVITE_ACCEPT] Validating invite code:', inviteCode);
+        const authRes = await fetch('/api/auth/status', { credentials: 'include', cache: 'no-store' });
+        const auth = authRes.ok ? await authRes.json() : null;
 
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Request timeout')), 10000);
-        });
+        if (!auth?.user) {
+          const returnTo = `/invite/accept?code=${encodeURIComponent(inviteCode)}`;
+          router.replace(`/sign-in?returnTo=${encodeURIComponent(returnTo)}`);
+          return;
+        }
+      } catch {
+        const returnTo = `/invite/accept?code=${encodeURIComponent(inviteCode)}`;
+        router.replace(`/sign-in?returnTo=${encodeURIComponent(returnTo)}`);
+        return;
+      }
 
-        const fetchPromise = fetch(`/api/invites/validate?code=${inviteCode}`, {
+      // 3) Validate invite (read-only)
+      try {
+        const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000));
+        const req = fetch(`/api/invites/validate?code=${encodeURIComponent(inviteCode)}`, {
           headers: { 'Content-Type': 'application/json' },
-          cache: 'no-cache',
+          cache: 'no-store',
         });
+        const res = await Promise.race([req, timeout]) as Response;
 
-        const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-
-        if (!response.ok) {
-          console.error('[INVITE_ACCEPT] API returned error status:', response.status);
-          router.push('/invite/invalid');
+        if (!res.ok) {
+          router.replace('/invite/invalid');
           return;
         }
 
-        const data = await response.json();
-        console.log('[INVITE_ACCEPT] API response data:', data);
-
-        // 🔁 Normalize invite role from API
-        const inviteRole = data.inviteRole || data.invitedRole;
-
-        if (!data.valid || !inviteRole) {
-          console.warn('[INVITE_ACCEPT] Invalid or missing role. Redirecting to /invite/invalid');
-          router.push('/invite/invalid');
+        const data = await res.json();
+        if (!data?.valid || !data?.inviteRole) {
+          router.replace('/invite/invalid');
           return;
         }
 
-        if (inviteRole === 'child') {
-          console.log('[INVITE_ACCEPT] Routing to parent invite flow');
-          router.push(`/invite/parent?code=${inviteCode}`);
+        const role = String(data.inviteRole).toLowerCase();
+
+        // Uniform email verification (idempotent)
+        try {
+          await fetch('/api/verify-from-invite', { method: 'POST' });
+        } catch (e) {
+          // non-fatal; continue
+          console.warn('[INVITE_ACCEPT] verify-from-invite failed (non-fatal)', e);
+        }
+
+        // 4) Branch:
+        if (role === 'adult') {
+          // Adult invite: accept on server, then to dashboard
+          const accept = await fetch('/api/accept-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: inviteCode }),
+          });
+
+          if (!accept.ok) {
+            router.replace('/invite/invalid');
+            return;
+          }
+
+          if (!cancelled) router.replace('/my-cliqs-dashboard');
           return;
         }
 
-        if (inviteRole === 'adult') {
-          console.log('[INVITE_ACCEPT] Routing to adult invite flow');
-          router.push(`/invite/adult?code=${inviteCode}`);
+        if (role === 'child') {
+          // Child invite: go to Parents HQ with the code
+          if (!cancelled) router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
           return;
         }
 
-        // 🚨 Fallback if role is unsupported
-        console.warn('[INVITE_ACCEPT] Unknown inviteRole:', inviteRole);
-        router.push('/invite/invalid');
-      } catch (error) {
-        console.error('[INVITE_ACCEPT] Error validating invite:', error);
-        router.push('/invite/invalid');
+        // Unknown role
+        router.replace('/invite/invalid');
+      } catch (err) {
+        console.error('[INVITE_ACCEPT] error:', err);
+        router.replace('/invite/invalid');
       }
     }
 
-    checkInviteType();
+    run();
+    return () => {
+      cancelled = true;
+    };
   }, [inviteCode, router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
       <LoadingSpinner size="lg" />
-      <p className="mt-4 text-gray-600">Redirecting to your invitation...</p>
+      <p className="mt-4 text-gray-600">Processing your invitation…</p>
     </div>
   );
 }
 
 export default function InviteAcceptPage() {
   return (
-    <Suspense fallback={
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <LoadingSpinner size="lg" />
-        <p className="mt-4 text-gray-600">Loading invitation...</p>
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <LoadingSpinner size="lg" />
+          <p className="mt-4 text-gray-600">Loading invitation…</p>
+        </div>
+      }
+    >
       <InviteAcceptContent />
     </Suspense>
   );
