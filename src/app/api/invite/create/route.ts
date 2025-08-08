@@ -152,9 +152,9 @@ export async function POST(req: Request) {
     }
     
     // Get cliq details
-    const cliq: { name: string } | null = await prisma.cliq.findUnique({
+    const cliq: { name: string; ownerId: string; privacy: string } | null = await prisma.cliq.findUnique({
       where: { id: cliqId },
-      select: { name: true }
+      select: { name: true, ownerId: true, privacy: true }
     });
     
     // Use the current user data (already includes profile with username)
@@ -163,6 +163,11 @@ export async function POST(req: Request) {
     if (!cliq) {
       console.log('[INVITE_ERROR] Cliq not found', { cliqId });
       return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
+    }
+
+    if ((cliq.privacy === 'private' || cliq.privacy === 'semi_private') && cliq.ownerId !== user.id) {
+      console.log('[INVITE_ERROR] Non-owner cannot invite to private cliq', { userId: user.id, cliqId, privacy: cliq.privacy });
+      return NextResponse.json({ error: 'Only the owner can invite members to this cliq' }, { status: 403 });
     }
     
     // Check if invite already exists
