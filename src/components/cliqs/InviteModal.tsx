@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import InviteClient from "@/components/InviteClient";
 
@@ -7,10 +6,12 @@ interface InviteModalProps {
   cliqId: string;
   open: boolean;
   onClose: () => void;
+  canInvite?: boolean;
 }
 
-export default function InviteModal({ cliqId, open, onClose }: InviteModalProps) {
-  // Optionally, handle internal state if needed
+export default function InviteModal({ cliqId, open, onClose, canInvite = false }: InviteModalProps) {
+  if (!canInvite) return null;
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md w-full p-6 rounded-lg bg-white">
