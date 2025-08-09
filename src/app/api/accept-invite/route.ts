@@ -118,6 +118,13 @@ export async function POST(req: Request) {
       membershipId: result.membershipId,
     });
 
+    // If this was submitted via a browser navigation (e.g., form submit without JSON),
+    // perform a server-side redirect to Parents HQ to satisfy APA redirect requirements.
+    const contentType = req.headers.get('content-type') || '';
+    if (!contentType.includes('application/json')) {
+      return NextResponse.redirect(new URL('/parents/hq', req.url));
+    }
+
     const res = NextResponse.json({ ok: true });
     res.headers.set('Cache-Control', 'no-store');
     return res;
