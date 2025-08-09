@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';
+import { getCodeFromJson } from '@/lib/invites/getCodeParam';
 
 /**
  * 🔒 Verify Parent API (Testing Version)
@@ -20,9 +21,8 @@ export async function POST(req: NextRequest) {
       }, { status: 401 });
     }
 
-    const { inviteCode } = await req.json();
-    
-    if (!inviteCode) {
+    const { code } = await getCodeFromJson(req.clone());
+    if (!code) {
       return NextResponse.json({ 
         error: 'Invite code is required' 
       }, { status: 400 });
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       email: user.email,
       currentRole: user.role,
       plan: user.account?.plan,
-      inviteCode
+      code
     });
 
     // 🧪 TESTING: Simulate successful card verification
@@ -81,14 +81,14 @@ export async function POST(req: NextRequest) {
     console.log('[VERIFY_PARENT] Successfully verified and upgraded user to Parent:', {
       userId: user.id,
       email: user.email,
-      inviteCode,
+      code,
       verifiedAt: new Date().toISOString()
     });
 
     return NextResponse.json({ 
       success: true,
       message: 'Identity verification successful. You are now a verified parent.',
-      redirectUrl: `/parents/hq?inviteCode=${inviteCode}`,
+      redirectUrl: `/parents/hq?inviteCode=${code}`,
       testing: true // Flag to indicate this is test mode
     });
 

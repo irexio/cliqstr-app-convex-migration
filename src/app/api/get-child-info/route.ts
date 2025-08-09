@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
+import { getCodeFromJson } from '@/lib/invites/getCodeParam';
 
 // Check if Stripe secret key is available
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -33,11 +34,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { inviteCode, cliqId, role } = await req.json();
+    // Normalize invite code (accept legacy inviteCode, standardize to code)
+    const { code } = await getCodeFromJson(req.clone());
+    const { cliqId, role } = await req.json();
 
-    if (!inviteCode || !cliqId || !role) {
+    if (!code || !cliqId || !role) {
       return NextResponse.json(
-        { error: 'Missing inviteCode, cliqId, or role' },
+        { error: 'Missing code, cliqId, or role' },
         { status: 400 }
       );
     }
@@ -47,7 +50,7 @@ export async function POST(req: NextRequest) {
     const setupIntent = await stripe.setupIntents.create({
       usage: 'off_session',
       metadata: {
-        inviteCode,
+        code,
         cliqId,
         role,
         initiatedBy: user.id,
