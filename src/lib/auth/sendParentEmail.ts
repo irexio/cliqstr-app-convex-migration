@@ -1,6 +1,6 @@
 'use server';
 
-import { sendEmail, BASE_URL } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
 
 type SendParentEmailParams = {
   to: string;
@@ -23,9 +23,15 @@ export async function sendParentEmail({
   
   const defaultSubject = 'Approve Your Child\'s Cliqstr Account';
 
-  const approvalLink = inviteCode
-    ? `${BASE_URL}/parent-approval?inviteCode=${inviteCode}&childId=${childId}`
-    : `${BASE_URL}/parent-approval?childId=${childId}`;
+  // Build canonical invite URL (no childId in URL). Falls back to Parents HQ when no code.
+  function buildParentInviteUrl(code?: string) {
+    const base = process.env.BASE_URL!;
+    return code
+      ? `${base}/invite/accept?code=${encodeURIComponent(code)}`
+      : `${base}/parents/hq`;
+  }
+
+  const approvalLink = buildParentInviteUrl(inviteCode);
 
   const defaultHtml = `
     <div style="font-family: sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
