@@ -65,18 +65,32 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
     const fetchInviteDetails = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/parent-approval/validate?inviteCode=${inviteCode}`);
+        const response = await fetch(
+          `/api/invites/validate?code=${encodeURIComponent(inviteCode)}`,
+          { cache: 'no-store' }
+        );
         const data = await response.json();
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to load invite details');
+        // Optional trace for diagnostics
+        // eslint-disable-next-line no-console
+        console.log('[INVITE/VALIDATE][client]', {
+          code: inviteCode,
+          ok: data?.valid,
+          reason: data?.reason,
+          role: data?.inviteRole,
+        });
+
+        if (!response.ok || data?.valid === false) {
+          const reason = data?.reason || data?.error || 'invalid_invite';
+          throw new Error(typeof reason === 'string' ? reason : 'Failed to load invite details');
         }
 
+        // Populate UI details if present; fall back to safe defaults
         setInviteDetails({
-          inviterName: data.inviterName || 'Unknown',
-          friendFirstName: data.childInfo?.firstName || 'Child',
-          cliqName: data.cliqName || 'Unknown Cliq',
-          childAge: data.childInfo?.age
+          inviterName: data.inviterName || data.invite?.inviterName || 'Unknown',
+          friendFirstName: data.childInfo?.firstName || data.invite?.friendFirstName || 'Child',
+          cliqName: data.cliqName || data.invite?.cliq?.name || 'Unknown Cliq',
+          childAge: data.childInfo?.age,
         });
       } catch (err: any) {
         setError(err.message || 'Failed to load invite details');
