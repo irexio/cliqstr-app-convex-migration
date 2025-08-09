@@ -69,7 +69,7 @@ function InviteAcceptContent() {
 
         // 4) Branch:
         if (role === 'adult') {
-          // Adult invite: accept on server, then to dashboard
+          // Adult invite: accept on server, then to Parents HQ
           const accept = await fetch('/api/accept-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -81,7 +81,8 @@ function InviteAcceptContent() {
             return;
           }
 
-          if (!cancelled) router.replace('/my-cliqs-dashboard');
+          // Server should perform redirect; this is a fallback to Parents HQ
+          if (!cancelled) router.replace('/parents/hq');
           return;
         }
 
