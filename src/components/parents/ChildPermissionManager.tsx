@@ -48,13 +48,32 @@ export default function ChildPermissionManager({ childId }: ChildPermissionManag
   const [newPassword, setNewPassword] = useState('');
   const [showCredentialUpdate, setShowCredentialUpdate] = useState(false);
 
+  // Friendly copy for API error reasons
+  const friendly: Record<string, string> = {
+    username_taken: 'That username is taken. Please choose another.',
+    weak_password: 'Password doesn’t meet requirements.',
+    invite_consumed: 'This invite was already used.',
+    expired: 'This invite has expired. Ask for a new one.',
+    missing_code: 'We couldn’t find that invite.',
+    not_found: 'We couldn’t find that invite.',
+    not_pending: 'This invite is no longer pending.',
+    used: 'This invite is no longer pending.',
+    not_linked_to_parent: 'You are not authorized to manage this child.',
+    unauthorized: 'You must be signed in as a parent to continue.',
+    server_error: 'Something went wrong. Please try again.',
+  };
+
   useEffect(() => {
     const fetchChildInfo = async () => {
       try {
         setLoading(true);
         const response = await fetch(`/api/parent/children/${childId}`);
-        if (!response.ok) throw new Error('Failed to fetch child info');
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          const reason = (data && (data.reason || data.error)) || 'server_error';
+          console.warn('[PARENTS_HQ][child-info] failure', { reason });
+          throw new Error(friendly[reason] ?? friendly.server_error);
+        }
         setChildInfo(data);
       } catch (err: any) {
         setError(err.message || 'Failed to load child information');
@@ -91,9 +110,13 @@ export default function ChildPermissionManager({ childId }: ChildPermissionManag
           settings: childInfo.settings
         })
       });
-      
-      if (!response.ok) throw new Error('Failed to save settings');
-      
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const reason = (data && (data.reason || data.error)) || 'server_error';
+        const msg = friendly[reason] ?? friendly.server_error;
+        throw new Error(msg);
+      }
+
       alert('Settings saved successfully!');
     } catch (err: any) {
       alert('Failed to save settings: ' + err.message);
@@ -119,8 +142,12 @@ export default function ChildPermissionManager({ childId }: ChildPermissionManag
           password: newPassword
         })
       });
-      
-      if (!response.ok) throw new Error('Failed to update credentials');
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const reason = (data && (data.reason || data.error)) || 'server_error';
+        const msg = friendly[reason] ?? friendly.server_error;
+        throw new Error(msg);
+      }
       
       setNewUsername('');
       setNewPassword('');

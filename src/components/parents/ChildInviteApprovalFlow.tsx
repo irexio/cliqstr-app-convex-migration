@@ -60,6 +60,19 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
     canUploadVideos: true
   });
 
+  // Map server reasons to friendly copy for parent-approval submit
+  const friendly: Record<string, string> = {
+    username_taken: 'That username is taken. Please choose another.',
+    weak_password: 'Password doesn’t meet requirements.',
+    invite_consumed: 'This invite was already used.',
+    expired: 'This invite has expired. Ask for a new one.',
+    missing_code: 'We couldn’t find that invite.',
+    not_found: 'We couldn’t find that invite.',
+    not_pending: 'This invite is no longer pending.',
+    used: 'This invite is no longer pending.',
+    server_error: 'Something went wrong. Please try again.',
+  };
+
   // Fetch invite details
   useEffect(() => {
     const fetchInviteDetails = async () => {
@@ -141,15 +154,19 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.reason || data.error || 'Failed to complete approval');
+        const reason = (data && (data.reason || data.error)) || 'server_error';
+        console.warn('[PARENTS_HQ][submit] failure', { reason });
+        setError(friendly[reason] ?? friendly.server_error);
+        setSubmitting(false);
+        return;
       }
 
       // Success - redirect to parent dashboard
       console.log('[PARENTS_HQ][submit] success');
-      router.push('/parents/hq?success=child-approved');
+      router.replace('/parents/hq?success=child-approved');
       
     } catch (err: any) {
       console.error('[PARENTS_HQ][submit] error', err);

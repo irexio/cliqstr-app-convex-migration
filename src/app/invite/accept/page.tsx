@@ -21,21 +21,7 @@ function InviteAcceptContent() {
         return;
       }
 
-      // 2) Check auth; if not signed in, bounce to sign-in with returnTo back here
-      try {
-        const authRes = await fetch('/api/auth/status', { credentials: 'include', cache: 'no-store' });
-        const auth = authRes.ok ? await authRes.json() : null;
-
-        if (!auth?.user) {
-          const returnTo = `/invite/accept?code=${encodeURIComponent(inviteCode)}`;
-          router.replace(`/sign-in?returnTo=${encodeURIComponent(returnTo)}`);
-          return;
-        }
-      } catch {
-        const returnTo = `/invite/accept?code=${encodeURIComponent(inviteCode)}`;
-        router.replace(`/sign-in?returnTo=${encodeURIComponent(returnTo)}`);
-        return;
-      }
+      // 2) We'll check auth after we know role (adult vs child)
 
       // 3) Validate invite (read-only)
       try {
@@ -67,9 +53,24 @@ function InviteAcceptContent() {
           console.warn('[INVITE_ACCEPT] verify-from-invite failed (non-fatal)', e);
         }
 
-        // 4) Branch:
+        // 4) Branch by role
         if (role === 'adult') {
-          // Adult invite: accept on server, then to Parents HQ
+          // If not authed: send to Sign Up with code and next to dashboard
+          try {
+            const authRes = await fetch('/api/auth/status', { credentials: 'include', cache: 'no-store' });
+            const auth = authRes.ok ? await authRes.json() : null;
+            if (!auth?.user) {
+              const next = '/my-cliqs-dashboard';
+              router.replace(`/sign-up?code=${encodeURIComponent(inviteCode)}&next=${encodeURIComponent(next)}`);
+              return;
+            }
+          } catch {
+            const next = '/my-cliqs-dashboard';
+            router.replace(`/sign-up?code=${encodeURIComponent(inviteCode)}&next=${encodeURIComponent(next)}`);
+            return;
+          }
+
+          // Authenticated adult: accept on server; server redirects to dashboard
           const accept = await fetch('/api/accept-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -80,14 +81,11 @@ function InviteAcceptContent() {
             router.replace('/invite/invalid');
             return;
           }
-
-          // Server should perform redirect; this is a fallback to Parents HQ
-          if (!cancelled) router.replace('/parents/hq');
-          return;
+          return; // rely on server redirect
         }
 
         if (role === 'child') {
-          // Child invite: go to Parents HQ with the code
+          // Child invite: requires an authenticated parent; send to Parents HQ with code
           if (!cancelled) router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
           return;
         }

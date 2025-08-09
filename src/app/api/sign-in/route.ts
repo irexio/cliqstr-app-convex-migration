@@ -21,24 +21,40 @@ import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 import { logLogin } from '@/lib/auth/userActivityLogger';
 
+function parseIdentifier(raw: string) {
+  const id = (raw || '').trim();
+  return id.includes('@')
+    ? { email: id.toLowerCase(), username: null }
+    : { email: null, username: id };
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { identifier, password } = await req.json();
 
-    if (!email || !password) {
+    if (!identifier || !password) {
       return NextResponse.json({ error: 'Missing credentials' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-      include: {
-        myProfile: true,
-        account: true,
-      },
-    });
+    const { email, username } = parseIdentifier(identifier);
+
+    let user: any = null;
+    if (email) {
+      user = await prisma.user.findUnique({
+        where: { email },
+        include: { myProfile: true, account: true },
+      });
+    } else if (username) {
+      // Resolve via profile username -> user
+      const profile = await prisma.myProfile.findUnique({
+        where: { username },
+        include: { user: { include: { myProfile: true, account: true } } },
+      });
+      user = profile?.user || null;
+    }
 
     if (!user || !user.password) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+      return NextResponse.json({ error: 'Invalid credentials', reason: 'user_not_found' }, { status: 401 });
     }
 
     const isCorrectPassword = await compare(password, user.password);
@@ -71,11 +87,7 @@ export async function POST(req: NextRequest) {
       clearAuthTokens(headers);
       
       return NextResponse.json(
-        { 
-          error: 'Email not verified', 
-          redirectUrl: '/verification-pending',
-          email: user.email // Send back email for the verification pending page
-        },
+        { error: 'Email not verified', redirectUrl: '/verification-pending', email: user.email },
         { status: 403, headers }
       );
     }

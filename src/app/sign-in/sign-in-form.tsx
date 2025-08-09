@@ -13,7 +13,7 @@ export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -44,7 +44,7 @@ export default function SignInForm() {
       const res = await fetch('/api/sign-in', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ identifier, password }),
       });
 
       let signInData;
@@ -308,13 +308,13 @@ export default function SignInForm() {
       )}
 
       <div>
-        <label className="block text-sm font-medium">Email</label>
+        <label className="block text-sm font-medium">Email or Username</label>
         <input
-          type="email"
-          autoComplete="email"
+          type="text"
+          autoComplete="username email"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           className="w-full border px-3 py-2 rounded text-sm"
         />
       </div>

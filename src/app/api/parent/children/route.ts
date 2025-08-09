@@ -155,7 +155,7 @@ export async function POST(req: Request) {
       });
 
       console.log('[PARENT/CHILDREN/CREATE]', { parentId: parent.id, childId: child.id });
-      const res = NextResponse.json({ id: child.id });
+      const res = NextResponse.json({ ok: true, reason: 'ok', childId: child.id });
       res.headers.set('Cache-Control', 'no-store');
       return res;
     } catch (err: any) {
