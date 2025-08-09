@@ -124,32 +124,35 @@ export default function ChildInviteApprovalFlow({ inviteCode }: ChildInviteAppro
     setError('');
 
     try {
-      const response = await fetch('/api/parent-approval/complete', {
+      // Log start
+      console.log('[PARENTS_HQ][submit] start', { code: inviteCode, username, perms: permissions });
+
+      const response = await fetch('/api/parent/children', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          inviteCode,
+          code: inviteCode,
           username: username.trim(),
           password,
-          redAlertAccepted,
           silentMonitoring,
-          permissions
+          permissions,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to complete approval');
+        throw new Error(data.reason || data.error || 'Failed to complete approval');
       }
 
       // Success - redirect to parent dashboard
-      console.log('[APA] Child invite approval completed successfully');
+      console.log('[PARENTS_HQ][submit] success');
       router.push('/parents/hq?success=child-approved');
       
     } catch (err: any) {
+      console.error('[PARENTS_HQ][submit] error', err);
       setError(err.message || 'Failed to complete approval');
     } finally {
       setSubmitting(false);

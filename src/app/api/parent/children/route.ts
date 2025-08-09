@@ -67,15 +67,37 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { username, password } = await req.json().catch(() => ({}));
+    const { username, password, code, permissions, silentMonitoring } = await req.json().catch(() => ({}));
     if (!username || !password) {
       return NextResponse.json({ ok: false, reason: 'missing_fields' }, { status: 400 });
     }
+
+    console.log('[PARENTS_HQ][api] start', { code: code ?? null, userId: parent.id });
 
     const hashed = await hash(password, 10);
 
     try {
       const child = await prisma.$transaction(async (tx) => {
+        let invite: any = null;
+        if (code) {
+          invite = await tx.invite.findUnique({
+            where: { code },
+            select: { id: true, status: true, used: true, expiresAt: true, invitedRole: true, cliqId: true },
+          });
+
+          const now = new Date();
+          const expired = !!invite?.expiresAt && invite.expiresAt.getTime() < now.getTime();
+          if (!invite || invite.status !== 'pending' || invite.used) {
+            throw Object.assign(new Error('invalid_or_used_invite'), { code: 'invalid_or_used_invite' });
+          }
+          if (expired) {
+            throw Object.assign(new Error('expired'), { code: 'expired' });
+          }
+          if ((invite.invitedRole || '').toLowerCase() !== 'child') {
+            throw Object.assign(new Error('wrong_role'), { code: 'wrong_role' });
+          }
+        }
+
         // Create child user with synthetic email pattern
         const newUser = await tx.user.create({
           data: {
@@ -86,7 +108,7 @@ export async function POST(req: Request) {
         });
 
         // Minimal profile with required unique username
-        await tx.myProfile.create({
+        const createdProfile = await tx.myProfile.create({
           data: {
             userId: newUser.id,
             username,
@@ -94,6 +116,15 @@ export async function POST(req: Request) {
             birthdate: new Date(2008, 0, 1),
           },
         });
+
+        // Initialize/ensure child settings (honor provided permissions)
+        try {
+          await tx.childSettings.upsert({
+            where: { profileId: createdProfile.id },
+            update: { inviteRequiresApproval: false, isSilentlyMonitored: !!silentMonitoring, ...(permissions || {}) },
+            create: { profileId: createdProfile.id, inviteRequiresApproval: false, isSilentlyMonitored: !!silentMonitoring, ...(permissions || {}) },
+          });
+        } catch {}
 
         // Link to parent (store both parentId and email to match existing queries)
         await tx.parentLink.create({
@@ -105,6 +136,21 @@ export async function POST(req: Request) {
           },
         });
 
+        // If invite present, mark used/accepted and add cliq membership
+        if (invite) {
+          await tx.invite.update({
+            where: { id: invite.id },
+            data: { status: 'accepted', used: true, invitedUserId: newUser.id },
+          });
+          if (invite.cliqId) {
+            await tx.membership.upsert({
+              where: { userId_cliqId: { userId: newUser.id, cliqId: invite.cliqId } },
+              update: {},
+              create: { userId: newUser.id, cliqId: invite.cliqId, role: 'Member' },
+            });
+          }
+        }
+
         return newUser;
       });
 
@@ -115,12 +161,21 @@ export async function POST(req: Request) {
     } catch (err: any) {
       // Handle unique constraint violation for username or email
       if (err?.code === 'P2002') {
-        return NextResponse.json({ ok: false, reason: 'conflict' }, { status: 409 });
+        return NextResponse.json({ ok: false, reason: 'username_taken' }, { status: 409 });
+      }
+      if (err?.code === 'invalid_or_used_invite') {
+        return NextResponse.json({ ok: false, reason: 'invite_consumed' }, { status: 409 });
+      }
+      if (err?.code === 'expired') {
+        return NextResponse.json({ ok: false, reason: 'expired' }, { status: 400 });
+      }
+      if (err?.code === 'wrong_role') {
+        return NextResponse.json({ ok: false, reason: 'wrong_role' }, { status: 400 });
       }
       throw err;
     }
   } catch (err) {
-    console.error('[PARENT/CHILDREN][POST] error', err);
+    console.error('[PARENTS_HQ][api] error', err);
     return NextResponse.json({ ok: false, reason: 'server_error' }, { status: 500 });
   }
 }

@@ -53,8 +53,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, reason: 'not_found' }, { status: 404 });
     }
 
-    // Adult-only endpoint
     const role = (invite.invitedRole || '').toLowerCase();
+
+    // Child invites: redirect to Parents HQ to complete APA flow
+    if (role === 'child') {
+      console.log('[INVITE/ACCEPT][server]', { code, role, outcome: 'child_redirect_parents_hq' });
+      const url = new URL(`/parents/hq?inviteCode=${encodeURIComponent(code)}`, req.url);
+      return NextResponse.redirect(url);
+    }
+    
+    // Adult invites continue below
     if (role !== 'adult') {
       return NextResponse.json({ ok: false, reason: 'wrong_role' }, { status: 400 });
     }
@@ -111,8 +119,10 @@ export async function POST(req: Request) {
       return { membershipId: membership.id };
     });
 
-    console.log('[ACCEPT/INVITE] success', {
+    console.log('[INVITE/ACCEPT][server]', {
       code,
+      role,
+      outcome: 'adult_join',
       userId,
       cliqId: invite.cliqId,
       membershipId: result.membershipId,
@@ -122,7 +132,8 @@ export async function POST(req: Request) {
     // perform a server-side redirect to Parents HQ to satisfy APA redirect requirements.
     const contentType = req.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) {
-      return NextResponse.redirect(new URL('/parents/hq', req.url));
+      // Adults go to dashboard (or cliq page). Using dashboard as canonical.
+      return NextResponse.redirect(new URL('/my-cliqs-dashboard', req.url));
     }
 
     const res = NextResponse.json({ ok: true });
