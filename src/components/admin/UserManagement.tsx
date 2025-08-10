@@ -30,88 +30,18 @@ export default function UserManagement() {
   // Fetch users
   useEffect(() => {
     async function fetchUsers() {
+      setLoading(true);
+      setError('');
       try {
-        // This would be a real API call in production
-        // Mocked data for development
-        const mockUsers: User[] = [
-          {
-            id: '1',
-            email: 'admin@example.com',
-            account: {
-              id: '101',
-              role: 'Admin',
-              plan: 'premium',
-              isApproved: true
-            },
-            myProfile: {
-              id: '101',
-              username: 'AdminUser'
-            },
-            createdAt: '2023-04-01T10:00:00Z'
-          },
-          {
-            id: '2',
-            email: 'parent@example.com',
-            account: {
-              id: '102',
-              role: 'Parent',
-              plan: 'family',
-              isApproved: true
-            },
-            myProfile: {
-              id: '102',
-              username: 'ParentUser'
-            },
-            createdAt: '2023-04-05T10:00:00Z'
-          },
-          {
-            id: '3',
-            email: 'child@example.com',
-            account: {
-              id: '103',
-              role: 'Child',
-              plan: null,
-              isApproved: false
-            },
-            myProfile: {
-              id: '103',
-              username: 'ChildUser'
-            },
-            createdAt: '2023-04-10T10:00:00Z'
-          },
-          {
-            id: '4',
-            email: 'adult@example.com',
-            account: {
-              id: '104',
-              role: 'Adult',
-              plan: 'basic',
-              isApproved: true
-            },
-            myProfile: {
-              id: '104',
-              username: 'AdultUser'
-            },
-            createdAt: '2023-04-15T10:00:00Z'
-          },
-          {
-            id: '5',
-            email: 'tester@example.com',
-            account: {
-              id: '105',
-              role: 'Adult',
-              plan: 'test',
-              isApproved: true
-            },
-            myProfile: {
-              id: '105',
-              username: 'TesterUser'
-            },
-            createdAt: '2023-05-01T10:00:00Z'
-          }
-        ];
-
-        setUsers(mockUsers);
+        const params = new URLSearchParams();
+        if (roleFilter && roleFilter !== 'All') params.set('role', roleFilter);
+        const res = await fetch(`/api/admin/users?${params.toString()}`, { cache: 'no-store' });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.reason || 'Failed to load users');
+        }
+        const data = await res.json();
+        setUsers((data.items || []) as User[]);
       } catch (err) {
         console.error('Error fetching users:', err);
         setError('Failed to load users. Please try again.');
@@ -121,7 +51,7 @@ export default function UserManagement() {
     }
 
     fetchUsers();
-  }, []);
+  }, [roleFilter]);
 
   // Filter users by role
   const filteredUsers = roleFilter === 'All'
@@ -166,35 +96,47 @@ export default function UserManagement() {
   // Handle user actions
   const handleUserAction = async (userId: string, action: 'approve' | 'deactivate' | 'delete') => {
     setActionLoading(userId);
+    setError('');
+    setSuccess('');
     
     try {
-      // This would be a real API call in production
-      console.log(`${action} user ${userId}`);
-      
-      // Mock success - update local state to reflect the change
-      if (action === 'approve') {
-        setUsers(users.map(user => {
-          if (user.id === userId && user.account) {
-            return {
-              ...user, 
-              account: {
-                ...user.account,
-                isApproved: true
-              }
-            };
-          }
-          return user;
-        }));
-      } else if (action === 'delete') {
-        setUsers(users.filter(user => user.id !== userId));
-      } else if (action === 'deactivate') {
-        // In a real app, you might set an 'active' flag or similar
-        console.log(`User ${userId} deactivated`);
+      if (action === 'delete') {
+        // Default to soft delete
+        const res = await fetch(`/api/admin/users/${userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'soft_delete' }),
+        });
+        if (!res.ok) throw new Error('Soft delete failed');
+        // Remove from current view (list excludes deleted by default)
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        setSuccess('User soft-deleted');
+      } else {
+        const res = await fetch(`/api/admin/users/${userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action }),
+        });
+        if (!res.ok) throw new Error('Action failed');
+        if (action === 'approve') {
+          setUsers(prev => prev.map(u => {
+            if (u.id !== userId) return u;
+            const acc = u.account ?? { id: '', role: 'Adult', plan: null, isApproved: false };
+            return { ...u, account: { ...acc, isApproved: true } };
+          }));
+          setSuccess('User approved');
+        } else if (action === 'deactivate') {
+          setUsers(prev => prev.map(u => {
+            if (u.id !== userId) return u;
+            const acc = u.account ?? { id: '', role: 'Adult', plan: null, isApproved: false };
+            return { ...u, account: { ...acc, isApproved: false } };
+          }));
+          setSuccess('User deactivated');
+        }
       }
-      
     } catch (err) {
-      console.error(`Error performing ${action} on user ${userId}:`, err);
-      setError(`Failed to ${action} user. Please try again.`);
+      console.error('Error performing action:', err);
+      setError('Operation failed. Please try again.');
     } finally {
       setActionLoading(null);
     }

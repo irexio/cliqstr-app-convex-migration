@@ -15,7 +15,9 @@
     "kill-node": "taskkill /F /IM node.exe || echo 'No node processes found'",
     "kill-port": "npx kill-port 3000",
     "clean": "npm run kill-node && npm run kill-port",
-    "reset": "npm run clean && rm -rf .next && npm run dev"
+    "reset": "npm run clean && rm -rf .next && npm run dev",
+    "seed:admin": "node scripts/ensure-admin.cjs",
+    "sanity": "node scripts/sanity-check.cjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -85,6 +87,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@playwright/test": "^1.54.1",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^20",
     "@types/react": "^18.2.0",

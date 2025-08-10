@@ -1,26 +1,44 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true, // 🔐 Disable lint blocking in production builds
+    // Don’t block builds on lint in CI/prod
+    ignoreDuringBuilds: true,
   },
+
   images: {
-    domains: ['utfs.io', 'uploadthing.com'], // ✅ Allow both production + temp UploadThing URLs
+    // Allow UploadThing domains
+    domains: ['utfs.io', 'uploadthing.com'],
   },
-  // Fix for dynamic server usage errors
+
   experimental: {
+    // Force webpack dev (avoid Turbopack hangs on Windows)
+    turbo: { enabled: false },
+
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'cliqstr.app', '*.cliqstr.app', 'vercel.app', '*.vercel.app'],
+      allowedOrigins: [
+        'localhost:3000',
+        'cliqstr.app',
+        '*.cliqstr.app',
+        'vercel.app',
+        '*.vercel.app',
+      ],
     },
+
     serverMinification: false,
-    workerThreads: false
+    workerThreads: false,
   },
+
   reactStrictMode: true,
   swcMinify: true,
+
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole: process.env.NODE_ENV === 'production',
   },
-  // Configure for production deployment
-  output: "standalone"
+};
+
+// ✅ Use standalone only on Vercel. Locally, Next will serve static assets itself.
+if (process.env.VERCEL === '1') {
+  nextConfig.output = 'standalone';
 }
 
-module.exports = nextConfig
+module.exports = nextConfig;

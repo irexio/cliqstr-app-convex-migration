@@ -23,6 +23,22 @@ function isChildProtectedPath(pathname: string) {
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
 
+  // Canonical host redirect (production only): force apex cliqstr.com
+  // Avoid on localhost and vercel preview deployments
+  try {
+    const host = req.headers.get('host') || '';
+    const isLocal = host.includes('localhost') || host.startsWith('127.0.0.1');
+    const isVercelPreview = host.endsWith('.vercel.app');
+    if (process.env.NODE_ENV === 'production' && !isLocal && !isVercelPreview) {
+      if (host === 'www.cliqstr.com') {
+        const url = req.nextUrl.clone();
+        url.host = 'cliqstr.com';
+        url.protocol = 'https';
+        return NextResponse.redirect(url, 308);
+      }
+    }
+  } catch {}
+
   // Always allow static assets and API calls to pass through
   if (
     pathname.startsWith('/_next') ||

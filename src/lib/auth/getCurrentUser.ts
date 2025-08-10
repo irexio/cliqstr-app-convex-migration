@@ -37,8 +37,12 @@ export async function getCurrentUser() {
       return null;
     }
 
-    // Check session age (4 hour timeout for development, 30 min for production)
-    const timeoutMinutes = process.env.NODE_ENV === 'production' ? 30 : 240; // 4 hours in dev
+    // Check session age using cookie maxAge or env override, falling back to safe defaults
+    // Priority: SESSION_TIMEOUT_MINUTES env > cookie maxAge > 30/240 defaults
+    const configuredMaxAgeSec = (sessionOptions.cookieOptions as any)?.maxAge as number | undefined;
+    const defaultTimeoutMins = process.env.NODE_ENV === 'production' ? 30 : 240;
+    const envTimeout = process.env.SESSION_TIMEOUT_MINUTES ? Number(process.env.SESSION_TIMEOUT_MINUTES) : undefined;
+    const timeoutMinutes = envTimeout ?? (configuredMaxAgeSec ? Math.floor(configuredMaxAgeSec / 60) : defaultTimeoutMins);
     const sessionAge = Date.now() - session.createdAt;
     if (sessionAge > timeoutMinutes * 60 * 1000) {
       console.log(`[APA] Session expired after ${Math.round(sessionAge / (60 * 1000))} minutes`);

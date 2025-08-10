@@ -62,6 +62,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
+    // 🚫 Block deleted/suspended users
+    if (user.deletedAt) {
+      const headers = new Headers();
+      clearAuthTokens(headers);
+      return NextResponse.json(
+        { error: 'Account deleted', reason: 'deleted' },
+        { status: 403, headers }
+      );
+    }
+    if (user.account?.suspended) {
+      const headers = new Headers();
+      clearAuthTokens(headers);
+      return NextResponse.json(
+        { error: 'Account suspended', reason: 'suspended' },
+        { status: 403, headers }
+      );
+    }
+
     // 🔒 Block unapproved children (APA: check Account, not Profile)
     if (user.account?.role?.toLowerCase() === 'child' && !user.account?.isApproved) {
       console.log('🚫 Sign-in denied - child not approved:', user.email);
@@ -111,11 +129,25 @@ export async function POST(req: NextRequest) {
       // Clear any legacy tokens
       clearAuthTokens(response.headers);
       
-      // Set encrypted session
+      // Set encrypted session with policy
       const session = await getIronSession<SessionData>(req, response, sessionOptions);
+      const now = Date.now();
+      const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
+      const refreshIntervalMins = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
+      const idleCutoffMins = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
       session.userId = user.id;
-      session.createdAt = Date.now();
+      session.createdAt = now; // legacy
+      session.issuedAt = now;
+      session.lastActivityAt = now;
+      session.lastAuthAt = now;
+      session.expiresAt = now + timeoutMins * 60 * 1000;
+      session.idleCutoffMinutes = idleCutoffMins;
+      session.refreshIntervalMinutes = refreshIntervalMins;
       await session.save();
+
+      // Set headers for caching and expiry hint
+      response.headers.set('Cache-Control', 'private, no-store');
+      response.headers.set('X-Session-Expires-At', new Date(session.expiresAt).toISOString());
       
       // Log login activity for unapproved user
       await logLogin(user.id, req);
@@ -135,11 +167,24 @@ export async function POST(req: NextRequest) {
     // Clear any legacy tokens that might exist
     clearAuthTokens(response.headers);
 
-    // Set encrypted session
+    // Set encrypted session with policy
     const session = await getIronSession<SessionData>(req, response, sessionOptions);
+    const now = Date.now();
+    const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
+    const refreshIntervalMins = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
+    const idleCutoffMins = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
     session.userId = user.id;
-    session.createdAt = Date.now();
+    session.createdAt = now; // legacy
+    session.issuedAt = now;
+    session.lastActivityAt = now;
+    session.lastAuthAt = now;
+    session.expiresAt = now + timeoutMins * 60 * 1000;
+    session.idleCutoffMinutes = idleCutoffMins;
+    session.refreshIntervalMinutes = refreshIntervalMins;
     await session.save();
+
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('X-Session-Expires-At', new Date(session.expiresAt).toISOString());
 
     // Log login activity
     await logLogin(user.id, req);
