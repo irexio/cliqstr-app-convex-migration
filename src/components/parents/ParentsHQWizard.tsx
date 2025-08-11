@@ -86,25 +86,21 @@ export default function ParentsHQWizard() {
         }
 
         const res = await fetch('/api/auth/status');
-        if (!res.ok) {
-          // If there's an invite code, redirect to sign-in with return URL
+        const data = res.ok ? await res.json() : null;
+        
+        // If user is not authenticated
+        if (!res.ok || !data?.user) {
+          // If there's an invite code, show account creation step instead of redirecting to sign-in
           if (urlInviteCode) {
-            router.push(`/sign-in?returnTo=${encodeURIComponent(`/parents/hq?inviteCode=${urlInviteCode}`)}`);
+            setUserData(null); // No user data yet
+            setCurrentStep('create-account');
+            setLoading(false);
+            return;
           } else {
+            // No invite code, redirect to sign-in
             router.push('/sign-in');
+            return;
           }
-          return;
-        }
-
-        const data = await res.json();
-        if (!data.user) {
-          // If there's an invite code, redirect to sign-in with return URL
-          if (urlInviteCode) {
-            router.push(`/sign-in?returnTo=${encodeURIComponent(`/parents/hq?inviteCode=${urlInviteCode}`)}`);
-          } else {
-            router.push('/sign-in');
-          }
-          return;
         }
 
         // Block children from accessing Parents HQ
