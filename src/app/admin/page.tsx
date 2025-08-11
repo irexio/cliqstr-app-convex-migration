@@ -39,11 +39,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function checkAuth() {
       try {
-        // Try the primary endpoint with fallback
-        let res = await fetch('/auth/status');
-        if (!res.ok) {
-          res = await fetch('/api/auth/status');
-        }
+        // Use the correct auth status endpoint
+        const res = await fetch('/api/auth/status');
         
         if (!res.ok) {
           throw new Error('Failed to fetch auth status');
@@ -97,7 +94,7 @@ export default function AdminDashboard() {
       }
       
       // Refresh auth status
-      const authCheckRes = await fetch('/auth/status');
+      const authCheckRes = await fetch('/api/auth/status');
       if (authCheckRes.ok) {
         const authData = await authCheckRes.json();
         
