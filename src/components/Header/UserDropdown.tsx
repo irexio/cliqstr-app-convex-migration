@@ -86,31 +86,29 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
             )}
           </div>
           
-          <Link 
-            href={userData.myProfile?.username ? `/profile/${userData.myProfile.username}` : '/profile/create'} 
-            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-            onClick={() => setIsUserMenuOpen(false)}
-          >
-            {userData.myProfile?.username ? 'Your Profile' : 'Create Profile'}
-          </Link>
-          
-          {/* Edit Profile link - only show if user has a profile */}
-          {userData.myProfile?.username && (
-            <Link 
-              href="/profile/edit" 
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              Edit Profile
-            </Link>
-          )}
-          
+          {/* Account Management Section */}
           <Link 
             href="/account" 
             className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
             onClick={() => setIsUserMenuOpen(false)}
           >
             Account Settings
+          </Link>
+          
+          <Link 
+            href="/account/email" 
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            Change Email
+          </Link>
+          
+          <Link 
+            href="/account/password" 
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            Change Password
           </Link>
           
           {/* Show billing link only for adults and parents */}
@@ -124,16 +122,101 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
             </Link>
           )}
           
-          {/* Show parent controls only for parents */}
-          {userData.role === 'PARENT' && (
-            <Link 
-              href="/parent-controls" 
-              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-              onClick={() => setIsUserMenuOpen(false)}
-            >
-              Parent Controls
-            </Link>
+          <Link 
+            href="/account/security" 
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            Security
+          </Link>
+          
+          {/* Social Profile Section - Only if MyProfile exists */}
+          {userData.myProfile?.username && (
+            <>
+              <div className="border-t border-gray-100 mt-1 pt-1">
+                <Link 
+                  href={`/profile/${userData.myProfile.username}`} 
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  View Social Profile
+                </Link>
+                
+                <Link 
+                  href="/profile/edit" 
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  Edit Social Profile
+                </Link>
+              </div>
+            </>
           )}
+          
+          {/* Create Profile if doesn't exist */}
+          {!userData.myProfile?.username && (
+            <div className="border-t border-gray-100 mt-1 pt-1">
+              <Link 
+                href="/profile/create" 
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                Create Social Profile
+              </Link>
+            </div>
+          )}
+          
+          {/* Role-specific items */}
+          {userData.role === 'PARENT' && (
+            <div className="border-t border-gray-100 mt-1 pt-1">
+              <Link 
+                href="/parent-controls" 
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                Parent Controls
+              </Link>
+            </div>
+          )}
+          
+          {userData.role === 'Admin' && (
+            <div className="border-t border-gray-100 mt-1 pt-1">
+              <Link 
+                href="/admin" 
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setIsUserMenuOpen(false)}
+              >
+                Admin Dashboard
+              </Link>
+            </div>
+          )}
+          
+          {/* Account Actions */}
+          <div className="border-t border-gray-100 mt-1 pt-1">
+            <button 
+              className="block w-full text-left px-4 py-2 text-sm text-orange-600 hover:bg-gray-100"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsUserMenuOpen(false);
+                // TODO: Implement suspend account modal
+                alert('Suspend account functionality coming soon');
+              }}
+            >
+              Suspend Account
+            </button>
+            
+            <button 
+              className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              onClick={(e) => {
+                e.preventDefault();
+                setIsUserMenuOpen(false);
+                // TODO: Implement delete account modal
+                alert('Delete account functionality coming soon');
+              }}
+            >
+              Delete Account
+            </button>
+          </div>
           
           <div className="border-t border-gray-100 mt-1">
             <button 
