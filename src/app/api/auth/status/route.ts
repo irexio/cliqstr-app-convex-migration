@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: NextRequest) {
   try {
     // Prepare response so we can attach headers/cookies when refreshing session
-    const response = NextResponse.next();
+    const response = new NextResponse(null);
 
     // Load session to enforce timing policy and optionally refresh
     const session = await getIronSession<SessionData>(req, response, sessionOptions);
