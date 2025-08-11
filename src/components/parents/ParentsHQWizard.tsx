@@ -6,12 +6,13 @@ import { fetchJson } from '@/lib/fetchJson';
 
 // Step Components
 import ParentUpgradeStep from './wizard/ParentUpgradeStep';
+import ParentAccountCreationStep from './wizard/ParentAccountCreationStep';
 import ChildAccountStep from './wizard/ChildAccountStep';
 import PermissionSetupStep from './wizard/PermissionSetupStep';
 import SuccessStep from './wizard/SuccessStep';
 import ParentDashboard from './ParentDashboard';
 
-type WizardStep = 'upgrade' | 'create-child' | 'permissions' | 'success' | 'dashboard';
+type WizardStep = 'upgrade' | 'create-account' | 'create-child' | 'permissions' | 'success' | 'dashboard';
 
 interface UserData {
   id: string;

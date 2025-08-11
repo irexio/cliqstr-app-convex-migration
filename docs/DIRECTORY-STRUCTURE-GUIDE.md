@@ -64,6 +64,7 @@ All server-side functionality organized by feature:
 #### Component Organization
 - **`/Header`** - Navigation components (UserDropdown, main header)
 - **`/parents`** - **Parent-related components** (ParentsHQWizard, ParentDashboard, wizard steps)
+  - **`/wizard`** - Multi-step wizard components (ParentUpgradeStep, ParentAccountCreationStep, ChildAccountStep, PermissionSetupStep, SuccessStep)
 - **`/cliqs`** - Cliq-related UI components (creation, management, viewing)
 - **`/admin`** - Admin dashboard components
 - **`/ui`** - Base UI components (buttons, forms, modals)
@@ -141,6 +142,8 @@ All server-side functionality organized by feature:
 ### Recent Major Additions
 - **Account Management System** - Complete account settings with email, password, security
 - **Parents HQ Wizard** - **Multi-step parent onboarding with beautiful UI**
+  - **ParentAccountCreationStep** - **New invited parent signup with APA red alert compliance**
+  - **Contextual invite flow** - Direct Parents HQ access instead of generic sign-in
 - **Session Synchronization** - Keeps auth state in sync across browser tabs
 
 ## 🛡️ Security & Compliance
