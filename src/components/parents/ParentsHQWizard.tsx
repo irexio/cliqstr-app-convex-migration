@@ -65,6 +65,7 @@ export default function ParentsHQWizard() {
   const searchParams = useSearchParams();
 
   // Check user status and determine starting step
+  // Force deployment refresh - fix invite flow
   useEffect(() => {
     async function checkUserStatus() {
       try {
