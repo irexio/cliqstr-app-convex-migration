@@ -71,6 +71,8 @@ export default function ParentsHQWizard() {
       try {
         // Get invite code from URL if present
         const urlInviteCode = searchParams.get('inviteCode');
+        console.log('[PARENTS_HQ_DEBUG] URL invite code:', urlInviteCode);
+        
         if (urlInviteCode) {
           setInviteCode(urlInviteCode);
           
@@ -78,6 +80,7 @@ export default function ParentsHQWizard() {
           try {
             const inviteRes = await fetch(`/api/invites/validate?code=${encodeURIComponent(urlInviteCode)}`);
             const inviteData = await inviteRes.json();
+            console.log('[PARENTS_HQ_DEBUG] Invite validation response:', inviteData);
             if (inviteRes.ok && inviteData.valid) {
               setInviteDetails(inviteData);
             }
@@ -88,16 +91,20 @@ export default function ParentsHQWizard() {
 
         const res = await fetch('/api/auth/status');
         const data = res.ok ? await res.json() : null;
+        console.log('[PARENTS_HQ_DEBUG] Auth status:', { ok: res.ok, user: data?.user?.id });
         
         // If user is not authenticated
         if (!res.ok || !data?.user) {
+          console.log('[PARENTS_HQ_DEBUG] User not authenticated, invite code:', urlInviteCode);
           // If there's an invite code, show account creation step instead of redirecting to sign-in
           if (urlInviteCode) {
+            console.log('[PARENTS_HQ_DEBUG] Setting account creation step');
             setUserData(null); // No user data yet
             setCurrentStep('create-account');
             setLoading(false);
             return;
           } else {
+            console.log('[PARENTS_HQ_DEBUG] No invite code, redirecting to sign-in');
             // No invite code, redirect to sign-in
             router.push('/sign-in');
             return;
