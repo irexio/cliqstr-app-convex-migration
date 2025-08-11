@@ -183,6 +183,15 @@ export default function AdminDashboard() {
               {loginLoading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
+          
+          <div className="text-center mt-4">
+            <a 
+              href="/forgot-password" 
+              className="text-sm text-gray-600 hover:text-black underline"
+            >
+              Forgot your password?
+            </a>
+          </div>
         </div>
       </div>
     );
