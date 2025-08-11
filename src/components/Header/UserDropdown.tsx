@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useSessionSync } from '@/hooks/useSessionSync';
 
 type UserData = {
   id: string;
@@ -28,6 +29,9 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [avatarError, setAvatarError] = useState(false);
+  
+  // Initialize session synchronization
+  const { signOutAllTabs } = useSessionSync();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -224,7 +228,7 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
               onClick={(e) => {
                 e.preventDefault();
                 setIsUserMenuOpen(false);
-                handleSignOut();
+                signOutAllTabs();
               }}
             >
               Sign Out
