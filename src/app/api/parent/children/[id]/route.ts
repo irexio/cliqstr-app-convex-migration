@@ -6,14 +6,15 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 // GET /api/parent/children/[id]
 // Returns child basic info + settings if the child is linked to the current parent
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const parent = await getCurrentUser();
     if (!parent?.id || !parent?.email) {
       return NextResponse.json({ ok: false, reason: 'unauthorized' }, { status: 401 });
     }
 
-    const childId = params.id;
+    const childId = id;
     console.log('[PARENTS_HQ][child-info] start', { parentId: parent.id, childId });
 
     // Ensure parent is linked to this child

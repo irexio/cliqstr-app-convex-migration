@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchJson } from '@/lib/fetchJson';
 
 // Step Components
@@ -41,6 +41,8 @@ interface ChildData {
 export default function ParentsHQWizard() {
   const [currentStep, setCurrentStep] = useState<WizardStep>('upgrade');
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [inviteCode, setInviteCode] = useState<string>('');
+  const [inviteDetails, setInviteDetails] = useState<any>(null);
   const [childData, setChildData] = useState<ChildData>({
     username: '',
     password: '',
@@ -60,20 +62,48 @@ export default function ParentsHQWizard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Check user status and determine starting step
   useEffect(() => {
     async function checkUserStatus() {
       try {
+        // Get invite code from URL if present
+        const urlInviteCode = searchParams.get('inviteCode');
+        if (urlInviteCode) {
+          setInviteCode(urlInviteCode);
+          
+          // Validate invite and get details
+          try {
+            const inviteRes = await fetch(`/api/invites/validate?code=${encodeURIComponent(urlInviteCode)}`);
+            const inviteData = await inviteRes.json();
+            if (inviteRes.ok && inviteData.valid) {
+              setInviteDetails(inviteData);
+            }
+          } catch (err) {
+            console.error('Error validating invite:', err);
+          }
+        }
+
         const res = await fetch('/api/auth/status');
         if (!res.ok) {
-          router.push('/sign-in');
+          // If there's an invite code, redirect to sign-in with return URL
+          if (urlInviteCode) {
+            router.push(`/sign-in?returnTo=${encodeURIComponent(`/parents/hq?inviteCode=${urlInviteCode}`)}`);
+          } else {
+            router.push('/sign-in');
+          }
           return;
         }
 
         const data = await res.json();
         if (!data.user) {
-          router.push('/sign-in');
+          // If there's an invite code, redirect to sign-in with return URL
+          if (urlInviteCode) {
+            router.push(`/sign-in?returnTo=${encodeURIComponent(`/parents/hq?inviteCode=${urlInviteCode}`)}`);
+          } else {
+            router.push('/sign-in');
+          }
           return;
         }
 
@@ -85,18 +115,31 @@ export default function ParentsHQWizard() {
 
         setUserData(data.user);
 
-        // Determine starting step based on user role
-        if (data.user.role === 'Parent') {
-          // Already a parent - check if they have children
-          const childrenRes = await fetchJson('/api/parent/children');
-          if (childrenRes.length > 0) {
-            setCurrentStep('dashboard');
+        // Determine starting step based on user role and invite presence
+        if (urlInviteCode) {
+          // Invite flow - check if user needs account creation
+          if (!data.user.id) {
+            setCurrentStep('create-account');
+          } else if (data.user.role === 'Adult') {
+            setCurrentStep('upgrade');
           } else {
+            // Already a parent with invite - go to child approval
             setCurrentStep('create-child');
           }
         } else {
-          // Adult user - needs to upgrade to parent
-          setCurrentStep('upgrade');
+          // Regular flow without invite
+          if (data.user.role === 'Parent') {
+            // Already a parent - check if they have children
+            const childrenRes = await fetchJson('/api/parent/children');
+            if (childrenRes.length > 0) {
+              setCurrentStep('dashboard');
+            } else {
+              setCurrentStep('create-child');
+            }
+          } else {
+            // Adult user - needs to upgrade to parent
+            setCurrentStep('upgrade');
+          }
         }
       } catch (error) {
         console.error('Error checking user status:', error);
@@ -107,7 +150,7 @@ export default function ParentsHQWizard() {
     }
 
     checkUserStatus();
-  }, [router]);
+  }, [router, searchParams]);
 
   const handleUpgradeToParent = async () => {
     try {
@@ -137,6 +180,53 @@ export default function ParentsHQWizard() {
     }
   };
 
+  const handleCreateParentAccount = async (email: string, password: string) => {
+    try {
+      setLoading(true);
+      
+      // Create parent account via sign-up API
+      const signUpRes = await fetch('/api/sign-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          role: 'Adult', // Will be upgraded to Parent in next step
+          isVerified: email === inviteDetails?.parentEmail, // Auto-verify if matches invite
+        }),
+      });
+
+      if (!signUpRes.ok) {
+        const signUpData = await signUpRes.json();
+        throw new Error(signUpData.error || 'Failed to create account');
+      }
+
+      // Sign in the new user
+      const signInRes = await fetch('/api/sign-in', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          identifier: email,
+          password,
+        }),
+      });
+
+      if (!signInRes.ok) {
+        throw new Error('Account created but sign-in failed. Please try signing in manually.');
+      }
+
+      // Update user data and proceed to upgrade step
+      const userData = await signInRes.json();
+      setUserData(userData.user);
+      setCurrentStep('upgrade');
+    } catch (error: any) {
+      console.error('Error creating parent account:', error);
+      setError(error.message || 'Failed to create account. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCreateChild = async () => {
     try {
       setLoading(true);
@@ -146,6 +236,7 @@ export default function ParentsHQWizard() {
         body: JSON.stringify({
           username: childData.username,
           password: childData.password,
+          code: inviteCode, // Include invite code for child approval
           permissions: childData.permissions,
           silentMonitoring: childData.permissions.silentMonitoring,
         }),
@@ -201,6 +292,18 @@ export default function ParentsHQWizard() {
   // Render current step
   const renderStep = () => {
     switch (currentStep) {
+      case 'create-account':
+        return (
+          <ParentAccountCreationStep
+            inviteCode={inviteCode || ''}
+            invitedEmail={inviteDetails?.parentEmail}
+            childName={inviteDetails?.childName}
+            inviterName={inviteDetails?.inviterName}
+            onAccountCreated={handleCreateParentAccount}
+            loading={loading}
+          />
+        );
+
       case 'upgrade':
         return (
           <ParentUpgradeStep
@@ -216,7 +319,7 @@ export default function ParentsHQWizard() {
             childData={childData}
             setChildData={setChildData}
             onNext={() => setCurrentStep('permissions')}
-            onBack={() => setCurrentStep('upgrade')}
+            onBack={() => inviteCode ? setCurrentStep('create-account') : setCurrentStep('upgrade')}
           />
         );
       
@@ -273,15 +376,22 @@ export default function ParentsHQWizard() {
         {!['dashboard'].includes(currentStep) && (
           <div className="mb-8">
             <div className="flex items-center justify-center space-x-4">
-              {[
+              {(inviteCode ? [
+                { key: 'create-account', label: 'Create Account', icon: '🛡️' },
+                { key: 'create-child', label: 'Child Approval', icon: '👶' },
+                { key: 'permissions', label: 'Safety Settings', icon: '🔒' },
+                { key: 'success', label: 'Complete', icon: '✅' },
+              ] : [
                 { key: 'upgrade', label: 'Parent Account', icon: '👤' },
                 { key: 'create-child', label: 'Child Account', icon: '👶' },
                 { key: 'permissions', label: 'Safety Settings', icon: '🛡️' },
                 { key: 'success', label: 'Complete', icon: '✅' },
-              ].map((step, index) => {
+              ]).map((step, index) => {
                 const isActive = currentStep === step.key;
-                const isCompleted = ['upgrade', 'create-child', 'permissions', 'success'].indexOf(currentStep) > 
-                                  ['upgrade', 'create-child', 'permissions', 'success'].indexOf(step.key);
+                const stepOrder = inviteCode 
+                  ? ['create-account', 'create-child', 'permissions', 'success']
+                  : ['upgrade', 'create-child', 'permissions', 'success'];
+                const isCompleted = stepOrder.indexOf(currentStep) > stepOrder.indexOf(step.key);
                 
                 return (
                   <div key={step.key} className="flex items-center">

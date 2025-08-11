@@ -9,7 +9,8 @@ function requireAdmin(user: any) {
   return !!user?.id && (role === 'Admin' || role === 'ADMIN');
 }
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const admin = await getCurrentUser();
     if (!requireAdmin(admin)) {
@@ -19,7 +20,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     const { action } = await req.json().catch(() => ({}));
     if (!action) return NextResponse.json({ ok: false, reason: 'missing_action' }, { status: 400 });
 
-    const userId = params.id;
+    const userId = id;
 
     if (action === 'approve') {
       await prisma.user.update({ where: { id: userId }, data: { account: { update: { isApproved: true } } } });
@@ -58,14 +59,15 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const admin = await getCurrentUser();
     if (!requireAdmin(admin)) {
       return NextResponse.json({ ok: false, reason: 'forbidden' }, { status: 403 });
     }
 
-    const userId = params.id;
+    const userId = id;
     const url = new URL(req.url);
     const hard = url.searchParams.get('hard') === 'true';
     if (!hard) {
