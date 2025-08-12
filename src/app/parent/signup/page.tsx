@@ -60,7 +60,7 @@ function ParentSignupContent() {
 
         // Pre-fill parent email from invite
         setInviteDetails(data);
-        setEmail(data.trustedAdultContact || '');
+        setEmail(data.recipientEmail || '');
         setValidatingInvite(false);
       } catch (err) {
         setError('Unable to validate invite. Please try again.');
@@ -96,7 +96,7 @@ function ParentSignupContent() {
     }
 
     // Ensure email matches invite
-    if (email !== inviteDetails?.trustedAdultContact) {
+    if (email !== inviteDetails?.recipientEmail) {
       setError('Email must match the invited parent email address.');
       setLoading(false);
       return;
