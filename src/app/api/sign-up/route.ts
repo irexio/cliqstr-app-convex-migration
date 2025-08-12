@@ -107,12 +107,26 @@ export async function POST(req: NextRequest) {
     // DO NOT create MyProfile here - it will be created after plan selection
 
     // Create Account with APA role/isApproved
+    // Special handling for parent invites - they should get Parent role, not Adult
+    let accountRole;
+    if (context === 'parent_invite' && !isChild) {
+      accountRole = 'Parent';
+    } else {
+      accountRole = invitedRole ?? (isChild ? 'Child' : 'Adult');
+    }
+    
     await prisma.account.create({
       data: {
         userId: newUser.id,
         birthdate: new Date(birthdate), // CRITICAL: Use actual user birthdate for age verification
-        role: invitedRole ?? (isChild ? 'Child' : 'Adult'),
+        role: accountRole,
         isApproved: !isChild,
+        // For parent invites, automatically assign free test plan to skip plan selection
+        ...(context === 'parent_invite' && !isChild && {
+          plan: 'test',
+          planStartDate: new Date(),
+          planEndDate: null, // No expiry for invited parents
+        }),
       },
     });
 
