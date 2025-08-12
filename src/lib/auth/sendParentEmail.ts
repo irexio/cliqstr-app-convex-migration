@@ -23,11 +23,11 @@ export async function sendParentEmail({
   
   const defaultSubject = 'Approve Your Child\'s Cliqstr Account';
 
-  // Build canonical invite URL (no childId in URL). Falls back to Parents HQ when no code.
+  // Build canonical invite URL pointing to new parent signup page
   function buildParentInviteUrl(code?: string) {
     const base = process.env.BASE_URL!;
     return code
-      ? `${base}/invite/accept?code=${encodeURIComponent(code)}`
+      ? `${base}/parent/signup?code=${encodeURIComponent(code)}`
       : `${base}/parents/hq`;
   }
 
