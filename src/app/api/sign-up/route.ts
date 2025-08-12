@@ -49,6 +49,17 @@ export async function POST(req: NextRequest) {
     }
 
     const { firstName, lastName, email, password, birthdate, inviteCode, parentEmail, preVerified, context } = parsed.data;
+    
+    console.log('[SIGNUP_DEBUG] Starting signup with data:', {
+      firstName,
+      lastName, 
+      email,
+      birthdate,
+      inviteCode: inviteCode ? 'present' : 'none',
+      parentEmail: parentEmail ? 'present' : 'none',
+      preVerified,
+      context
+    });
 
     // Check for existing user
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -115,18 +126,26 @@ export async function POST(req: NextRequest) {
       accountRole = invitedRole ?? (isChild ? 'Child' : 'Adult');
     }
     
+    console.log('[SIGNUP_DEBUG] Creating account with role:', accountRole, 'isChild:', isChild, 'context:', context);
+    
+    const accountData = {
+      userId: newUser.id,
+      birthdate: new Date(birthdate), // CRITICAL: Use actual user birthdate for age verification
+      role: accountRole,
+      isApproved: !isChild,
+      // For parent invites, automatically assign free test plan to skip plan selection
+      ...(context === 'parent_invite' && !isChild && {
+        plan: 'test',
+      }),
+    };
+    
+    console.log('[SIGNUP_DEBUG] Account data to create:', accountData);
+    
     await prisma.account.create({
-      data: {
-        userId: newUser.id,
-        birthdate: new Date(birthdate), // CRITICAL: Use actual user birthdate for age verification
-        role: accountRole,
-        isApproved: !isChild,
-        // For parent invites, automatically assign free test plan to skip plan selection
-        ...(context === 'parent_invite' && !isChild && {
-          plan: 'test',
-        }),
-      },
+      data: accountData,
     });
+    
+    console.log('[SIGNUP_DEBUG] Account created successfully');
 
     // Log signup activity
     await logSignup(newUser.id, inviteCode, req);
