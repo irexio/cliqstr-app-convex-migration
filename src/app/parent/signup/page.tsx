@@ -138,6 +138,7 @@ function ParentSignupContent() {
           email,
           password,
           birthdate,
+          inviteCode, // CRITICAL: Pass invite code for acceptance
           preVerified: true, // Auto-verify invited parents
           context: 'parent_invite'
         }),
