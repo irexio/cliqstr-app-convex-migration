@@ -76,6 +76,7 @@ export default function StreamlinedParentsHQWizard() {
   const [childFirstName, setChildFirstName] = useState('');
   const [childUsername, setChildUsername] = useState('');
   const [childPassword, setChildPassword] = useState('');
+  const [childBirthdate, setChildBirthdate] = useState(''); // CRITICAL: For age-gated cliqs
   const [permissions, setPermissions] = useState<ChildPermissions>(REGULAR_CHILD_DEFAULTS);
   
   const isInvitedChild = Boolean(inviteCode && inviteDetails);
@@ -139,12 +140,24 @@ export default function StreamlinedParentsHQWizard() {
     try {
       if (selectedChildId === 'new') {
         // Create new child
-        if (!childFirstName.trim() || !childUsername.trim() || !childPassword.trim()) {
-          throw new Error('Please fill in all child account fields.');
+        if (!childFirstName.trim() || !childUsername.trim() || !childPassword.trim() || !childBirthdate.trim()) {
+          throw new Error('Please fill in all child account fields including birthdate.');
         }
 
         if (childPassword.length < 6) {
           throw new Error('Child password must be at least 6 characters.');
+        }
+
+        // Validate birthdate format and age
+        const birthDate = new Date(childBirthdate);
+        if (isNaN(birthDate.getTime())) {
+          throw new Error('Please enter a valid birthdate.');
+        }
+        
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        if (age >= 18) {
+          throw new Error('Child accounts are for users under 18 years old.');
         }
 
         const createRes = await fetch('/api/parent/children', {
@@ -154,6 +167,7 @@ export default function StreamlinedParentsHQWizard() {
             firstName: childFirstName.trim(),
             username: childUsername.trim(),
             password: childPassword,
+            birthdate: childBirthdate, // CRITICAL: For age-gated cliqs
             permissions,
             inviteCode: inviteCode || undefined,
             isInvitedChild: isInvitedChild,
@@ -358,18 +372,37 @@ export default function StreamlinedParentsHQWizard() {
                   </div>
                 </div>
 
-                <div className="mt-4">
-                  <Label htmlFor="childPassword">Child's Password *</Label>
-                  <Input
-                    id="childPassword"
-                    type="password"
-                    value={childPassword}
-                    onChange={(e) => setChildPassword(e.target.value)}
-                    placeholder="Minimum 6 characters"
-                    required
-                    disabled={submitting}
-                    className="mt-1"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <Label htmlFor="childPassword">Child's Password *</Label>
+                    <Input
+                      id="childPassword"
+                      type="password"
+                      value={childPassword}
+                      onChange={(e) => setChildPassword(e.target.value)}
+                      placeholder="Minimum 6 characters"
+                      required
+                      disabled={submitting}
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="childBirthdate">Child's Birthdate *</Label>
+                    <Input
+                      id="childBirthdate"
+                      type="date"
+                      value={childBirthdate}
+                      onChange={(e) => setChildBirthdate(e.target.value)}
+                      required
+                      disabled={submitting}
+                      className="mt-1"
+                      max={new Date().toISOString().split('T')[0]} // Prevent future dates
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      🔒 Required for age-gated cliqs
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

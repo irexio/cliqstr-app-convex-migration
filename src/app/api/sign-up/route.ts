@@ -72,10 +72,24 @@ export async function POST(req: NextRequest) {
 
     // Calculate age and isChild before any invite logic
     const birthDateObj = new Date(birthdate);
-    const ageDifMs = Date.now() - birthDateObj.getTime();
-    const ageDate = new Date(ageDifMs);
-    const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-    const isChild = age < 18;
+    const today = new Date();
+    const age = today.getFullYear() - birthDateObj.getFullYear();
+    const monthDiff = today.getMonth() - birthDateObj.getMonth();
+    
+    // Adjust age if birthday hasn't occurred this year
+    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDateObj.getDate())) 
+      ? age - 1 
+      : age;
+    
+    const isChild = adjustedAge < 18;
+    
+    console.log('[SIGNUP_DEBUG] Age calculation:', {
+      birthdate,
+      birthDateObj: birthDateObj.toISOString(),
+      calculatedAge: adjustedAge,
+      isChild,
+      context
+    });
 
     if (inviteCode) {
       const invite = await prisma.invite.findUnique({ where: { code: normalizeInviteCode(inviteCode) } });

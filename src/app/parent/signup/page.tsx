@@ -38,7 +38,7 @@ function ParentSignupContent() {
   const [inviteDetails, setInviteDetails] = useState<any>(null);
   const [validatingInvite, setValidatingInvite] = useState(true);
 
-  // Validate invite and pre-fill email on load
+  // Validate invite and check for existing user on load
   useEffect(() => {
     async function validateInvite() {
       if (!inviteCode) {
@@ -48,6 +48,26 @@ function ParentSignupContent() {
       }
 
       try {
+        // FIRST: Check if user is already authenticated (existing account)
+        try {
+          const authRes = await fetch('/api/auth/status', { 
+            credentials: 'include', 
+            cache: 'no-store' 
+          });
+          
+          if (authRes.ok) {
+            const authData = await authRes.json();
+            if (authData?.user) {
+              // User already has account - skip signup, go directly to Parents HQ
+              console.log('[PARENT_SIGNUP] User already authenticated, redirecting to Parents HQ');
+              router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
+              return;
+            }
+          }
+        } catch (authError) {
+          // Not authenticated or error - continue with signup flow
+          console.log('[PARENT_SIGNUP] User not authenticated, showing signup form');
+        }
         const res = await fetch(`/api/invites/validate?code=${encodeURIComponent(inviteCode)}`);
         const data = await res.json();
 
