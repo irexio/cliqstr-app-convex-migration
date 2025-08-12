@@ -26,6 +26,9 @@ function ParentSignupContent() {
   const inviteCode = searchParams?.get('code')?.trim() || '';
   
   const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [birthdate, setBirthdate] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -79,7 +82,7 @@ function ParentSignupContent() {
     setError('');
 
     // Validation
-    if (!email || !password || !confirmPassword) {
+    if (!email || !firstName || !lastName || !birthdate || !password || !confirmPassword) {
       setError('Please fill in all fields.');
       setLoading(false);
       return;
@@ -110,11 +113,13 @@ function ParentSignupContent() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          firstName,
+          lastName,
           email,
           password,
-          role: 'Parent',
-          isVerified: true, // Auto-verify invited parents
-          fromInvite: true
+          birthdate,
+          preVerified: true, // Auto-verify invited parents
+          context: 'parent_invite'
         }),
       });
 
@@ -208,6 +213,35 @@ function ParentSignupContent() {
 
         {/* Signup Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="firstName">First Name *</Label>
+              <Input
+                id="firstName"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                required
+                disabled={loading}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name *</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Smith"
+                required
+                disabled={loading}
+                className="mt-1"
+              />
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="email">Parent/Guardian Email *</Label>
             <Input
@@ -222,6 +256,22 @@ function ParentSignupContent() {
             />
             <p className="text-xs text-gray-500 mt-1">
               Must match the email address that received this invite
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="birthdate">Date of Birth *</Label>
+            <Input
+              id="birthdate"
+              type="date"
+              value={birthdate}
+              onChange={(e) => setBirthdate(e.target.value)}
+              required
+              disabled={loading}
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Required to verify you are 18 or older
             </p>
           </div>
 
