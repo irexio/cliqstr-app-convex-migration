@@ -113,6 +113,16 @@ export async function POST(req: NextRequest) {
     // Redirect unapproved users to complete signup
     // Check isApproved on both User and Account models for compatibility
     const isUserApproved = user.account?.isApproved ?? false;
+    
+    // DEBUG: Log account data for parent invite debugging
+    console.log('[SIGNIN_DEBUG] User account data:', {
+      email: user.email,
+      role: user.account?.role,
+      isApproved: user.account?.isApproved,
+      plan: user.account?.plan,
+      isUserApproved
+    });
+    
     if (!isUserApproved) {
       console.log(`[⚠️] Unapproved user login — redirecting to onboarding: ${user.email}`);
       
