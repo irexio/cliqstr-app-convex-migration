@@ -307,8 +307,10 @@ export async function POST(req: Request) {
     console.log('[EMAIL DEBUG] Using inviter name:', inviterName);
     
     // Construct the invite link with the correct base URL and path
-    // All invites use the standard flow through /invite/accept for proper routing
-    const inviteLink = `${BASE_URL}/invite/accept?code=${inviteCode}`;
+    // Child invites go to parent signup page, adult invites go to standard accept flow
+    const inviteLink = inviteType === 'child' 
+      ? `${BASE_URL}/parent/signup?code=${inviteCode}`
+      : `${BASE_URL}/invite/accept?code=${inviteCode}`;
     
     console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
     
