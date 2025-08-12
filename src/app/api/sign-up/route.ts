@@ -147,6 +147,20 @@ export async function POST(req: NextRequest) {
     
     console.log('[SIGNUP_DEBUG] Account created successfully');
 
+    // CRITICAL: Mark invite as accepted if invite code was used
+    if (inviteCode) {
+      console.log('[SIGNUP_DEBUG] Marking invite as accepted for code:', inviteCode);
+      await prisma.invite.update({
+        where: { code: normalizeInviteCode(inviteCode) },
+        data: { 
+          status: 'accepted',
+          used: true,
+          invitedUserId: newUser.id
+        },
+      });
+      console.log('[SIGNUP_DEBUG] Invite marked as accepted');
+    }
+
     // Log signup activity
     await logSignup(newUser.id, inviteCode, req);
 
