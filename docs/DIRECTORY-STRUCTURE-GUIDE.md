@@ -27,7 +27,8 @@ This follows the new Next.js App Router structure where folders = routes:
 - **`/profile`** - Social profile management (username, avatar, bio)
 
 #### Parent & Child System
-- **`/parents`** - **Parents HQ with new multi-step wizard**
+- **`/parents`** - **Parents HQ with streamlined single-step wizard**
+- **`/parent/signup`** - **NEW: Special parent signup page for invited parents**
 - **`/parent-approval`** - Child invite approval flows
 - **`/child`** - Child-specific dashboard and features
 - **`/awaiting-approval`** - Child waiting state
@@ -139,11 +140,23 @@ All server-side functionality organized by feature:
 3. **API processes request** → Uses `/src/lib/` utilities
 4. **Page renders UI** → Uses `/src/components/` components
 
-### Recent Major Additions
+### Recent Major Additions (Latest: Aug 2025)
 - **Account Management System** - Complete account settings with email, password, security
-- **Parents HQ Wizard** - **Multi-step parent onboarding with beautiful UI**
-  - **ParentAccountCreationStep** - **New invited parent signup with APA red alert compliance**
-  - **Contextual invite flow** - Direct Parents HQ access instead of generic sign-in
+- **🎯 STREAMLINED PARENT INVITE FLOW** - **Complete redesign for rock-solid reliability**
+  - **`/parent/signup`** - **Special parent signup page with invite validation**
+    - Pre-fills parent email from invite (`recipientEmail` field)
+    - Requires: firstName, lastName, email, birthdate, password
+    - Password visibility toggles (👁️ eyeball icons)
+    - Auto-verifies invited parents (`preVerified: true`)
+    - Sets Parent role and free test plan to skip plan selection
+  - **StreamlinedParentsHQWizard** - **Single comprehensive step combining child creation + permissions**
+    - Two-tier permission system: Regular vs Invited children
+    - Regular children: Full parent control over all permissions
+    - Invited children: Safety-locked permissions (🔒 no friend invites, no video uploads, etc.)
+    - Child dropdown for existing children (family management)
+    - Shows which Cliq the child is being invited to
+  - **Updated Email Links** - Child invites now link to `/parent/signup?code=xyz`
+  - **API Fixes** - Sign-up API properly handles `context: 'parent_invite'` with Parent role assignment
 - **Session Synchronization** - Keeps auth state in sync across browser tabs
 
 ## 🛡️ Security & Compliance

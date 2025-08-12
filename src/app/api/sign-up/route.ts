@@ -124,8 +124,6 @@ export async function POST(req: NextRequest) {
         // For parent invites, automatically assign free test plan to skip plan selection
         ...(context === 'parent_invite' && !isChild && {
           plan: 'test',
-          planStartDate: new Date(),
-          planEndDate: null, // No expiry for invited parents
         }),
       },
     });
