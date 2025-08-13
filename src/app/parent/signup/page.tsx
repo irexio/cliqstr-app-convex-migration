@@ -157,21 +157,16 @@ function ParentSignupContent() {
         return;
       }
 
-      // Sign in the new parent
-      const signinRes = await fetch('/api/sign-in', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!signinRes.ok) {
-        setError('Account created but sign-in failed. Please try signing in manually.');
-        setLoading(false);
-        return;
-      }
-
-      // Redirect to Parents HQ with invite code
-      router.push(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
+      // Account created successfully! 
+      // Bypass auto sign-in (Iron Session issues) and redirect to manual sign-in
+      console.log('[PARENT_SIGNUP] Account created successfully, redirecting to sign-in');
+      
+      // Store invite code for after sign-in
+      sessionStorage.setItem('pendingInviteCode', inviteCode);
+      
+      // Redirect to sign-in page with email pre-filled and success message
+      const signInUrl = `/sign-in?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Account created successfully! Please sign in to continue to Parents HQ.')}`;
+      router.push(signInUrl);
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);
