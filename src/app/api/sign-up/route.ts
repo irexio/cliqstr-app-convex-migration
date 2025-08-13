@@ -146,9 +146,10 @@ export async function POST(req: NextRequest) {
       userId: newUser.id,
       birthdate: new Date(birthdate), // CRITICAL: Use actual user birthdate for age verification
       role: accountRole,
-      isApproved: !isChild,
+      // For parent invites, always approve (they're adults accepting child invites)
+      isApproved: context === 'parent_invite' ? true : !isChild,
       // For parent invites, automatically assign free test plan to skip plan selection
-      ...(context === 'parent_invite' && !isChild && {
+      ...(context === 'parent_invite' && {
         plan: 'test',
       }),
     };
