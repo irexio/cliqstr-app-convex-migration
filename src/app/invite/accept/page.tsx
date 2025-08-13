@@ -85,7 +85,22 @@ function InviteAcceptContent() {
         }
 
         if (role === 'child') {
-          // Child invite: requires an authenticated parent; send to Parents HQ with code
+          // Child invite: Check if parent is authenticated
+          try {
+            const authRes = await fetch('/api/auth/status', { credentials: 'include', cache: 'no-store' });
+            const auth = authRes.ok ? await authRes.json() : null;
+            if (!auth?.user) {
+              // Parent not authenticated: send to parent signup
+              if (!cancelled) router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
+              return;
+            }
+          } catch {
+            // Auth check failed: send to parent signup
+            if (!cancelled) router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
+            return;
+          }
+
+          // Authenticated parent: send to Parents HQ with code
           if (!cancelled) router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
           return;
         }
