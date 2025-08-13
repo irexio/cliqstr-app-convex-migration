@@ -184,14 +184,7 @@ export default function SignInForm() {
         }
       }
 
-      // Check if this is a parent coming from Parents HQ invite signup
-      const pendingInviteCode = sessionStorage.getItem('pendingInviteCode');
-      if (pendingInviteCode) {
-        sessionStorage.removeItem('pendingInviteCode');
-        console.log('[PARENT_SIGNUP] Parent signed in after signup, redirecting to Parents HQ');
-        router.push(`/parents/hq?inviteCode=${encodeURIComponent(pendingInviteCode)}`);
-        return;
-      }
+      // Note: Parent invite redirect now handled server-side via cookie in /api/sign-in (Sol's solution)
 
       // Check if this is a parent coming from invite flow
       const parentInviteContext = sessionStorage.getItem('parentInviteContext');

@@ -196,6 +196,21 @@ export async function POST(req: NextRequest) {
     response.headers.set('Cache-Control', 'private, no-store');
     response.headers.set('X-Session-Expires-At', new Date(session.expiresAt).toISOString());
 
+    // Check for pending parent invite cookie (Sol's solution)
+    const cookies = req.headers.get('cookie') || '';
+    const pendingInviteMatch = cookies.match(/pending_invite=([^;]+)/);
+    const pendingInviteCode = pendingInviteMatch ? decodeURIComponent(pendingInviteMatch[1]) : null;
+    
+    if (pendingInviteCode && (user.account?.role === 'Parent' || user.account?.role === 'Admin')) {
+      console.log('[SIGNIN] Parent invite cookie found, redirecting to Parents HQ');
+      
+      // Clear the pending invite cookie
+      response.headers.set('Set-Cookie', 'pending_invite=; Max-Age=0; Path=/; SameSite=Lax; Secure');
+      
+      // Redirect to Parents HQ with invite code
+      return NextResponse.redirect(new URL(`/parents/hq?inviteCode=${encodeURIComponent(pendingInviteCode)}`, req.url));
+    }
+
     // Log login activity
     await logLogin(user.id, req);
 

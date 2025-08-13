@@ -158,11 +158,11 @@ function ParentSignupContent() {
       }
 
       // Account created successfully! 
-      // Bypass auto sign-in (Iron Session issues) and redirect to manual sign-in
-      console.log('[PARENT_SIGNUP] Account created successfully, redirecting to sign-in');
+      // Set server-side cookie for invite code persistence (Sol's solution)
+      console.log('[PARENT_SIGNUP] Account created successfully, setting pending invite cookie');
       
-      // Store invite code for after sign-in
-      sessionStorage.setItem('pendingInviteCode', inviteCode);
+      // Set short-lived cookie for invite code (10 minutes)
+      document.cookie = `pending_invite=${encodeURIComponent(inviteCode)}; Max-Age=600; Path=/; SameSite=Lax; Secure`;
       
       // Redirect to sign-in page with email pre-filled and success message
       const signInUrl = `/sign-in?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Account created successfully! Please sign in to continue to Parents HQ.')}`;
