@@ -116,64 +116,76 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await hash(password, 10);
 
-    // Create user (pre-verified if parent invite)
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        // For parent invites, mark as verified since they clicked email invite
-        isVerified: preVerified || false,
-        // No verification token needed if pre-verified
-        verificationToken: preVerified ? null : undefined,
-        verificationExpires: preVerified ? null : undefined,
-      },
-    });
-
-    // DO NOT create MyProfile here - it will be created after plan selection
-
-    // Create Account with APA role/isApproved
-    // Special handling for parent invites - they should get Parent role, not Adult
-    let accountRole;
-    if (context === 'parent_invite' && !isChild) {
-      accountRole = 'Parent';
-    } else {
-      accountRole = invitedRole ?? (isChild ? 'Child' : 'Adult');
-    }
-    
-    console.log('[SIGNUP_DEBUG] Creating account with role:', accountRole, 'isChild:', isChild, 'context:', context);
-    
-    const accountData = {
-      userId: newUser.id,
-      birthdate: new Date(birthdate), // CRITICAL: Use actual user birthdate for age verification
-      role: accountRole,
-      // For parent invites, always approve (they're adults accepting child invites)
-      isApproved: context === 'parent_invite' ? true : !isChild,
-      // For parent invites, automatically assign free test plan to skip plan selection
-      ...(context === 'parent_invite' && {
-        plan: 'test',
-      }),
-    };
-    
-    console.log('[SIGNUP_DEBUG] Account data to create:', accountData);
-    
-    await prisma.account.create({
-      data: accountData,
-    });
-    
-    console.log('[SIGNUP_DEBUG] Account created successfully');
-
-    // CRITICAL: Mark invite as accepted if invite code was used
-    if (inviteCode) {
-      console.log('[SIGNUP_DEBUG] Marking invite as accepted for code:', inviteCode);
-      await prisma.invite.update({
-        where: { code: normalizeInviteCode(inviteCode) },
-        data: { 
-          status: 'accepted',
-          used: true,
-          invitedUserId: newUser.id
+    // Sol's Solution: Use transaction for atomic user/account/invite creation
+    let newUser;
+    try {
+      newUser = await prisma.$transaction(async (tx) => {
+      // Normalize email for consistency
+      const normalizedEmail = email.trim().toLowerCase();
+      
+      // Create user (pre-verified if parent invite)
+      const user = await tx.user.create({
+        data: {
+          email: normalizedEmail,
+          password: hashedPassword,
+          // For parent invites, mark as verified since they clicked email invite
+          isVerified: preVerified || false,
+          // No verification token needed if pre-verified
+          verificationToken: preVerified ? null : undefined,
+          verificationExpires: preVerified ? null : undefined,
         },
       });
-      console.log('[SIGNUP_DEBUG] Invite marked as accepted');
+
+      // Create Account with APA role/isApproved (SINGLE SOURCE OF TRUTH)
+      let accountRole;
+      if (context === 'parent_invite' && !isChild) {
+        accountRole = 'Parent';
+      } else {
+        accountRole = invitedRole ?? (isChild ? 'Child' : 'Adult');
+      }
+      
+      const accountData = {
+        userId: user.id,
+        birthdate: new Date(birthdate),
+        role: accountRole,
+        // Sol's fix: Account.isApproved is the ONLY approval source of truth
+        isApproved: context === 'parent_invite' ? true : !isChild,
+        // For parent invites, automatically assign free test plan
+        ...(context === 'parent_invite' && {
+          plan: 'test',
+        }),
+      };
+      
+      await tx.account.create({
+        data: accountData,
+      });
+
+      // Update invite status (but ignore Invite.isApproved - Sol's approach)
+      if (inviteCode) {
+        await tx.invite.update({
+          where: { code: normalizeInviteCode(inviteCode) },
+          data: { 
+            status: 'accepted',
+            used: true,
+            invitedUserId: user.id
+            // Note: Removed acceptedAt as it may not exist in schema
+          },
+        });
+      }
+      
+      return user;
+    });
+    
+    console.log('[SIGNUP_DEBUG] Transaction completed - user, account, and invite updated atomically');
+    } catch (error: any) {
+      console.error('[SIGNUP_ERROR] Transaction failed:', error);
+      
+      // Sol's error mapping
+      if (error.code === 'P2002') {
+        return NextResponse.json({ error: 'email_in_use' }, { status: 400 });
+      }
+      
+      return NextResponse.json({ error: 'server_error' }, { status: 500 });
     }
 
     // Log signup activity
