@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth/getServerSession';
-// import ParentSignupModal from '@/components/parents/wizard/ParentSignupModal';
+import ParentSignupModal from '@/components/parents/wizard/ParentSignupModal';
 
 type WizardStep = 'PARENT_SIGNUP' | 'UPGRADE_TO_PARENT' | 'PARENT_DOB' | 'CHILD_CREATE' | 'PERMISSIONS' | 'SUCCESS';
 
@@ -85,9 +85,9 @@ export default async function ParentsHQPage() {
       </div>
       
       {/* Page chrome - minimal */}
-      {initialStep === 'PARENT_SIGNUP' && <div style={{background: 'blue', color: 'white', padding: '20px'}}>PARENT_SIGNUP STEP - Modal would go here</div>}
+      {initialStep === 'PARENT_SIGNUP' && <ParentSignupModal prefillEmail={inviteEmail} />}
       {/* TODO: Add other step modals as we build them */}
-      {initialStep === 'UPGRADE_TO_PARENT' && <div style={{background: 'green', color: 'white', padding: '20px'}}>UPGRADE_TO_PARENT STEP</div>}
+      {initialStep === 'UPGRADE_TO_PARENT' && <ParentSignupModal prefillEmail={inviteEmail} />}
       {initialStep === 'PARENT_DOB' && <div>Parent DOB Modal (TODO)</div>}
       {initialStep === 'CHILD_CREATE' && <div>Child Create Modal (TODO)</div>}
       {initialStep === 'PERMISSIONS' && <div>Permissions Modal (TODO)</div>}
