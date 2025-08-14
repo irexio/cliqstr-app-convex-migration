@@ -23,13 +23,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // APA-protected routes
+  // APA-protected routes (excluding /parents/hq for invite flow)
   const isProtectedRoute = (
     path.startsWith('/cliqs/') ||
     path === '/cliqs' ||
     path === '/my-cliqs' ||
-    path === '/my-cliqs-dashboard' ||
-    path.startsWith('/parents/hq')
+    path === '/my-cliqs-dashboard'
   );
 
   if (isProtectedRoute) {
@@ -75,6 +74,5 @@ export const config = {
     '/cliqs/:path*',
     '/my-cliqs',
     '/my-cliqs-dashboard',
-    '/parents/hq/:path*',
   ],
 };
