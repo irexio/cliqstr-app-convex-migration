@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
-export default function ParentSignupRedirect() {
+function ParentSignupRedirectContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('code');
@@ -23,5 +23,18 @@ export default function ParentSignupRedirect() {
       <LoadingSpinner size="lg" />
       <p className="mt-4 text-gray-600">Redirecting to Parents HQ...</p>
     </div>
+  );
+}
+
+export default function ParentSignupRedirect() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <LoadingSpinner size="lg" />
+        <p className="mt-4 text-gray-600">Loading...</p>
+      </div>
+    }>
+      <ParentSignupRedirectContent />
+    </Suspense>
   );
 }
