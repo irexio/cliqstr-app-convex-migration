@@ -24,9 +24,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import ParentSignupModal from './wizard/ParentSignupModal';
 
-// Wizard Steps
-type WizardStep = 'parent-signup' | 'plan-selection' | 'child-setup' | 'permissions' | 'success';
+// 🎯 Sol's Wizard Steps (server-driven)
+type WizardStep = 'PARENT_SIGNUP' | 'UPGRADE_TO_PARENT' | 'PARENT_DOB' | 'CHILD_CREATE' | 'PERMISSIONS' | 'SUCCESS';
 
 interface ChildPermissions {
   canPost: boolean;
@@ -76,10 +77,19 @@ const INVITED_CHILD_PERMISSIONS: ChildPermissions = {
   canPlayGames: true,
 };
 
-export default function StreamlinedParentsHQWizard() {
+interface StreamlinedParentsHQWizardProps {
+  initialStep?: WizardStep;
+  inviteCode?: string;
+  prefillEmail?: string;
+}
+
+export default function StreamlinedParentsHQWizard({ 
+  initialStep = 'PARENT_SIGNUP',
+  inviteCode,
+  prefillEmail = ''
+}: StreamlinedParentsHQWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const inviteCode = searchParams?.get('inviteCode');
   
   // Wizard state
   const [currentStep, setCurrentStep] = useState<WizardStep>('parent-signup');

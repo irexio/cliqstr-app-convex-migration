@@ -3,9 +3,9 @@ export const dynamic = 'force-dynamic';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth/getServerSession';
-import StreamlinedParentsHQWizard from '@/components/parents/StreamlinedParentsHQWizard';
+import ParentSignupModal from '@/components/parents/wizard/ParentSignupModal';
 
-type WizardStep = 'PARENT_SIGNUP' | 'PARENT_SIGNUP_DOB_ONLY' | 'PLAN_SELECTION' | 'CHILD_CREATE' | 'PERMISSIONS' | 'SUCCESS';
+type WizardStep = 'PARENT_SIGNUP' | 'UPGRADE_TO_PARENT' | 'PARENT_DOB' | 'CHILD_CREATE' | 'PERMISSIONS' | 'SUCCESS';
 
 /**
  * 🎯 Sol's Server-Side Parents HQ Page
@@ -25,11 +25,12 @@ export default async function ParentsHQPage() {
   let initialStep: WizardStep;
   let account = null;
 
+  // 🎯 SOL'S EXACT STEP DETECTION LOGIC
   if (!session) {
-    // Not authenticated - start with parent signup
+    // No user - start with parent signup
     initialStep = 'PARENT_SIGNUP';
   } else {
-    // Authenticated - check account state
+    // User exists - check account state
     try {
       account = await prisma.account.findUnique({
         where: { userId: session.id },
@@ -42,40 +43,21 @@ export default async function ParentsHQPage() {
         }
       });
 
-      if (!account || account.role !== 'Parent' || !account.isApproved) {
-        // Hard fail - shouldn't happen in invite flow
-        return (
-          <div className="flex flex-col items-center justify-center min-h-screen p-8">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md text-center">
-              <h2 className="text-red-900 font-semibold mb-2">Access Error</h2>
-              <p className="text-red-800 text-sm mb-4">
-                This page is only accessible to approved parent accounts.
-              </p>
-              <a href="/sign-out" className="text-red-600 underline text-sm">
-                Sign out and try again
-              </a>
-            </div>
-          </div>
-        );
-      }
-
-      if (!account.birthdate) {
-        // Missing birthdate - collect it first
-        initialStep = 'PARENT_SIGNUP_DOB_ONLY';
+      if (!account?.isApproved || account.role !== 'Parent') {
+        // Auto-approve path for invite (Sol's UPGRADE_TO_PARENT step)
+        initialStep = 'UPGRADE_TO_PARENT';
+      } else if (!account.birthdate) {
+        // Missing birthdate - collect it
+        initialStep = 'PARENT_DOB';
+      } else if (inviteCode && !(await childCreatedForInvite(inviteCode))) {
+        // Has invite, no child created yet
+        initialStep = 'CHILD_CREATE';
+      } else if (inviteCode && !(await permissionsCompleted(inviteCode))) {
+        // Has invite, child created, permissions incomplete
+        initialStep = 'PERMISSIONS';
       } else {
-        // For now, always start with plan selection if we have an invite
-        // TODO: Add parentOnboardingComplete field to schema
-        if (inviteCode) {
-          initialStep = 'PLAN_SELECTION';
-        } else {
-          // No cookie - fallback: find recent invite
-          const recentInvite = await findRecentInviteForParent(session.email);
-          if (recentInvite) {
-            initialStep = 'PLAN_SELECTION';
-          } else {
-            initialStep = 'CHILD_CREATE';
-          }
-        }
+        // Everything complete
+        initialStep = 'SUCCESS';
       }
     } catch (error) {
       console.error('[PARENTS_HQ] Database error:', error);
@@ -92,25 +74,63 @@ export default async function ParentsHQPage() {
     }
   }
 
-  // For now, pass the step as a URL parameter to the existing wizard
-  // TODO: Refactor wizard to accept server-side props
-  return <StreamlinedParentsHQWizard />;
+  // 🎯 Sol's Direct Modal Rendering - Ultra Clean
+  const inviteEmail = ''; // TODO: Extract from invite if needed
+  
+  return (
+    <>
+      {/* Page chrome - minimal */}
+      {initialStep === 'PARENT_SIGNUP' && <ParentSignupModal prefillEmail={inviteEmail} />}
+      {/* TODO: Add other step modals as we build them */}
+      {initialStep === 'UPGRADE_TO_PARENT' && <ParentSignupModal prefillEmail={inviteEmail} />}
+      {initialStep === 'PARENT_DOB' && <div>Parent DOB Modal (TODO)</div>}
+      {initialStep === 'CHILD_CREATE' && <div>Child Create Modal (TODO)</div>}
+      {initialStep === 'PERMISSIONS' && <div>Permissions Modal (TODO)</div>}
+      {initialStep === 'SUCCESS' && <div>Success Page (TODO)</div>}
+    </>
+  );
 }
 
 /**
- * Find recent accepted invite for parent email (fallback when no cookie)
+ * 🎯 Sol's Helper Functions for Step Detection
  */
-async function findRecentInviteForParent(email: string): Promise<any> {
+
+/**
+ * Check if child has been created for this invite
+ */
+async function childCreatedForInvite(inviteCode: string): Promise<boolean> {
   try {
-    const invite = await prisma.invite.findFirst({
-      where: {
-        inviteeEmail: email.toLowerCase(),
-        status: 'accepted'
-      },
-      orderBy: { createdAt: 'desc' }
+    const invite = await prisma.invite.findUnique({
+      where: { code: inviteCode },
+      select: { 
+        invitedUserId: true,
+        status: true
+      }
     });
-    return invite;
+    
+    // If invite has invitedUserId and is accepted, child was created
+    return invite?.invitedUserId !== null && invite?.status === 'accepted';
   } catch {
-    return null;
+    return false;
+  }
+}
+
+/**
+ * Check if permissions have been completed for this invite
+ */
+async function permissionsCompleted(inviteCode: string): Promise<boolean> {
+  try {
+    const invite = await prisma.invite.findUnique({
+      where: { code: inviteCode },
+      select: { 
+        used: true,
+        status: true
+      }
+    });
+    
+    // If invite is used and accepted, permissions are complete
+    return invite?.used === true && invite?.status === 'accepted';
+  } catch {
+    return false;
   }
 }

@@ -6,9 +6,17 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
 export const dynamic = 'force-dynamic';
 
-export default async function SessionPingPage({ searchParams }: { searchParams: { inviteCode?: string, code?: string } }) {
+export default async function SessionPingPage({ searchParams }: { searchParams: { inviteCode?: string, code?: string, from?: string } }) {
   const user = await getCurrentUser();
   const inviteCode = searchParams.inviteCode || searchParams.code;
+  const fromParentsHQ = searchParams.from === 'parents-hq';
+
+  // 🚨 SOL'S FIX: Don't hijack users in Parents HQ invite flow
+  // Only protect Parent invite flows - preserve adult/child flows
+  if (fromParentsHQ) {
+    console.log('[APA] Parents HQ invite flow detected. Redirecting back to Parents HQ.');
+    redirect(`/parents/hq${inviteCode ? `?code=${inviteCode}` : ''}`);
+  }
 
   if (!user) {
     console.log('[APA] No session found in session-ping. Redirecting to sign-in.');
