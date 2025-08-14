@@ -7,7 +7,7 @@ import ParentSignupModal from '@/components/parents/wizard/ParentSignupModal';
 import PermissionsModal from '@/components/parents/wizard/PermissionsModal';
 import SuccessSection from '@/components/parents/wizard/SuccessSection';
 
-type WizardStep = 'PARENT_SIGNUP' | 'UPGRADE_TO_PARENT' | 'PARENT_DOB' | 'CHILD_CREATE' | 'PERMISSIONS' | 'SUCCESS';
+type WizardStep = 'PARENT_SIGNUP' | 'PERMISSIONS' | 'SUCCESS';
 
 /**
  * 🎯 Sol's Server-Side Parents HQ Page
@@ -88,10 +88,6 @@ export default async function ParentsHQPage() {
       
       {/* Page chrome - minimal */}
       {initialStep === 'PARENT_SIGNUP' && <ParentSignupModal prefillEmail={inviteEmail} />}
-      {/* TODO: Add other step modals as we build them */}
-      {initialStep === 'UPGRADE_TO_PARENT' && <ParentSignupModal prefillEmail={inviteEmail} />}
-      {initialStep === 'PARENT_DOB' && <div>Parent DOB Modal (TODO)</div>}
-      {initialStep === 'CHILD_CREATE' && <div>Child Create Modal (TODO)</div>}
       {initialStep === 'PERMISSIONS' && <PermissionsModal />}
       {initialStep === 'SUCCESS' && <SuccessSection />}
     </>
