@@ -92,7 +92,7 @@ export default function StreamlinedParentsHQWizard({
   const searchParams = useSearchParams();
   
   // Wizard state
-  const [currentStep, setCurrentStep] = useState<WizardStep>('parent-signup');
+  const [currentStep, setCurrentStep] = useState<WizardStep>('PARENT_SIGNUP');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
