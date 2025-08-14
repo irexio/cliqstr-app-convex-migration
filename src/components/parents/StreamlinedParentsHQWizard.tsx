@@ -116,21 +116,18 @@ export default function StreamlinedParentsHQWizard() {
   useEffect(() => {
     async function initialize() {
       try {
-        // Check authentication
+        // Check if user is already authenticated
         const authRes = await fetch('/api/auth/status');
         const authData = await authRes.json();
         
-        if (!authRes.ok || !authData.user) {
-          router.push('/sign-in');
-          return;
+        if (authRes.ok && authData.user) {
+          // User is already authenticated - skip to child setup
+          setUserData(authData.user);
+          setCurrentStep('child-setup');
+        } else {
+          // New parent from invite - start with parent signup
+          setCurrentStep('parent-signup');
         }
-
-        if (authData.user.role !== 'Parent') {
-          router.push('/awaiting-approval');
-          return;
-        }
-
-        setUserData(authData.user);
 
         // Load existing children
         const childrenRes = await fetch('/api/parent/children');
@@ -210,7 +207,7 @@ export default function StreamlinedParentsHQWizard() {
           throw new Error(errorData.message || 'Failed to create child account.');
         }
 
-        setSuccess(true);
+        setCurrentStep('success');
         
         // If this was from an invite, accept the invite
         if (inviteCode) {
@@ -258,11 +255,8 @@ export default function StreamlinedParentsHQWizard() {
           }
         }
 
-        setCurrentStep('success');
-        setError('');
-        setTimeout(() => {
-          router.push('/parents/hq/dashboard');
-        }, 2000);
+        // Move to safety agreement step
+        setCurrentStep('safety-agreement');
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
@@ -271,15 +265,66 @@ export default function StreamlinedParentsHQWizard() {
   };
 
   const updatePermission = (key: keyof ChildPermissions, value: boolean) => {
-    // Don't allow changes to locked permissions for invited children
-    if (isInvitedChild) {
-      const lockedPermissions = ['canInviteFriends', 'canJoinNewCliqs', 'canCreateCliqs', 'canUploadVideos'];
-      if (lockedPermissions.includes(key)) {
-        return; // Ignore attempts to change locked permissions
-      }
-    }
-    
     setPermissions(prev => ({ ...prev, [key]: value }));
+  };
+
+  // Handle parent signup
+  const handleParentSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+
+    try {
+      // Validate form
+      if (!parentData.firstName || !parentData.lastName || !parentData.email || !parentData.birthdate || !parentData.password) {
+        throw new Error('Please fill in all required fields.');
+      }
+
+      if (parentData.password !== parentData.confirmPassword) {
+        throw new Error('Passwords do not match.');
+      }
+
+      // Create parent account
+      const signupRes = await fetch('/api/sign-up', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: parentData.firstName,
+          lastName: parentData.lastName,
+          email: parentData.email,
+          birthdate: parentData.birthdate,
+          password: parentData.password,
+          context: 'parent_invite',
+          inviteCode: inviteCode
+        }),
+      });
+
+      if (!signupRes.ok) {
+        const errorData = await signupRes.json();
+        throw new Error(errorData.message || 'Failed to create parent account.');
+      }
+
+      // Account created successfully - move to child setup
+      setCurrentStep('child-setup');
+      
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle safety agreement acceptance
+  const handleSafetyAgreement = async () => {
+    setSubmitting(true);
+    try {
+      // Mark safety agreement as accepted and complete the flow
+      setCurrentStep('success');
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -291,11 +336,365 @@ export default function StreamlinedParentsHQWizard() {
     );
   }
 
-  if (success) {
+  // Render parent signup step
+  if (currentStep === 'parent-signup') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="max-w-md w-full bg-green-50 border border-green-200 rounded-lg p-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">👨‍👩‍👧‍👦</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Welcome to Cliqstr!</h1>
+            <p className="text-gray-600 mt-2">
+              To approve your child's participation, please create a parent account.
+            </p>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-800">
+                ✓ No charges for invited users<br/>
+                Credit card required for verification only
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleParentSignup} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={parentData.firstName}
+                  onChange={(e) => setParentData(prev => ({ ...prev, firstName: e.target.value }))}
+                  required
+                  disabled={submitting}
+                  placeholder="First Name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  value={parentData.lastName}
+                  onChange={(e) => setParentData(prev => ({ ...prev, lastName: e.target.value }))}
+                  required
+                  disabled={submitting}
+                  placeholder="Last Name"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="email">Parent/Guardian Email *</Label>
+              <Input
+                id="email"
+                type="email"
+                value={parentData.email}
+                onChange={(e) => setParentData(prev => ({ ...prev, email: e.target.value }))}
+                required
+                disabled={submitting}
+                placeholder="your.email@example.com"
+              />
+              <p className="text-xs text-gray-500 mt-1">Must match the email address that received this invite</p>
+            </div>
+
+            <div>
+              <Label htmlFor="birthdate">Date of Birth *</Label>
+              <Input
+                id="birthdate"
+                type="date"
+                value={parentData.birthdate}
+                onChange={(e) => setParentData(prev => ({ ...prev, birthdate: e.target.value }))}
+                required
+                disabled={submitting}
+              />
+              <p className="text-xs text-gray-500 mt-1">Required to verify you are 18 or older</p>
+            </div>
+
+            <div>
+              <Label htmlFor="password">Create Password *</Label>
+              <Input
+                id="password"
+                type="password"
+                value={parentData.password}
+                onChange={(e) => setParentData(prev => ({ ...prev, password: e.target.value }))}
+                required
+                disabled={submitting}
+                placeholder="Create a secure password"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="confirmPassword">Confirm Password *</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={parentData.confirmPassword}
+                onChange={(e) => setParentData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                required
+                disabled={submitting}
+                placeholder="Confirm your password"
+              />
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
+            <Button 
+              type="submit" 
+              disabled={submitting}
+              className="w-full"
+            >
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  Creating Parent Account...
+                </span>
+              ) : (
+                'Create Parent Account & Continue'
+              )}
+            </Button>
+
+            <p className="text-xs text-gray-500 text-center mt-4">
+              Already have an account? <a href="/sign-in" className="text-blue-600 hover:underline">Sign in instead</a>
+            </p>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Render safety agreement step
+  if (currentStep === 'safety-agreement') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">🛡️</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900">Safety & Monitoring Agreement</h1>
+            <p className="text-gray-600 mt-2">
+              Your child's safety is our top priority. Please review these important safety guidelines.
+            </p>
+          </div>
+
+          <div className="space-y-6 mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                <span>👁️</span> Silent Monitoring Tools
+              </h3>
+              <ul className="text-sm text-blue-800 space-y-2">
+                <li>• View your child's activity and conversations in real-time</li>
+                <li>• Receive notifications about concerning content or behavior</li>
+                <li>• Access detailed activity reports and safety insights</li>
+                <li>• Monitor friend requests and new connections</li>
+              </ul>
+            </div>
+
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+              <h3 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
+                <span>🚨</span> Red Alert System
+              </h3>
+              <ul className="text-sm text-orange-800 space-y-2">
+                <li>• Automatic detection of inappropriate content or language</li>
+                <li>• Immediate alerts for potential safety concerns</li>
+                <li>• Quick action tools to address issues immediately</li>
+                <li>• 24/7 monitoring for your peace of mind</li>
+              </ul>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+              <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                <span>⚖️</span> Your Responsibility as a Parent
+              </h3>
+              <ul className="text-sm text-purple-800 space-y-2">
+                <li>• <strong>You are primarily responsible</strong> for your child's safety on Cliqstr</li>
+                <li>• Regularly review your child's activity and conversations</li>
+                <li>• Set appropriate boundaries and discuss online safety</li>
+                <li>• Take immediate action when safety concerns arise</li>
+                <li>• Use our monitoring tools as part of active supervision</li>
+              </ul>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                <span>🎯</span> Getting Your Child Started
+              </h3>
+              <ul className="text-sm text-green-800 space-y-2">
+                <li>• Help your child set up their profile and privacy settings</li>
+                <li>• Review the Cliq they've been invited to join</li>
+                <li>• Discuss appropriate online behavior and community guidelines</li>
+                <li>• Show them how to report concerning content or behavior</li>
+                <li>• Schedule regular check-ins about their online experiences</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-red-800 text-center">
+              <strong>Important:</strong> By continuing, you acknowledge that you understand your primary responsibility 
+              for your child's safety and agree to actively monitor their Cliqstr activity using our provided tools.
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          <div className="flex gap-4">
+            <Button 
+              onClick={() => setCurrentStep('child-setup')}
+              variant="outline"
+              disabled={submitting}
+              className="flex-1"
+            >
+              Back to Child Setup
+            </Button>
+            <Button 
+              onClick={handleSafetyAgreement}
+              disabled={submitting}
+              className="flex-1"
+            >
+              {submitting ? (
+                <span className="flex items-center gap-2">
+                  <LoadingSpinner size="sm" />
+                  Completing Setup...
+                </span>
+              ) : (
+                'I Understand & Accept Responsibility'
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentStep === 'success') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="max-w-3xl w-full bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center mb-8">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">🎉</span>
+            </div>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome to the Cliqstr Family!</h1>
+            <p className="text-lg text-gray-600 mt-2">
+              {childFirstName}'s account has been created successfully and they can now join their Cliq!
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+              <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                <span>🚀</span> Getting {childFirstName} Started
+              </h3>
+              <ul className="text-sm text-blue-800 space-y-3">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">1.</span>
+                  <span>Help {childFirstName} log in with their new username and password</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">2.</span>
+                  <span>Guide them through setting up their profile and avatar</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">3.</span>
+                  <span>Review the Cliq they've been invited to join together</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">4.</span>
+                  <span>Discuss community guidelines and appropriate online behavior</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 font-bold">5.</span>
+                  <span>Show them how to report any concerning content or behavior</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+              <h3 className="font-semibold text-purple-900 mb-4 flex items-center gap-2">
+                <span>👁️</span> Your Monitoring Dashboard
+              </h3>
+              <ul className="text-sm text-purple-800 space-y-3">
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600">•</span>
+                  <span>Access real-time activity reports and conversation summaries</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600">•</span>
+                  <span>Receive instant alerts for safety concerns or inappropriate content</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600">•</span>
+                  <span>Monitor friend requests and new connections</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600">•</span>
+                  <span>Review detailed safety insights and recommendations</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-purple-600">•</span>
+                  <span>Adjust permissions and privacy settings as needed</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-8">
+            <h3 className="font-semibold text-orange-900 mb-4 flex items-center gap-2">
+              <span>🛡️</span> Important Safety Reminders
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4 text-sm text-orange-800">
+              <div>
+                <p className="font-medium mb-2">Your Primary Responsibility:</p>
+                <ul className="space-y-1">
+                  <li>• You are the primary guardian of {childFirstName}'s online safety</li>
+                  <li>• Our tools assist but don't replace active parental supervision</li>
+                  <li>• Regular check-ins and open communication are essential</li>
+                </ul>
+              </div>
+              <div>
+                <p className="font-medium mb-2">Stay Engaged:</p>
+                <ul className="space-y-1">
+                  <li>• Schedule weekly reviews of {childFirstName}'s activity</li>
+                  <li>• Discuss any concerning interactions or content</li>
+                  <li>• Keep communication open about their online experiences</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center">
+            <Button 
+              onClick={() => router.push('/parents/dashboard')}
+              className="px-8 py-3 text-lg"
+            >
+              Go to Parent Dashboard
+            </Button>
+            <p className="text-sm text-gray-500 mt-4">
+              You can access your monitoring tools and {childFirstName}'s activity reports anytime from your dashboard.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default child setup step (existing functionality)
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
+        <div className="text-center mb-6">
+          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">✅</span>
           </div>
           <h1 className="text-xl font-semibold text-green-800 mb-2">
