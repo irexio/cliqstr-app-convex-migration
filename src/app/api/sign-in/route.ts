@@ -28,6 +28,7 @@ function parseIdentifier(raw: string) {
     : { email: null, username: id };
 }
 
+// Force fresh deployment - fix 405 Method Not Allowed
 export async function POST(req: NextRequest) {
   try {
     const { identifier, password } = await req.json();
