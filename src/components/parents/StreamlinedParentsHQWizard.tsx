@@ -105,9 +105,11 @@ export default function StreamlinedParentsHQWizard() {
   // Child form state
   const [selectedChildId, setSelectedChildId] = useState<string>('new');
   const [childFirstName, setChildFirstName] = useState('');
+  const [childLastName, setChildLastName] = useState('');
   const [childUsername, setChildUsername] = useState('');
   const [childPassword, setChildPassword] = useState('');
-  const [childBirthdate, setChildBirthdate] = useState(''); // CRITICAL: For age-gated cliqs
+  const [childBirthdate, setChildBirthdate] = useState('');
+  const [showChildPassword, setShowChildPassword] = useState(false);
   const [permissions, setPermissions] = useState<ChildPermissions>(REGULAR_CHILD_DEFAULTS);
   
   const isInvitedChild = Boolean(inviteCode && inviteDetails);
@@ -120,12 +122,12 @@ export default function StreamlinedParentsHQWizard() {
         const authRes = await fetch('/api/auth/status');
         const authData = await authRes.json();
         
-        if (authRes.ok && authData.user) {
-          // User is already authenticated - skip to child setup
+        if (authRes.ok && authData?.user) {
           setUserData(authData.user);
-          setCurrentStep('child-setup');
+          // Even if authenticated, show parent signup to collect any missing info
+          setCurrentStep('parent-signup');
         } else {
-          // New parent from invite - start with parent signup
+          // Not authenticated, start with parent signup
           setCurrentStep('parent-signup');
         }
 
@@ -168,8 +170,8 @@ export default function StreamlinedParentsHQWizard() {
     try {
       if (selectedChildId === 'new') {
         // Create new child
-        if (!childFirstName.trim() || !childUsername.trim() || !childPassword.trim() || !childBirthdate.trim()) {
-          throw new Error('Please fill in all child account fields including birthdate.');
+        if (!childFirstName.trim() || !childLastName.trim() || !childUsername.trim() || !childPassword.trim() || !childBirthdate.trim()) {
+          throw new Error('Please fill in all child account fields including first name, last name, and birthdate.');
         }
 
         if (childPassword.length < 6) {
@@ -193,6 +195,7 @@ export default function StreamlinedParentsHQWizard() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             firstName: childFirstName.trim(),
+            lastName: childLastName.trim(),
             username: childUsername.trim(),
             password: childPassword,
             birthdate: childBirthdate, // CRITICAL: For age-gated cliqs
@@ -763,6 +766,25 @@ export default function StreamlinedParentsHQWizard() {
                   </div>
 
                   <div>
+                    <Label htmlFor="childLastName">Child's Last Name *</Label>
+                    <Input
+                      id="childLastName"
+                      type="text"
+                      value={childLastName}
+                      onChange={(e) => setChildLastName(e.target.value)}
+                      placeholder="Enter last name"
+                      required
+                      disabled={submitting}
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Helps friends identify your child when receiving invites
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
                     <Label htmlFor="childUsername">Username *</Label>
                     <Input
                       id="childUsername"
@@ -783,16 +805,35 @@ export default function StreamlinedParentsHQWizard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
                     <Label htmlFor="childPassword">Child's Password *</Label>
-                    <Input
-                      id="childPassword"
-                      type="password"
-                      value={childPassword}
-                      onChange={(e) => setChildPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
-                      required
-                      disabled={submitting}
-                      className="mt-1"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="childPassword"
+                        type={showChildPassword ? "text" : "password"}
+                        value={childPassword}
+                        onChange={(e) => setChildPassword(e.target.value)}
+                        placeholder="Minimum 6 characters"
+                        required
+                        disabled={submitting}
+                        className="mt-1 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowChildPassword(!showChildPassword)}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        disabled={submitting}
+                      >
+                        {showChildPassword ? (
+                          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+                          </svg>
+                        ) : (
+                          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   
                   <div>

@@ -67,8 +67,8 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { username, password, code, permissions, silentMonitoring } = await req.json().catch(() => ({}));
-    if (!username || !password) {
+    const { firstName, lastName, username, password, birthdate, code, permissions, silentMonitoring } = await req.json().catch(() => ({}));
+    if (!firstName || !lastName || !username || !password || !birthdate) {
       return NextResponse.json({ ok: false, reason: 'missing_fields' }, { status: 400 });
     }
 
@@ -107,13 +107,14 @@ export async function POST(req: Request) {
           },
         });
 
-        // Minimal profile with required unique username
+        // Create profile with firstName, lastName, username, and actual birthdate
         const createdProfile = await tx.myProfile.create({
           data: {
             userId: newUser.id,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
             username,
-            // Placeholder DOB if schema requires it; adjust if real DOB is collected elsewhere
-            birthdate: new Date(2008, 0, 1),
+            birthdate: new Date(birthdate),
           },
         });
 
