@@ -26,7 +26,7 @@ import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // Wizard Steps
-type WizardStep = 'parent-signup' | 'plan-selection' | 'child-setup' | 'safety-agreement' | 'success';
+type WizardStep = 'parent-signup' | 'plan-selection' | 'child-setup' | 'permissions' | 'success';
 
 interface ChildPermissions {
   canPost: boolean;
@@ -258,8 +258,8 @@ export default function StreamlinedParentsHQWizard() {
           }
         }
 
-        // Move to safety agreement step
-        setCurrentStep('safety-agreement');
+        // Move to permissions step
+        setCurrentStep('permissions');
       }
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
@@ -307,8 +307,8 @@ export default function StreamlinedParentsHQWizard() {
         throw new Error(errorData.message || 'Failed to create parent account.');
       }
 
-      // Account created successfully - move to child setup
-      setCurrentStep('child-setup');
+      // Account created successfully - move to plan selection
+      setCurrentStep('plan-selection');
       
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
@@ -471,77 +471,62 @@ export default function StreamlinedParentsHQWizard() {
     );
   }
 
-  // Render safety agreement step
-  if (currentStep === 'safety-agreement') {
+  // Render plan selection step (Modal 1b)
+  if (currentStep === 'plan-selection') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">🛡️</span>
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">💳</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">Safety & Monitoring Agreement</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Plan Selection</h1>
             <p className="text-gray-600 mt-2">
-              Your child's safety is our top priority. Please review these important safety guidelines.
+              Choose your plan to continue. As an invited parent, you get free access!
             </p>
           </div>
 
           <div className="space-y-6 mb-8">
+            {/* Free Invited Plan */}
+            <div className="bg-green-50 border-2 border-green-300 rounded-lg p-6 relative">
+              <div className="absolute -top-3 left-4 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                ✨ Recommended for You
+              </div>
+              <div className="pt-2">
+                <h3 className="font-bold text-green-900 text-xl mb-2">Free Invited Plan</h3>
+                <p className="text-green-800 mb-4">Perfect for invited parents - no charges!</p>
+                <ul className="text-sm text-green-800 space-y-2 mb-4">
+                  <li>• ✅ Full parental monitoring tools</li>
+                  <li>• ✅ Silent monitoring & red alerts</li>
+                  <li>• ✅ Child safety permissions</li>
+                  <li>• ✅ Complete dashboard access</li>
+                  <li>• ✅ Credit card required for verification only</li>
+                </ul>
+                <div className="text-2xl font-bold text-green-900">FREE</div>
+                <p className="text-xs text-green-700">No charges - verification only</p>
+              </div>
+            </div>
+
+            {/* Basic Test Plan */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-              <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                <span>👁️</span> Silent Monitoring Tools
-              </h3>
-              <ul className="text-sm text-blue-800 space-y-2">
-                <li>• View your child's activity and conversations in real-time</li>
-                <li>• Receive notifications about concerning content or behavior</li>
-                <li>• Access detailed activity reports and safety insights</li>
-                <li>• Monitor friend requests and new connections</li>
+              <h3 className="font-bold text-blue-900 text-xl mb-2">Basic Test Plan</h3>
+              <p className="text-blue-800 mb-4">Test the full plan experience (will be updated when Stripe is working)</p>
+              <ul className="text-sm text-blue-800 space-y-2 mb-4">
+                <li>• ✅ Everything in Free Plan</li>
+                <li>• ✅ Priority support</li>
+                <li>• ✅ Advanced reporting</li>
+                <li>• ✅ Multiple child accounts</li>
+                <li>• ✅ Enhanced safety features</li>
               </ul>
-            </div>
-
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-              <h3 className="font-semibold text-orange-900 mb-3 flex items-center gap-2">
-                <span>🚨</span> Red Alert System
-              </h3>
-              <ul className="text-sm text-orange-800 space-y-2">
-                <li>• Automatic detection of inappropriate content or language</li>
-                <li>• Immediate alerts for potential safety concerns</li>
-                <li>• Quick action tools to address issues immediately</li>
-                <li>• 24/7 monitoring for your peace of mind</li>
-              </ul>
-            </div>
-
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-              <h3 className="font-semibold text-purple-900 mb-3 flex items-center gap-2">
-                <span>⚖️</span> Your Responsibility as a Parent
-              </h3>
-              <ul className="text-sm text-purple-800 space-y-2">
-                <li>• <strong>You are primarily responsible</strong> for your child's safety on Cliqstr</li>
-                <li>• Regularly review your child's activity and conversations</li>
-                <li>• Set appropriate boundaries and discuss online safety</li>
-                <li>• Take immediate action when safety concerns arise</li>
-                <li>• Use our monitoring tools as part of active supervision</li>
-              </ul>
-            </div>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                <span>🎯</span> Getting Your Child Started
-              </h3>
-              <ul className="text-sm text-green-800 space-y-2">
-                <li>• Help your child set up their profile and privacy settings</li>
-                <li>• Review the Cliq they've been invited to join</li>
-                <li>• Discuss appropriate online behavior and community guidelines</li>
-                <li>• Show them how to report concerning content or behavior</li>
-                <li>• Schedule regular check-ins about their online experiences</li>
-              </ul>
+              <div className="text-2xl font-bold text-blue-900">FREE (Test)</div>
+              <p className="text-xs text-blue-700">Testing plan flow - no charges</p>
             </div>
           </div>
 
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-800 text-center">
-              <strong>Important:</strong> By continuing, you acknowledge that you understand your primary responsibility 
-              for your child's safety and agree to actively monitor their Cliqstr activity using our provided tools.
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-yellow-800 text-center">
+              <strong>Note:</strong> Credit card verification is required for all plans, including free ones. 
+              This helps us maintain a safe environment for children.
             </p>
           </div>
 
@@ -553,26 +538,19 @@ export default function StreamlinedParentsHQWizard() {
 
           <div className="flex gap-4">
             <Button 
-              onClick={() => setCurrentStep('child-setup')}
+              onClick={() => setCurrentStep('parent-signup')}
               variant="outline"
               disabled={submitting}
               className="flex-1"
             >
-              Back to Child Setup
+              Back to Parent Info
             </Button>
             <Button 
-              onClick={handleSafetyAgreement}
+              onClick={() => setCurrentStep('child-setup')}
               disabled={submitting}
               className="flex-1"
             >
-              {submitting ? (
-                <span className="flex items-center gap-2">
-                  <LoadingSpinner size="sm" />
-                  Completing Setup...
-                </span>
-              ) : (
-                'I Understand & Accept Responsibility'
-              )}
+              Continue with Free Plan
             </Button>
           </div>
         </div>
@@ -595,82 +573,63 @@ export default function StreamlinedParentsHQWizard() {
           </div>
 
           <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {/* Section 1: Child Sign-In Instructions */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
               <h3 className="font-semibold text-blue-900 mb-4 flex items-center gap-2">
-                <span>🚀</span> Getting {childFirstName} Started
+                <span>🚀</span> Please Help Your Child Sign In
               </h3>
-              <ul className="text-sm text-blue-800 space-y-3">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">1.</span>
-                  <span>Help {childFirstName} log in with their new username and password</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">2.</span>
-                  <span>Guide them through setting up their profile and avatar</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">3.</span>
-                  <span>Review the Cliq they've been invited to join together</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">4.</span>
-                  <span>Discuss community guidelines and appropriate online behavior</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">5.</span>
-                  <span>Show them how to report any concerning content or behavior</span>
-                </li>
-              </ul>
+              <div className="text-sm text-blue-800 space-y-3">
+                <p className="font-medium">Go to <strong>cliqstr.com</strong> and help {childFirstName} sign in:</p>
+                <ul className="space-y-2 ml-4">
+                  <li>• <strong>Username:</strong> {childUsername}</li>
+                  <li>• <strong>Password:</strong> The password you just created</li>
+                  <li>• Help them complete their profile setup</li>
+                  <li>• Guide them to join their invited Cliq</li>
+                  <li>• Review privacy settings together</li>
+                </ul>
+              </div>
             </div>
 
+            {/* Section 2: Silent Monitoring Instructions */}
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
               <h3 className="font-semibold text-purple-900 mb-4 flex items-center gap-2">
-                <span>👁️</span> Your Monitoring Dashboard
+                <span>👁️</span> How to Silent Monitor Your Child
               </h3>
-              <ul className="text-sm text-purple-800 space-y-3">
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600">•</span>
-                  <span>Access real-time activity reports and conversation summaries</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600">•</span>
-                  <span>Receive instant alerts for safety concerns or inappropriate content</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600">•</span>
-                  <span>Monitor friend requests and new connections</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600">•</span>
-                  <span>Review detailed safety insights and recommendations</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600">•</span>
-                  <span>Adjust permissions and privacy settings as needed</span>
-                </li>
-              </ul>
+              <div className="text-sm text-purple-800 space-y-3">
+                <p className="font-medium">Access your parental monitoring tools:</p>
+                <ul className="space-y-2 ml-4">
+                  <li>• <strong>Dashboard:</strong> View real-time activity and conversations</li>
+                  <li>• <strong>Red Alerts:</strong> Receive instant notifications for safety concerns</li>
+                  <li>• <strong>Friend Monitoring:</strong> Review new connections and friend requests</li>
+                  <li>• <strong>Content Review:</strong> Monitor posts, messages, and interactions</li>
+                  <li>• <strong>Safety Reports:</strong> Weekly summaries of your child's activity</li>
+                </ul>
+              </div>
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-8">
-            <h3 className="font-semibold text-orange-900 mb-4 flex items-center gap-2">
-              <span>🛡️</span> Important Safety Reminders
+          {/* Section 3: Parent Responsibilities */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+            <h3 className="font-semibold text-red-900 mb-4 flex items-center gap-2">
+              <span>⚖️</span> Parent Responsibilities
             </h3>
-            <div className="grid md:grid-cols-2 gap-4 text-sm text-orange-800">
-              <div>
-                <p className="font-medium mb-2">Your Primary Responsibility:</p>
-                <ul className="space-y-1">
-                  <li>• You are the primary guardian of {childFirstName}'s online safety</li>
-                  <li>• Our tools assist but don't replace active parental supervision</li>
-                  <li>• Regular check-ins and open communication are essential</li>
-                </ul>
-              </div>
-              <div>
-                <p className="font-medium mb-2">Stay Engaged:</p>
-                <ul className="space-y-1">
-                  <li>• Schedule weekly reviews of {childFirstName}'s activity</li>
-                  <li>• Discuss any concerning interactions or content</li>
-                  <li>• Keep communication open about their online experiences</li>
+            <div className="text-sm text-red-800 space-y-4">
+              <p className="font-medium">
+                We have developed Cliqstr with comprehensive protections including privacy rules, age gating, 
+                AI moderation, and human backup to help keep your child safe while on Cliqstr. However, 
+                <strong> ultimately you as parent/guardian are primarily responsible</strong> for your child's online safety.
+              </p>
+              <p>
+                The red alert system, when activated, will notify both you and our moderators when your child 
+                perceives danger. <strong>Please take these alerts seriously</strong> and respond immediately.
+              </p>
+              <div className="bg-red-100 border border-red-300 rounded p-3 mt-4">
+                <p className="font-bold text-red-900">Remember:</p>
+                <ul className="mt-2 space-y-1">
+                  <li>• You are the first line of defense for your child's safety</li>
+                  <li>• Our tools assist but cannot replace active parental supervision</li>
+                  <li>• Regular monitoring and open communication are essential</li>
+                  <li>• Red alerts require immediate attention and action</li>
                 </ul>
               </div>
             </div>
