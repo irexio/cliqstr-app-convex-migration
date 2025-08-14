@@ -168,7 +168,6 @@ export async function POST(req: NextRequest) {
             status: 'accepted',
             used: true,
             invitedUserId: user.id
-            // Note: Removed acceptedAt as it may not exist in schema
           },
         });
       }
