@@ -79,6 +79,11 @@ export default async function ParentsHQPage() {
   
   return (
     <>
+      {/* 🚨 DEBUG: Confirm this page is being served */}
+      <div style={{position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: '5px', zIndex: 9999}}>
+        DEBUG: Parents HQ Page - Step: {initialStep} - Cookie: {inviteCode || 'none'}
+      </div>
+      
       {/* Page chrome - minimal */}
       {initialStep === 'PARENT_SIGNUP' && <ParentSignupModal prefillEmail={inviteEmail} />}
       {/* TODO: Add other step modals as we build them */}
