@@ -91,20 +91,12 @@ function InviteAcceptContent() {
             const auth = authRes.ok ? await authRes.json() : null;
             if (!auth?.user) {
               // For parent invites, redirect directly to Parents HQ wizard
-              if (data.type === 'parent') {
-                router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
-              } else {
-                router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
-              }
+              router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
               return;
             }
           } catch {
             // For parent invites, redirect directly to Parents HQ wizard
-            if (data.type === 'parent') {
-              router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
-            } else {
-              router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
-            }
+            router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
             return;
           }
 
