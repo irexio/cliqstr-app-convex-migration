@@ -65,15 +65,13 @@ export async function POST(request: NextRequest) {
           role: 'Parent',
           isApproved: true,
           plan: 'test',
-          birthdate: new Date(birthdate),
-          parentOnboardingComplete: false
+          birthdate: new Date(birthdate)
         },
         update: {
           role: 'Parent',
           isApproved: true,
           plan: 'test',
-          birthdate: new Date(birthdate),
-          parentOnboardingComplete: false
+          birthdate: new Date(birthdate)
         }
       });
 
@@ -82,8 +80,7 @@ export async function POST(request: NextRequest) {
         where: { id: invite.id },
         data: {
           invitedUserId: user.id,
-          status: 'accepted',
-          acceptedAt: new Date()
+          status: 'accepted'
         }
       });
 
@@ -92,8 +89,8 @@ export async function POST(request: NextRequest) {
 
     // 🎯 Sol's Rule: Start iron-session
     const session = await getIronSession(cookieStore, sessionOptions);
-    session.userId = result.user.id;
-    session.createdAt = Date.now();
+    (session as any).userId = result.user.id;
+    (session as any).createdAt = Date.now();
     await session.save();
 
     console.log('[WIZARD] Parent signup successful:', {
