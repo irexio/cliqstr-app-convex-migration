@@ -689,29 +689,6 @@ export default function StreamlinedParentsHQWizard() {
     );
   }
 
-  // Default child setup step (existing functionality)
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <div className="max-w-2xl w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">✅</span>
-          </div>
-          <h1 className="text-xl font-semibold text-green-800 mb-2">
-            {selectedChildId === 'new' ? 'Child Account Created!' : 'Permissions Updated!'}
-          </h1>
-          <p className="text-green-600 mb-4">
-            {inviteCode 
-              ? `${childFirstName} can now join ${inviteDetails?.cliqName || 'the Cliq'} safely!`
-              : 'You can now manage your child\'s account.'}
-          </p>
-          <LoadingSpinner size="sm" />
-          <p className="text-sm text-green-600 mt-2">Redirecting to dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-2xl mx-auto">
