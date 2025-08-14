@@ -124,8 +124,13 @@ export default function StreamlinedParentsHQWizard() {
         
         if (authRes.ok && authData?.user) {
           setUserData(authData.user);
-          // Even if authenticated, show parent signup to collect any missing info
-          setCurrentStep('parent-signup');
+          // If user is already authenticated and this is an invite flow, skip to child setup
+          if (inviteCode) {
+            setCurrentStep('child-setup');
+          } else {
+            // Regular authenticated user - skip to child setup
+            setCurrentStep('child-setup');
+          }
         } else {
           // Not authenticated, start with parent signup
           setCurrentStep('parent-signup');
