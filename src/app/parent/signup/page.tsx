@@ -158,15 +158,11 @@ function ParentSignupContent() {
       }
 
       // Account created successfully! 
-      // Set server-side cookie for invite code persistence (Sol's solution)
-      console.log('[PARENT_SIGNUP] Account created successfully, setting pending invite cookie');
+      // Direct redirect to Parents HQ with invite code (original elegant flow)
+      console.log('[PARENT_SIGNUP] Account created successfully, redirecting directly to Parents HQ');
       
-      // Set short-lived cookie for invite code (10 minutes)
-      document.cookie = `pending_invite=${encodeURIComponent(inviteCode)}; Max-Age=600; Path=/; SameSite=Lax; Secure`;
-      
-      // Redirect to sign-in page with email pre-filled and success message
-      const signInUrl = `/sign-in?email=${encodeURIComponent(email)}&message=${encodeURIComponent('Account created successfully! Please sign in to continue to Parents HQ.')}`;
-      router.push(signInUrl);
+      // Go straight to Parents HQ with the invite code - no separate sign-in needed!
+      router.push(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
       setLoading(false);

@@ -90,13 +90,21 @@ function InviteAcceptContent() {
             const authRes = await fetch('/api/auth/status', { credentials: 'include', cache: 'no-store' });
             const auth = authRes.ok ? await authRes.json() : null;
             if (!auth?.user) {
-              // Parent not authenticated: send to parent signup
-              if (!cancelled) router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
+              // For parent invites, redirect directly to Parents HQ wizard
+              if (data.type === 'parent') {
+                router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
+              } else {
+                router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
+              }
               return;
             }
           } catch {
-            // Auth check failed: send to parent signup
-            if (!cancelled) router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
+            // For parent invites, redirect directly to Parents HQ wizard
+            if (data.type === 'parent') {
+              router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
+            } else {
+              router.replace(`/parent/signup?code=${encodeURIComponent(inviteCode)}`);
+            }
             return;
           }
 

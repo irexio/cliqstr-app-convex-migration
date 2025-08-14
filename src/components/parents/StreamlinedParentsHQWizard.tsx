@@ -1,13 +1,21 @@
 'use client';
 
 /**
- * 🔐 APA-HARDENED COMPONENT: Streamlined Parents HQ Wizard
+ * 🎨 ELEGANT PARENT INVITE WIZARD - Complete Flow
  * 
  * Purpose:
- *   - Single comprehensive step for child setup
- *   - Two-tier permission system: Regular vs Invited children
- *   - Supports dropdown for additional children
- *   - Clean, simple flow for invited parents
+ *   - Handle complete parent invite flow in one seamless wizard
+ *   - Step 1: Parent Account Creation
+ *   - Step 2: Plan Selection (future)
+ *   - Step 3: Payment Verification (future)
+ *   - Step 4: Child Account Setup
+ *   - Step 5: Safety Agreement
+ *   - Step 6: Success Page
+ * 
+ * Security:
+ *   - Age verification for both parent and child
+ *   - APA compliance throughout
+ *   - No separate sign-in required
  */
 
 import { useState, useEffect } from 'react';
@@ -16,6 +24,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
 import { Label } from '@/components/ui/label';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+
+// Wizard Steps
+type WizardStep = 'parent-signup' | 'plan-selection' | 'child-setup' | 'safety-agreement' | 'success';
 
 interface ChildPermissions {
   canPost: boolean;
@@ -32,6 +43,15 @@ interface ExistingChild {
   id: string;
   firstName: string;
   username: string;
+}
+
+interface ParentFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  birthdate: string;
+  password: string;
+  confirmPassword: string;
 }
 
 const REGULAR_CHILD_DEFAULTS: ChildPermissions = {
@@ -61,17 +81,28 @@ export default function StreamlinedParentsHQWizard() {
   const searchParams = useSearchParams();
   const inviteCode = searchParams?.get('inviteCode');
   
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState<WizardStep>('parent-signup');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   
   // User and invite data
   const [userData, setUserData] = useState<any>(null);
   const [inviteDetails, setInviteDetails] = useState<any>(null);
   const [existingChildren, setExistingChildren] = useState<ExistingChild[]>([]);
   
-  // Form state
+  // Parent form data
+  const [parentData, setParentData] = useState<ParentFormData>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    birthdate: '',
+    password: '',
+    confirmPassword: ''
+  });
+  
+  // Child form state
   const [selectedChildId, setSelectedChildId] = useState<string>('new');
   const [childFirstName, setChildFirstName] = useState('');
   const [childUsername, setChildUsername] = useState('');
@@ -227,7 +258,8 @@ export default function StreamlinedParentsHQWizard() {
           }
         }
 
-        setSuccess(true);
+        setCurrentStep('success');
+        setError('');
         setTimeout(() => {
           router.push('/parents/hq/dashboard');
         }, 2000);
