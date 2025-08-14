@@ -37,7 +37,18 @@ export default async function SessionPingPage({ searchParams }: { searchParams: 
     }
   }
   
-  // For test plan users, redirect to email-confirmation per APA flow document
+  // Sol's Fix: Check for approved Parents first (parent invite flow)
+  if (user.account?.isApproved && user.account?.role === 'Parent') {
+    console.log('[APA] Approved Parent detected. Allowing access to dashboard or invite flow.');
+    // Let the parent continue - don't force them through email-confirmation
+    if (inviteCode) {
+      redirect(`/invite/accept?code=${inviteCode}`);
+    } else {
+      redirect('/my-cliqs-dashboard');
+    }
+  }
+  
+  // For test plan users (non-parents), redirect to email-confirmation per APA flow document
   if (user.plan === 'test') {
     console.log('[APA] Test plan user detected. Redirecting to email-confirmation per APA flow document.');
     redirect('/email-confirmation');
