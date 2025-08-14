@@ -85,23 +85,8 @@ function InviteAcceptContent() {
         }
 
         if (role === 'child') {
-          // Child invite: Check if parent is authenticated
-          try {
-            const authRes = await fetch('/api/auth/status', { credentials: 'include', cache: 'no-store' });
-            const auth = authRes.ok ? await authRes.json() : null;
-            if (!auth?.user) {
-              // For parent invites, redirect directly to Parents HQ wizard
-              router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
-              return;
-            }
-          } catch {
-            // For parent invites, redirect directly to Parents HQ wizard
-            router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
-            return;
-          }
-
-          // Authenticated parent: send to Parents HQ with code
-          if (!cancelled) router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
+          // This is a PARENT invite (to approve a child) - always redirect to Parents HQ wizard
+          router.replace(`/parents/hq?inviteCode=${encodeURIComponent(inviteCode)}`);
           return;
         }
 
