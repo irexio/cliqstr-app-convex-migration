@@ -1,21 +1,14 @@
 export const dynamic = 'force-dynamic';
 
 import { cookies } from 'next/headers';
-import { prisma } from '@/lib/prisma';
 import { getServerSession } from '@/lib/auth/getServerSession';
-import ParentSignupModal from '@/components/parents/wizard/ParentSignupModal';
-import PermissionsModal from '@/components/parents/wizard/PermissionsModal';
-import SuccessSection from '@/components/parents/wizard/SuccessSection';
-
-type WizardStep = 'PARENT_SIGNUP' | 'PERMISSIONS' | 'SUCCESS';
+import { prisma } from '@/lib/prisma';
+import ParentsHQWithSignup from '@/components/parents/ParentsHQWithSignup';
 
 /**
- * 🎯 Sol's Server-Side Parents HQ Page
+ * 🎯 Mimi's Vision: Beautiful Parents HQ with signup at the top
  * 
- * Smart step detection based on:
- * - Session state (authenticated vs not)
- * - Account state (role, approval, onboarding completion)
- * - Invite context (pending_invite cookie)
+ * Shows signup form at top when needed, then beautiful dashboard below
  */
 export default async function ParentsHQPage() {
   const cookieStore = cookies();
@@ -24,13 +17,14 @@ export default async function ParentsHQPage() {
   const session = await getServerSession();
   const inviteCode = cookieStore.get('pending_invite')?.value;
 
-  let initialStep: WizardStep;
+  let needsSignup = false;
+  let needsChildCreation = false;
+  let needsPermissions = false;
   let account = null;
 
-  // 🎯 SOL'S EXACT STEP DETECTION LOGIC
+  // 🎯 Determine what the user needs to see
   if (!session) {
-    // No user - start with parent signup
-    initialStep = 'PARENT_SIGNUP';
+    needsSignup = true;
   } else {
     try {
       const userId = (session as any)?.userId;
@@ -40,57 +34,69 @@ export default async function ParentsHQPage() {
         });
         
         if (account?.role === 'Parent') {
-          // 🎯 Sol's Rule: Check if onboarding is complete
-          if ((account as any)?.parentOnboardingComplete === true) {
-            initialStep = 'SUCCESS';
-          } else if (inviteCode) {
+          // Check if we need permissions step
+          if (inviteCode) {
             const invite = await prisma.invite.findFirst({
-              where: { code: inviteCode }
+              where: { 
+                code: inviteCode,
+                expiresAt: { gt: new Date() }
+              }
             });
             
-            if (invite?.status === 'completed') {
-              // Invite completed, show success
-              initialStep = 'SUCCESS';
-            } else if (invite?.status === 'accepted') {
-              // Move to permissions step
-              initialStep = 'PERMISSIONS';
-            } else {
-              // Invite not accepted yet, start signup
-              initialStep = 'PARENT_SIGNUP';
+            const isValidInvite = invite && 
+              ['pending', 'accepted'].includes(invite.status) &&
+              (!invite.invitedUserId || invite.invitedUserId === userId);
+            
+            if (isValidInvite && invite.status === 'accepted' && !invite.used) {
+              // Check if child account exists for this invite
+              const childExists = await prisma.user.findFirst({
+                where: { 
+                  id: invite.invitedUserId || '' 
+                },
+                include: { account: true }
+              });
+              
+              if (!childExists || childExists.account?.role !== 'Child') {
+                needsChildCreation = true;
+              } else {
+                needsPermissions = true;
+              }
             }
-          } else {
-            // No invite, default to success for existing parent
-            initialStep = 'SUCCESS';
           }
         } else {
-          // Not a parent yet, start signup
-          initialStep = 'PARENT_SIGNUP';
+          needsSignup = true;
         }
       } else {
-        // No userId, start signup
-        initialStep = 'PARENT_SIGNUP';
+        needsSignup = true;
       }
     } catch (error) {
-      console.error('[PARENTS_HQ] Database error:', error);
-      initialStep = 'PARENT_SIGNUP';
+      console.error('[PARENTS_HQ] Error checking account:', error);
+      needsSignup = true;
     }
   }
 
-  // 🎯 Sol's Direct Modal Rendering - Ultra Clean
-  const inviteEmail = ''; // TODO: Extract from invite if needed
-  
+  // Extract email from invite if available
+  let prefillEmail = '';
+  if (inviteCode) {
+    try {
+      const invite = await prisma.invite.findFirst({
+        where: { code: inviteCode },
+        select: { inviteeEmail: true }
+      });
+      prefillEmail = invite?.inviteeEmail || '';
+    } catch (error) {
+      console.error('[PARENTS_HQ] Error getting invite email:', error);
+    }
+  }
+
   return (
-    <>
-      {/* 🚨 DEBUG: Confirm this page is being served */}
-      <div style={{position: 'fixed', top: 0, left: 0, background: 'red', color: 'white', padding: '5px', zIndex: 9999}}>
-        DEBUG: Parents HQ Page - Step: {initialStep} - Cookie: {inviteCode || 'none'}
-      </div>
-      
-      {/* Page chrome - minimal */}
-      {initialStep === 'PARENT_SIGNUP' && <ParentSignupModal prefillEmail={inviteEmail} />}
-      {initialStep === 'PERMISSIONS' && <PermissionsModal />}
-      {initialStep === 'SUCCESS' && <SuccessSection />}
-    </>
+    <ParentsHQWithSignup 
+      needsSignup={needsSignup}
+      needsChildCreation={needsChildCreation}
+      needsPermissions={needsPermissions}
+      prefillEmail={prefillEmail}
+      inviteCode={inviteCode}
+    />
   );
 }
 

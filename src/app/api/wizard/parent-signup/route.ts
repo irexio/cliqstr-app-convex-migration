@@ -9,20 +9,20 @@ export async function POST(request: NextRequest) {
   try {
     const cookieStore = cookies();
     
-    // 🎯 Sol's Rule: Require pending_invite cookie
+    // Sol's Rule: Require pending_invite cookie
     const inviteCode = cookieStore.get('pending_invite')?.value;
     if (!inviteCode) {
       return NextResponse.json({ ok: false, error: 'No pending invite' }, { status: 400 });
     }
 
     // Parse request body
-    const { firstName, lastName, email, birthdate, password } = await request.json();
+    const { firstName, lastName, email, birthdate, password, plan } = await request.json();
     
     if (!firstName || !lastName || !email || !birthdate || !password) {
       return NextResponse.json({ ok: false, error: 'Missing required fields' }, { status: 400 });
     }
 
-    // 🎯 Sol's Rule: Normalize email (trim+lower)
+    // Sol's Rule: Normalize email (trim+lower)
     const normalizedEmail = email.trim().toLowerCase();
 
     // 🎯 Sol's Rule: Validate invite (not expired)
@@ -75,16 +75,34 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      // Update Invite
+      // Create/Upsert MyProfile with firstName, lastName
+      const profile = await tx.myProfile.upsert({
+        where: { userId: user.id },
+        create: {
+          userId: user.id,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: `${firstName.toLowerCase()}${lastName.toLowerCase()}${Math.random().toString(36).slice(2, 6)}`,
+          birthdate: new Date(birthdate)
+        },
+        update: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          birthdate: new Date(birthdate)
+        }
+      });
+
+      // Update Invite - Sol's Rule: Keep it alive until final step
       await tx.invite.update({
         where: { id: invite.id },
         data: {
           invitedUserId: user.id,
           status: 'accepted'
+          // Do NOT set used = true yet - keep invite alive
         }
       });
 
-      return { user, account };
+      return { user, account, profile };
     });
 
     // 🎯 Sol's Rule: Start iron-session

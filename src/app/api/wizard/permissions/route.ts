@@ -77,18 +77,19 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Mark Invite.status = 'completed'
+      // Sol's Rule: Final step - Mark invite as used and completed
       await tx.invite.update({
         where: { id: invite.id },
         data: {
+          used: true,
           status: 'completed'
-          // completedAt: new Date() // Field may not exist in schema
+          // completedAt: new Date() // Add if field exists in schema
         }
       });
 
-      // Note: parentOnboardingComplete field doesn't exist in schema
-      // We'll use invite.status = 'completed' to determine SUCCESS step instead
-      console.log('[WIZARD] Onboarding marked complete via invite status');
+      // Sol's Rule: Optionally mark Account.parentOnboardingComplete = true
+      // (Skip for now since field may not exist in schema)
+      console.log('[WIZARD] Invite marked as used=true, status=completed');
 
       return { success: true };
     });
