@@ -13,6 +13,13 @@ export function useSessionSync() {
   // Handle auth state changes
   const handleAuthChange = useCallback((isAuthenticated: boolean) => {
     if (!isAuthenticated) {
+      // Check if we're on the /parents route - don't auto-redirect there
+      const currentPath = window.location.pathname;
+      if (currentPath.startsWith('/parents')) {
+        console.log('[SessionSync] Skipping auto-redirect on /parents route');
+        return;
+      }
+      
       // User signed out in another tab - redirect to sign in
       router.push('/sign-in');
     }

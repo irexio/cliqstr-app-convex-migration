@@ -23,53 +23,108 @@ This follows the new Next.js App Router structure where folders = routes:
 - **`/sign-in`** - Login page and API routes
 - **`/sign-up`** - Registration flow with email verification
 - **`/auth`** - Authentication utilities and callbacks
-- **`/account`** - **Account management system** (email, password, security settings)
+- **`/account`** - Account management system (email, password, security settings)
 - **`/profile`** - Social profile management (username, avatar, bio)
+- **`/forgot-password`** - Password reset flow
+- **`/reset-password`** - Password reset completion
+- **`/verify-email`** - Email verification
+- **`/verification-pending`**, **`/verification-success`**, **`/verification-error`** - Email verification states
 
 #### Parent & Child System
-- **`/parents`** - **Parents HQ with streamlined single-step wizard**
-- **`/parent/signup`** - **NEW: Special parent signup page for invited parents**
+- **`/parents`** - **Parents HQ with beautiful single-page design**
+- **`/parent`** - Parent-specific features and signup
 - **`/parent-approval`** - Child invite approval flows
 - **`/child`** - Child-specific dashboard and features
+- **`/child-account-created`** - Child account creation success
 - **`/awaiting-approval`** - Child waiting state
+- **`/verify-parent`** - Parent verification flow
 
 #### Core Social Features
 - **`/cliqs`** - Cliq (group) creation, management, and viewing
 - **`/explore`** - Discover public cliqs and content
 - **`/invite`** - Invitation system for joining cliqs
-- **`/my-cliqs-dashboard`** - User's cliq management
+- **`/my-cliqs-dashboard`** - User's cliq management dashboard
+- **`/replies`** - Reply management
+- **`/join`** - Cliq joining flow
 
 #### Business & Legal
 - **`/pricing`** - Subscription plans and billing
 - **`/choose-plan`** - Plan selection flow
+- **`/verify-card`** - Payment verification
 - **`/terms`**, **`/privacy`**, **`/safety`** - Legal pages
 - **`/for-parents`** - Marketing page for parents
+- **`/about`**, **`/features`**, **`/how-it-works`**, **`/faqs`** - Marketing pages
 
 #### Admin & Debug
 - **`/admin`** - Admin dashboard for system management
 - **`/debug`** - Development debugging tools
+- **`/not-authorized`** - Access denied page
+- **`/suspended`** - Account suspension page
+- **`/session-ping`** - Session management
+- **`/test-avatar`**, **`/test-simple`**, **`/test-upload`** - Development testing pages
 
 ### `/src/app/api` - Backend API Routes
 All server-side functionality organized by feature:
 
-- **`/api/auth`** - Authentication (sign-in, sign-up, session management)
-- **`/api/account`** - **Account management APIs** (change email, password, upgrade to parent)
-- **`/api/parent`** - Parent-specific APIs (child management, permissions)
-- **`/api/cliqs`** - Cliq creation, management, and social features
-- **`/api/invites`** - Invitation system APIs
-- **`/api/upload`** - File upload handling
+#### Core Authentication & User Management
+- **`/api/auth`** - Authentication (sign-in, sign-up, session management, verification)
+- **`/api/account`** - Account management APIs (change email, password, upgrade to parent)
+- **`/api/user`** - User profile and data management
+- **`/api/sign-in`**, **`/api/sign-out`**, **`/api/sign-up`** - Authentication endpoints
+- **`/api/verify-email`**, **`/api/resend-verification`** - Email verification
+- **`/api/reset-password`**, **`/api/send-reset-email`** - Password reset
+
+#### Parent & Child Management
+- **`/api/parent`** - Parent-specific APIs (child management, permissions, approval)
+- **`/api/parent-approval`** - Child invite approval system
+- **`/api/wizard`** - Parents HQ wizard steps
+- **`/api/send-parent-email`** - Parent notification emails
+- **`/api/get-child-info`** - Child account information
+
+#### Social Features
+- **`/api/cliqs`** - Cliq creation, management, feeds, and social features
+- **`/api/posts`** - Post creation and management
+- **`/api/replies`** - Reply system
+- **`/api/invites`**, **`/api/invite`** - Invitation system APIs
+- **`/api/accept-invite`** - Invite acceptance
+- **`/api/invite-request`** - Invite request handling
+- **`/api/red-alert`** - Safety alert system
+
+#### File Management & Media
+- **`/api/uploadthing`** - File upload handling (UploadThing integration)
+- **`/api/profile`** - Profile image and data management
+- **`/api/scrapbook`** - User gallery/scrapbook features
+
+#### Business & Payments
+- **`/api/create-checkout-session`** - Stripe checkout
+- **`/api/create-setup-intent`** - Payment setup
+- **`/api/webhooks`** - Payment and external service webhooks
+
+#### Admin & Development
 - **`/api/admin`** - Admin-only functionality
+- **`/api/debug-uploadthing`**, **`/api/test-uploadthing`** - Development testing
+- **`/api/test-email`**, **`/api/test-email-debug`** - Email testing
+- **`/api/dev-reset`** - Development utilities
 
 ### `/src/components` - Reusable UI Components
 
 #### Component Organization
-- **`/Header`** - Navigation components (UserDropdown, main header)
-- **`/parents`** - **Parent-related components** (ParentsHQWizard, ParentDashboard, wizard steps)
-  - **`/wizard`** - Multi-step wizard components (ParentUpgradeStep, ParentAccountCreationStep, ChildAccountStep, PermissionSetupStep, SuccessStep)
-- **`/cliqs`** - Cliq-related UI components (creation, management, viewing)
+- **`/Header`** - Navigation components (UserDropdown, main header, mobile menu)
+- **`/parents`** - Parent-related components (ParentsHQWithSignup, ParentsHQContent, wizard modals)
+- **`/cliqs`** - Cliq-related UI components (CliqCard, CliqFeed, CliqTools, CreateCliqForm, etc.)
 - **`/admin`** - Admin dashboard components
-- **`/ui`** - Base UI components (buttons, forms, modals)
-- **Root level** - Shared components (Logo, Footer, layouts)
+- **`/ui`** - Base UI components (buttons, forms, modals, avatars, etc.)
+- **`/server`** - Server-side components for data fetching
+- **Root level** - Shared components including:
+  - **ProfileClient.tsx** - Main profile viewing/editing component
+  - **CreateProfileForm.tsx** - Profile creation form
+  - **SetUpProfileClient.tsx** - Profile setup for invited users
+  - **ScrapbookGallery.tsx** - User gallery component
+  - **AvatarUploader.tsx**, **BannerUploader.tsx** - Image upload components
+  - **PostCardBubble.tsx**, **PostForm.tsx** - Social posting components
+  - **InviteClient.tsx** - Invitation handling
+  - **Logo.tsx**, **Footer.tsx**, **Hero.tsx** - Layout components
+  - **Pricing.tsx**, **Testimonials.tsx** - Marketing components
 
 ### `/src/lib` - Utility Libraries
 - **`/auth`** - Authentication utilities and session management
@@ -140,24 +195,25 @@ All server-side functionality organized by feature:
 3. **API processes request** → Uses `/src/lib/` utilities
 4. **Page renders UI** → Uses `/src/components/` components
 
-### Recent Major Additions (Latest: Aug 2025)
+### Recent Major Features (Latest: 2025)
 - **Account Management System** - Complete account settings with email, password, security
-- **🎯 STREAMLINED PARENT INVITE FLOW** - **Complete redesign for rock-solid reliability**
-  - **`/parent/signup`** - **Special parent signup page with invite validation**
-    - Pre-fills parent email from invite (`recipientEmail` field)
-    - Requires: firstName, lastName, email, birthdate, password
-    - Password visibility toggles (👁️ eyeball icons)
-    - Auto-verifies invited parents (`preVerified: true`)
-    - Sets Parent role and free test plan to skip plan selection
-  - **StreamlinedParentsHQWizard** - **Single comprehensive step combining child creation + permissions**
-    - Two-tier permission system: Regular vs Invited children
-    - Regular children: Full parent control over all permissions
-    - Invited children: Safety-locked permissions (🔒 no friend invites, no video uploads, etc.)
-    - Child dropdown for existing children (family management)
-    - Shows which Cliq the child is being invited to
-  - **Updated Email Links** - Child invites now link to `/parent/signup?code=xyz`
-  - **API Fixes** - Sign-up API properly handles `context: 'parent_invite'` with Parent role assignment
-- **Session Synchronization** - Keeps auth state in sync across browser tabs
+- **🎯 BEAUTIFUL SINGLE-PAGE PARENTS HQ** - **Elegant, streamlined parent experience**
+  - **ParentsHQWithSignup** - Single page that adapts to show what parent needs
+  - **Server-driven logic** - Intelligently detects signup → child creation → permissions → dashboard
+  - **Beautiful design** - Clean gray background with white sections, professional styling
+  - **Conditional sections** - Shows signup form at top when needed, then dashboard below
+  - **Child creation modal** - Integrated child account setup
+  - **Permission system** - Simple checkbox interface for child safety controls
+- **Cliq System Enhancements**
+  - **CliqFeed** - Post and reply system with beautiful card layout
+  - **CliqTools** - Calendar, Games, Video Chat, Homework Help, Red Alert
+  - **CliqNoticeBar** - Birthday celebrations, admin announcements, safety alerts
+  - **Activity tracking** - Visit tracking and notification badges
+  - **Age gating** - minAge/maxAge fields for appropriate content
+- **Upload System** - UploadThing integration for avatars, banners, and media
+- **Profile System** - Comprehensive social profiles with galleries
+- **Session Management** - Extended 7-day sessions with proper sync
+- **Invite System** - Branded cliq-xxxxx invite codes with full flow
 
 ## 🛡️ Security & Compliance
 - **APA Compliance** - Built into parent/child workflows
