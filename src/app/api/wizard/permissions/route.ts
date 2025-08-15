@@ -28,8 +28,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, code: 'not_parent' }, { status: 403 });
     }
 
-    // 🎯 Sol's Rule: Load invite via pending_invite cookie
-    const cookieStore = cookies();
+    // Sol's Rule: Load invite via pending_invite cookie
+    const cookieStore = await cookies();
     const inviteCookie = cookieStore.get('pending_invite')?.value;
     
     const body = await req.json().catch(() => ({}));

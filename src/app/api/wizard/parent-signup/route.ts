@@ -7,7 +7,7 @@ import { sessionOptions } from '@/lib/auth/session-config';
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     
     // Sol's Rule: Require pending_invite cookie
     const inviteCode = cookieStore.get('pending_invite')?.value;

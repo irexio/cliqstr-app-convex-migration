@@ -34,8 +34,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/invite/invalid', request.url));
     }
 
-    // 3. Set pending_invite cookie (Sol's specification)
-    const cookieStore = cookies();
+    // 3. Set pending_invite cookie (Sol's specification) - Fixed for Next.js 15
+    const cookieStore = await cookies();
     cookieStore.set('pending_invite', inviteCode, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

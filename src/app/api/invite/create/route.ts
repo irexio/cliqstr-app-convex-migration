@@ -223,9 +223,9 @@ export async function POST(req: Request) {
         invitedRole: inviteType === 'child' ? 'child' : 'adult'
       });
       
-      // Prepare the invite data with 36-hour expiry
+      // Prepare the invite data with 30-day expiry (extended for testing)
       const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 36);
+      expiresAt.setDate(expiresAt.getDate() + 30);
       
       const inviteData: any = {
         code: await generateInviteCode(),
