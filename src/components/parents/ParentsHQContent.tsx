@@ -28,6 +28,16 @@ export default function ParentsHQContent() {
         const data = res.ok ? await res.json() : null;
 
         if (!data?.user) {
+          // Allow unauthenticated users if they have a pending invite (signup flow)
+          if (typeof document !== 'undefined') {
+            const hasPendingInvite = document.cookie.includes('pending_invite=');
+            if (hasPendingInvite) {
+              // Let them proceed to signup - don't redirect
+              if (!cancelled) setAuthLoading(false);
+              return;
+            }
+          }
+          
           const rt = `/parents/hq${inviteCode ? `?inviteCode=${encodeURIComponent(inviteCode)}` : ''}`;
           router.replace(`/sign-in?returnTo=${encodeURIComponent(rt)}`);
           return;
