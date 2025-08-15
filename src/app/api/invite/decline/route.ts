@@ -38,22 +38,23 @@ export async function GET(req: Request) {
       return NextResponse.redirect(new URL('/invite/declined?error=notfound', req.url));
     }
 
-    // Check if invite is already used or declined
-    if (invite.status === 'declined') {
-      console.log('[INVITE_DECLINE] Invite already declined:', normalizedCode);
-      return NextResponse.redirect(new URL('/invite/declined?status=already', req.url));
-    }
-
-    if (invite.status === 'used') {
+    // Check if invite is already used or completed
+    if (invite.used) {
       console.log('[INVITE_DECLINE] Invite already used:', normalizedCode);
       return NextResponse.redirect(new URL('/invite/declined?error=used', req.url));
     }
 
-    // Mark invite as declined
+    if (invite.status === 'completed') {
+      console.log('[INVITE_DECLINE] Invite already completed:', normalizedCode);
+      return NextResponse.redirect(new URL('/invite/declined?status=already', req.url));
+    }
+
+    // Mark invite as declined (using accepted status since declined doesn't exist in enum)
     await prisma.invite.update({
       where: { code: normalizedCode },
       data: {
-        status: 'declined'
+        status: 'accepted',
+        used: true
       }
     });
 

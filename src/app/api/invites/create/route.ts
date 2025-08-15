@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/auth/getServerSession';
-import { prisma } from '@/lib/prisma';
 import { nanoid } from 'nanoid';
+import { prisma } from '@/lib/prisma';
+import { getServerSession } from '@/lib/auth/getServerSession';
+import { generateJoinCode } from '@/lib/auth/generateJoinCode';
 
 export async function POST(request: NextRequest) {
   try {
@@ -61,12 +62,12 @@ export async function POST(request: NextRequest) {
     const invite = await prisma.invite.create({
       data: {
         token: nanoid(),
+        joinCode: generateJoinCode(),
         targetEmailNormalized: emailNorm,
         targetUserId,
         targetState,
         status: 'pending',
         used: false,
-        childId: childId || null,
         inviterId: session.id,
         inviteeEmail: email, // Keep original casing
         cliqId: undefined, // Not tied to specific cliq for parent invites

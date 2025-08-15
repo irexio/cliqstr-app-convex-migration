@@ -116,10 +116,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // 📌 Step 6: Mark invite as used
+    // 📌 Step 6: Mark invite as completed
     await prisma.invite.update({
       where: { code: normalizeInviteCode(inviteCode) },
-      data: { status: 'used' }
+      data: { status: 'completed' }
     });
 
     // 👪 Step 7: Find parent user and create ParentLink

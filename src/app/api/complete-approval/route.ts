@@ -112,10 +112,10 @@ export async function POST(req: Request) {
       });
     }
 
-    // ✅ Mark invite as used
+    // ✅ Mark invite as completed
     await prisma.invite.update({
       where: { code: normalizeInviteCode(inviteCode) },
-      data: { status: 'used' },
+      data: { status: 'completed' },
     });
 
     // ✅ Find parent user by email

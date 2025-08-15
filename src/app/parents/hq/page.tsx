@@ -45,6 +45,7 @@ export default async function ParentsHQPage() {
           targetState: true,
           targetUserId: true,
           targetEmailNormalized: true,
+          inviteeEmail: true,
           status: true,
           used: true
         }

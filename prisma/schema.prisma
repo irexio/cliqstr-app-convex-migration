@@ -150,6 +150,7 @@ model Reply {
 model Invite {
   id                    String       @id @default(cuid())
   token                 String       @unique
+  joinCode              String?      @unique
   code                  String?      @unique
   inviteeEmail          String
   targetEmailNormalized String       @db.VarChar(320)

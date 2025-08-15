@@ -6,7 +6,9 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { sendInviteEmail } from '@/lib/auth/sendInviteEmail';
 import { sendChildInviteEmail } from '@/lib/auth/sendChildInviteEmail';
 import { generateInviteCode } from '@/lib/auth/generateInviteCode';
+import { generateJoinCode } from '@/lib/auth/generateJoinCode';
 import { BASE_URL } from '@/lib/email';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -179,7 +181,7 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
-        code: true,
+        token: true,
         invitedRole: true,
         friendFirstName: true,
         trustedAdultContact: true,
@@ -190,12 +192,12 @@ export async function POST(req: Request) {
     
     // If an invite already exists, we'll use it but still send the email
     // This allows for testing email sending with the same email address
-    let inviteCode;
+    let inviteCode: string;
     let inviteRole;
     
     if (existingInvite) {
       console.log('[INVITE_INFO] Invite already exists - will resend email', { email: targetEmail, cliqId });
-      inviteCode = existingInvite.code;
+      inviteCode = existingInvite.token;
       inviteRole = existingInvite.invitedRole;
       
       // Update the existing invite with the new fields if needed
@@ -228,7 +230,12 @@ export async function POST(req: Request) {
       expiresAt.setDate(expiresAt.getDate() + 30);
       
       const inviteData: any = {
-        code: await generateInviteCode(),
+        token: crypto.randomUUID(),
+        joinCode: generateJoinCode(),
+        targetEmailNormalized: targetEmail.toLowerCase().trim(),
+        targetUserId: null, // Will be set by intelligent invite logic later
+        targetState: 'new', // Default to new user flow
+        status: 'pending',
         maxUses: 1,
         used: false,
         expiresAt,
@@ -256,13 +263,13 @@ export async function POST(req: Request) {
       const invite = await prisma.invite.create({ data: inviteData });
 
       console.log('[INVITE_DEBUG] Invite created successfully', { 
-        inviteCode: invite.code,
+        inviteToken: invite.token,
         inviteId: invite.id,
         invitedRole: invite.invitedRole,
         targetEmail: invite.inviteeEmail
       });
       
-      inviteCode = invite.code;
+      inviteCode = invite.token;
       inviteRole = invite.invitedRole;
       
       // ✅ APA Upgrade: If user invites their own child, promote them to Parent
@@ -308,7 +315,7 @@ export async function POST(req: Request) {
     
     // Construct the invite link with the correct base URL and path
     // Both child and adult invites go to the unified accept flow
-    const inviteLink = `${BASE_URL}/invite/accept?code=${inviteCode}`;
+    const inviteLink = `${BASE_URL}/invite/${inviteCode}`;
     
     console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
     

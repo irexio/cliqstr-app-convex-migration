@@ -1,5 +1,7 @@
 export const dynamic = 'force-dynamic';
 
+import crypto from 'crypto';
+
 /**
  * 🔐 APA-HARDENED ROUTE: POST /api/invite-request/approve
  *
@@ -64,12 +66,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Create approved invite
+    const inviteToken = crypto.randomUUID();
+    const normalizedEmail = inviteRequest.inviteeEmail.toLowerCase().trim();
+    
     await prisma.invite.create({
       data: {
+        token: inviteToken,
         code: await generateInviteCode(),
         cliqId: inviteRequest.cliqId,
         invitedRole: inviteRequest.invitedRole,
         inviteeEmail: inviteRequest.inviteeEmail,
+        targetEmailNormalized: normalizedEmail,
+        targetState: 'new', // Default to new user flow
         inviterId: inviteRequest.inviterId,
         status: 'pending',
         isApproved: true,
