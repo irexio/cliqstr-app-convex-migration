@@ -15,16 +15,54 @@ export default async function ParentsHQPage() {
   
   // Get session and invite cookie
   const session = await getServerSession();
-  const inviteCode = cookieStore.get('pending_invite')?.value;
-
+  const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
+  
   let needsSignup = false;
   let needsChildCreation = false;
   let needsPermissions = false;
+  let needsUpgradeToParent = false;
   let account = null;
+  let invite = null;
 
-  // 🎯 Determine what the user needs to see
+  // Parse invite cookie to get inviteId
+  let inviteId = null;
+  if (pendingInviteCookie) {
+    try {
+      const parsed = JSON.parse(pendingInviteCookie);
+      inviteId = parsed.inviteId;
+    } catch (e) {
+      console.error('[PARENTS_HQ] Invalid pending_invite cookie:', e);
+    }
+  }
+
+  // Get invite details if we have an inviteId
+  if (inviteId) {
+    try {
+      invite = await prisma.invite.findUnique({
+        where: { id: inviteId },
+        select: {
+          id: true,
+          targetState: true,
+          targetUserId: true,
+          targetEmailNormalized: true,
+          status: true,
+          used: true
+        }
+      });
+    } catch (error) {
+      console.error('[PARENTS_HQ] Error fetching invite:', error);
+    }
+  }
+
+  // 🎯 Determine what the user needs to see based on session and invite targetState
   if (!session) {
-    needsSignup = true;
+    if (invite?.targetState === 'existing_parent' || invite?.targetState === 'existing_user_non_parent') {
+      // Existing user needs to sign in first
+      needsSignup = false; // They need to sign in, not sign up
+    } else {
+      // New user needs to sign up
+      needsSignup = true;
+    }
   } else {
     try {
       const userId = (session as any)?.userId;
@@ -34,27 +72,14 @@ export default async function ParentsHQPage() {
         });
         
         if (account?.role === 'Parent') {
-          // Check if we need permissions step
-          if (inviteCode) {
-            const invite = await prisma.invite.findFirst({
-              where: { 
-                code: inviteCode,
-                expiresAt: { gt: new Date() }
-              }
-            });
-            
-            const isValidInvite = invite && 
-              ['pending', 'accepted'].includes(invite.status) &&
-              (!invite.invitedUserId || invite.invitedUserId === userId);
-            
-            if (isValidInvite && invite.status === 'accepted' && !invite.used) {
+          // Parent is authenticated - determine next step based on invite
+          if (invite) {
+            if (invite.status === 'pending' && !invite.used) {
               // Check if child account exists for this invite
-              const childExists = await prisma.user.findFirst({
-                where: { 
-                  id: invite.invitedUserId || '' 
-                },
+              const childExists = invite.targetUserId ? await prisma.user.findFirst({
+                where: { id: invite.targetUserId },
                 include: { account: true }
-              });
+              }) : null;
               
               if (!childExists || childExists.account?.role !== 'Child') {
                 needsChildCreation = true;
@@ -63,7 +88,11 @@ export default async function ParentsHQPage() {
               }
             }
           }
+        } else if (account?.role && account.role !== 'Parent') {
+          // Existing user but not Parent - needs upgrade
+          needsUpgradeToParent = true;
         } else {
+          // No account or invalid role - needs signup
           needsSignup = true;
         }
       } else {
@@ -77,16 +106,8 @@ export default async function ParentsHQPage() {
 
   // Extract email from invite if available
   let prefillEmail = '';
-  if (inviteCode) {
-    try {
-      const invite = await prisma.invite.findFirst({
-        where: { code: inviteCode },
-        select: { inviteeEmail: true }
-      });
-      prefillEmail = invite?.inviteeEmail || '';
-    } catch (error) {
-      console.error('[PARENTS_HQ] Error getting invite email:', error);
-    }
+  if (invite) {
+    prefillEmail = invite.inviteeEmail || '';
   }
 
   return (
@@ -94,8 +115,10 @@ export default async function ParentsHQPage() {
       needsSignup={needsSignup}
       needsChildCreation={needsChildCreation}
       needsPermissions={needsPermissions}
+      needsUpgradeToParent={needsUpgradeToParent}
       prefillEmail={prefillEmail}
-      inviteCode={inviteCode}
+      inviteId={inviteId}
+      targetState={invite?.targetState}
     />
   );
 }

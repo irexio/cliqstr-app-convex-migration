@@ -4,10 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface ChildCreateModalProps {
-  inviteCode?: string;
+  inviteId?: string;
 }
 
-export default function ChildCreateModal({ inviteCode }: ChildCreateModalProps) {
+export default function ChildCreateModal({ inviteId }: ChildCreateModalProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export default function ChildCreateModal({ inviteCode }: ChildCreateModalProps) 
       username: (fd.get('username') as string)?.trim(),
       password: (fd.get('password') as string) || '',
       birthdate: (fd.get('birthdate') as string) || '',
-      code: inviteCode,
+      inviteId: inviteId,
     };
 
     try {

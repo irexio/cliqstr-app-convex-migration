@@ -8,31 +8,31 @@ datasource db {
 }
 
 model User {
-  id                  String          @id @default(cuid())
-  email               String          @unique
+  id                  String            @id @default(cuid())
+  email               String            @unique
   password            String
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
   deletedAt           DateTime?
   resetToken          String?
   resetTokenExpires   DateTime?
   verificationExpires DateTime?
   verificationToken   String?
-  isVerified          Boolean         @default(false)
-  isParent            Boolean         @default(false)
+  isVerified          Boolean           @default(false)
+  isParent            Boolean           @default(false)
   account             Account?
-  ownedCliqs          Cliq[]          @relation("CliqOwner")
-  invitesSent         Invite[]        @relation("SentInvites")
-  inviteRequestsSent  InviteRequest[] @relation("InviteRequestsSent")
+  ownedCliqs          Cliq[]            @relation("CliqOwner")
+  invitesSent         Invite[]          @relation("SentInvites")
+  inviteRequestsSent  InviteRequest[]   @relation("InviteRequestsSent")
   memberships         Membership[]
   myProfile           MyProfile?
-  parentLinks         ParentLink[]    @relation("ParentLinks")
-  parentChildLinks    ParentLink[]    @relation("ParentChildLinks")
+  parentAuditLogs     ParentAuditLog[]  @relation("ParentAuditLogs")
+  parentChildLinks    ParentLink[]      @relation("ParentChildLinks")
+  parentLinks         ParentLink[]      @relation("ParentLinks")
   Post                Post[]
   redAlertsTriggered  RedAlert[]
   Reply               Reply[]
   activityLogs        UserActivityLog[]
-  parentAuditLogs     ParentAuditLog[]    @relation("ParentAuditLogs")
 }
 
 model MyProfile {
@@ -55,17 +55,15 @@ model MyProfile {
   scrapbookItems    ScrapbookItem[]
 }
 
-
-
 model ChildSettings {
   id                     String    @id @default(cuid())
   profileId              String    @unique
   canCreatePublicCliqs   Boolean   @default(false)
-  canJoinPublicCliqs     Boolean   @default(false)  // APA-safe: Parent controls child's public cliq access
-  canCreateCliqs         Boolean   @default(false)  // General cliq creation permission
+  canJoinPublicCliqs     Boolean   @default(false)
+  canCreateCliqs         Boolean   @default(false)
   canSendInvites         Boolean   @default(false)
-  canInviteChildren      Boolean   @default(false)  // Child can invite other children
-  canInviteAdults        Boolean   @default(false)  // Child can invite adults
+  canInviteChildren      Boolean   @default(false)
+  canInviteAdults        Boolean   @default(false)
   isSilentlyMonitored    Boolean   @default(true)
   aiModerationLevel      String?
   canAccessGames         Boolean   @default(false)
@@ -80,7 +78,7 @@ model ChildSettings {
 model Account {
   id               String   @id @default(cuid())
   userId           String   @unique
-  birthdate        DateTime // Immutable birthdate for APA age verification
+  birthdate        DateTime
   role             String
   isApproved       Boolean  @default(false)
   stripeStatus     String?
@@ -101,24 +99,24 @@ model Cliq {
   deletedAt      DateTime?
   coverImage     String?
   privacy        String          @default("private")
-  minAge         Int?            // Optional minimum age for joining (APA-safe age gating)
-  maxAge         Int?            // Optional maximum age for joining (APA-safe age gating)
+  minAge         Int?
+  maxAge         Int?
   owner          User            @relation("CliqOwner", fields: [ownerId], references: [id])
+  notices        CliqNotice[]
   invites        Invite[]        @relation("CliqInvites")
   inviteRequests InviteRequest[] @relation("CliqInviteRequests")
   memberships    Membership[]
   posts          Post[]
   redAlerts      RedAlert[]
-  notices        CliqNotice[]  // Notice banners for this cliq
 }
 
 model CliqNotice {
   id        String    @id @default(cuid())
   cliqId    String
-  type      String    // birthday, admin, red_alert_open, red_alert_resolved
-  content   String    // message to display
+  type      String
+  content   String
   createdAt DateTime  @default(now())
-  expiresAt DateTime? // auto-dismissal for birthday/resolved alerts
+  expiresAt DateTime?
   cliq      Cliq      @relation(fields: [cliqId], references: [id], onDelete: Cascade)
 
   @@index([cliqId])
@@ -150,27 +148,38 @@ model Reply {
 }
 
 model Invite {
-  id                  String    @id @default(cuid())
-  createdAt           DateTime  @default(now())
-  cliqId              String
-  status              String    @default("pending")
-  inviterId           String
-  invitedUserId       String?
-  isApproved          Boolean   @default(false)
-  code                String    @unique
-  expiresAt           DateTime?
-  invitedRole         String
-  inviteeEmail        String
-  maxUses             Int
-  used                Boolean   @default(false)
-  message             String?
-  friendFirstName     String?
-  inviteNote          String?
-  inviteType          String?
-  trustedAdultContact String?
-  parentAccountExists Boolean?
-  cliq                Cliq      @relation("CliqInvites", fields: [cliqId], references: [id])
-  inviter             User      @relation("SentInvites", fields: [inviterId], references: [id])
+  id                    String       @id @default(cuid())
+  token                 String       @unique
+  code                  String?      @unique
+  inviteeEmail          String
+  targetEmailNormalized String       @db.VarChar(320)
+  targetUserId          String?
+  targetState           TargetState
+  inviterId             String
+  cliqId                String?
+  status                InviteStatus @default(pending)
+  used                  Boolean      @default(false)
+  acceptedAt            DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  invitedUserId         String?
+  isApproved            Boolean      @default(false)
+  expiresAt             DateTime?
+  invitedRole           String?
+  maxUses               Int?
+  message               String?
+  friendFirstName       String?
+  inviteNote            String?
+  inviteType            String?
+  trustedAdultContact   String?
+  parentAccountExists   Boolean?
+  cliq                  Cliq?        @relation("CliqInvites", fields: [cliqId], references: [id])
+  inviter               User         @relation("SentInvites", fields: [inviterId], references: [id])
+
+  @@index([targetEmailNormalized])
+  @@index([status, used])
+  @@index([token])
 }
 
 model InviteRequest {
@@ -188,15 +197,15 @@ model InviteRequest {
 
 model ParentLink {
   id            String   @id @default(cuid())
-  parentId      String   // Parent's user ID for control/monitoring
-  email         String   // Parent's email for verification
-  childId       String   // Child's user ID
-  type          String   @default("family") // "family" or "invited"
-  inviteContext String?  // Context for invited children (e.g., "invited to Soccer Team")
+  parentId      String
+  email         String
+  childId       String
+  type          String   @default("family")
+  inviteContext String?
   createdAt     DateTime @default(now())
-  parent        User     @relation("ParentLinks", fields: [parentId], references: [id])
   child         User     @relation("ParentChildLinks", fields: [childId], references: [id])
-  
+  parent        User     @relation("ParentLinks", fields: [parentId], references: [id])
+
   @@unique([parentId, childId])
   @@unique([email, childId])
 }
@@ -205,7 +214,7 @@ model ParentAuditLog {
   id        String   @id @default(cuid())
   parentId  String
   childId   String
-  action    String   // e.g., 'update_canSendInvites', 'update_isSilentlyMonitored'
+  action    String
   oldValue  String?
   newValue  String?
   createdAt DateTime @default(now())
@@ -253,6 +262,30 @@ model ScrapbookItem {
   myProfile MyProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
+model UserActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  event     String
+  detail    String?
+  debugId   String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+enum InviteStatus {
+  pending
+  accepted
+  completed
+  canceled
+}
+
+enum TargetState {
+  new
+  existing_parent
+  existing_user_non_parent
+  invalid_child
+}
+
 enum AIModerationLevel {
   strict
   moderate
@@ -263,14 +296,4 @@ enum CliqPrivacy {
   private
   semi_private
   public
-}
-
-model UserActivityLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  event     String   // e.g., 'signup', 'login', 'invite-accept'
-  detail    String?  // e.g., IP address, code used, manual vs invite
-  debugId   String?  // for tracking odd flows
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
 }

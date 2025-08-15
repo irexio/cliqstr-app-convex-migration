@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useSessionSync } from '@/hooks/useSessionSync';
 
 type UserData = {
@@ -29,9 +29,15 @@ export function UserDropdown({ userData, handleSignOut }: UserDropdownProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [avatarError, setAvatarError] = useState(false);
+  const pathname = usePathname() || "";
   
-  // Initialize session synchronization
-  const { signOutAllTabs } = useSessionSync();
+  // ✅ Do NOT initialize session sync on Parents/Invite routes
+  const isParents = pathname.startsWith("/parents");
+  const isInvite = pathname.startsWith("/invite");
+  
+  // Initialize session synchronization only if not on blocked routes
+  const sessionSyncResult = (!isParents && !isInvite) ? useSessionSync(userData) : { signOutAllTabs: async () => {} };
+  const { signOutAllTabs } = sessionSyncResult;
 
   // Close dropdown when clicking outside
   useEffect(() => {

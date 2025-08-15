@@ -9,16 +9,20 @@ interface ParentsHQWithSignupProps {
   needsSignup: boolean;
   needsChildCreation: boolean;
   needsPermissions: boolean;
+  needsUpgradeToParent: boolean;
   prefillEmail: string;
-  inviteCode?: string;
+  inviteId?: string;
+  targetState?: string;
 }
 
 export default function ParentsHQWithSignup({ 
   needsSignup, 
   needsChildCreation,
-  needsPermissions, 
+  needsPermissions,
+  needsUpgradeToParent,
   prefillEmail,
-  inviteCode 
+  inviteId,
+  targetState
 }: ParentsHQWithSignupProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -50,6 +54,34 @@ export default function ParentsHQWithSignup({
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.ok) {
         setErr(data?.message || data?.code || 'Unable to sign up. Please try again.');
+        setSubmitting(false);
+        return;
+      }
+
+      // Success - refresh to show next step
+      router.refresh();
+    } catch (e) {
+      setErr('Network error. Please check your connection and try again.');
+      setSubmitting(false);
+    }
+  }
+
+  // Handle upgrade to parent form submission
+  async function handleUpgradeToParent(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setErr(null);
+    setSubmitting(true);
+
+    try {
+      const res = await fetch('/api/wizard/upgrade-to-parent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data?.ok) {
+        setErr(data?.message || data?.code || 'Unable to upgrade account. Please try again.');
         setSubmitting(false);
         return;
       }
@@ -200,9 +232,47 @@ export default function ParentsHQWithSignup({
         </div>
       )}
 
+      {/* Upgrade to Parent Section - shown when needed */}
+      {needsUpgradeToParent && (
+        <div className="bg-white border-b border-gray-200 py-8">
+          <div className="max-w-md mx-auto px-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
+              Upgrade to Parent Account
+            </h2>
+            
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm text-gray-700">
+                You're about to become a Parent on Cliqstr and manage a child account. 
+                This will give you access to parental controls and monitoring features.
+              </p>
+            </div>
+
+            <form onSubmit={handleUpgradeToParent} className="space-y-4">
+              <label className="flex items-center space-x-3">
+                <input type="checkbox" required className="rounded" />
+                <span className="text-sm text-gray-700">
+                  I confirm that I accept parental responsibilities and understand 
+                  that I will be responsible for monitoring my child's activity on Cliqstr.
+                </span>
+              </label>
+
+              {err && <p className="text-sm text-red-600">{err}</p>}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {submitting ? 'Upgrading account…' : 'Become a Parent'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Child Creation Section - shown when needed */}
       {needsChildCreation && (
-        <ChildCreateModal inviteCode={inviteCode} />
+        <ChildCreateModal inviteId={inviteId} />
       )}
 
       {/* Permissions Section - shown when needed */}
