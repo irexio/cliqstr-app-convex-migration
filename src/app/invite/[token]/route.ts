@@ -58,11 +58,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const cookieJson = JSON.stringify({ inviteId: invite.id });
     const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
     
-    console.log('[INVITE_TOKEN] Setting bulletproof cookie:', { cookieJson, cookieValue, inviteId: invite.id });
+    console.log('[INVITE_TOKEN] Setting bulletproof cookie and deleting legacy variants:', { cookieJson, cookieValue, inviteId: invite.id });
     
     const redirectUrl = new URL('/parents/hq#create-child', request.url);
     const res = NextResponse.redirect(redirectUrl, 302);
     
+    // Set the canonical Base64-URL cookie
     res.cookies.set('pending_invite', cookieValue, {
       domain: '.cliqstr.com',
       path: '/',
@@ -72,7 +73,25 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       maxAge: 86400 // 24 hours
     });
 
-    console.log('[INVITE_TOKEN] Bulletproof cookie set, 302 to /parents/hq#create-child');
+    // Delete legacy cookie variants
+    res.cookies.set('pending_invite', '', {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 0 // Delete
+    });
+    
+    res.cookies.set('pending_invite', '', {
+      domain: '.cliqstr.com',
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      expires: new Date(0) // Delete
+    });
+
+    console.log('[INVITE_TOKEN] Bulletproof cookie set and legacy variants deleted, 302 to /parents/hq#create-child');
     
     return res;
 

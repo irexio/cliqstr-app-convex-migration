@@ -62,13 +62,11 @@ export async function POST(request: NextRequest) {
     const cookieJson = JSON.stringify({ inviteId: invite.id });
     const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
     
-    console.log('[RESOLVE_JOIN_CODE] Setting bulletproof cookie:', { cookieJson, cookieValue, inviteId: invite.id });
+    console.log('[RESOLVE_JOIN_CODE] Set pending_invite cookie and redirect to PHQ');
     
-    const res = NextResponse.json({ 
-      success: true, 
-      redirectUrl: '/parents/hq#create-child' 
-    });
+    const res = NextResponse.redirect(new URL('/parents/hq', request.url), 302);
     
+    // Set the canonical Base64-URL cookie
     res.cookies.set('pending_invite', cookieValue, {
       domain: '.cliqstr.com',
       path: '/',
@@ -76,6 +74,24 @@ export async function POST(request: NextRequest) {
       secure: true,
       sameSite: 'lax',
       maxAge: 86400 // 24 hours
+    });
+
+    // Delete legacy cookie variants
+    res.cookies.set('pending_invite', '', {
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 0 // Delete
+    });
+    
+    res.cookies.set('pending_invite', '', {
+      domain: '.cliqstr.com',
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      expires: new Date(0) // Delete
     });
 
     console.log('[RESOLVE_JOIN_CODE] Bulletproof cookie set, returning success');
