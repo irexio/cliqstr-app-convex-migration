@@ -74,8 +74,11 @@ export default function ParentsHQWithSignup({
       console.log('[CLIENT] Fetch response received:', { status: res.status, ok: res.ok });
 
       const data = await res.json().catch(() => ({}));
+      console.log('[CLIENT] API response data:', data);
       if (!res.ok || !data?.ok) {
-        setErr(data?.message || data?.code || 'Unable to sign up. Please try again.');
+        const errorMsg = data?.error || data?.message || data?.code || `HTTP ${res.status}: Unable to sign up. Please try again.`;
+        console.error('[CLIENT] Signup failed:', errorMsg);
+        setErr(errorMsg);
         setSubmitting(false);
         return;
       }
