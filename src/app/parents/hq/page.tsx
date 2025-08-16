@@ -72,7 +72,8 @@ export default async function ParentsHQPage() {
         targetState: invite?.targetState,
         targetUserId: invite?.targetUserId,
         inviteeEmail: invite?.inviteeEmail,
-        hasSession: !!session
+        hasSession: !!session,
+        rawCookie: pendingInviteCookie
       });
     } catch (error) {
       console.error('[PARENTS_HQ] Error fetching invite:', error);
