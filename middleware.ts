@@ -70,8 +70,14 @@ export async function middleware(req: NextRequest) {
       // Special case: Allow /parents/hq access if there's a pending_invite cookie (new parent signup flow)
       if (pathname === '/parents/hq') {
         const pendingInviteCookie = req.cookies.get('pending_invite');
+        console.log('[MIDDLEWARE] PHQ access check:', {
+          pathname,
+          hasPendingInvite: !!pendingInviteCookie,
+          cookieValue: pendingInviteCookie?.value
+        });
         if (pendingInviteCookie) {
           // Allow access for new parent signup flow
+          console.log('[MIDDLEWARE] Allowing PHQ access with pending_invite cookie');
           return NextResponse.next();
         }
       }

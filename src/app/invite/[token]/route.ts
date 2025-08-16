@@ -69,6 +69,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     console.log('[INVITE_TOKEN] Cookie set, 302 to /parents/hq#create-child');
+    console.log('[INVITE_TOKEN] Cookie details:', {
+      name: 'pending_invite',
+      value: cookieValue,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24,
+      path: '/'
+    });
     
     // 302 redirect to Parents HQ with hash
     return NextResponse.redirect(new URL('/parents/hq#create-child', request.url), 302);
