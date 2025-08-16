@@ -332,8 +332,10 @@ export default function ParentsHQWithSignup({
         </div>
       )}
 
-      {/* Your Beautiful Parents HQ Content */}
-      <ParentsHQContent />
+      {/* Your Beautiful Parents HQ Content - only show when no other flows are active */}
+      {!needsSignup && !needsChildCreation && !needsPermissions && !needsUpgradeToParent && (
+        <ParentsHQContent />
+      )}
     </div>
   );
 }
