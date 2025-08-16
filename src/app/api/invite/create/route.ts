@@ -92,8 +92,10 @@ export async function POST(req: Request) {
     // For child invites, the inviteeEmail is the trusted adult's email
     const targetEmail = inviteType === 'child' ? trustedAdultContact : inviteeEmail;
     
-    // For child invites, check if parent email already has an account
+    // For child invites, check if parent email already has an account and determine targetState
     let parentAccountExists = false;
+    let targetState = 'new'; // Default for adult invites or new users
+    
     if (inviteType === 'child') {
       const existingParent = await prisma.user.findUnique({
         where: { email: targetEmail },
@@ -106,10 +108,12 @@ export async function POST(req: Request) {
         if (userRole === 'Parent') {
           // User is already a parent - streamlined flow
           parentAccountExists = true;
+          targetState = 'existing_parent';
           console.log('[INVITE_INFO] Parent email already has Parent account:', {
             email: targetEmail,
             isVerified: existingParent.isVerified,
             role: userRole,
+            targetState,
             hasPayment: !!existingParent.account?.stripeCustomerId
           });
           
@@ -119,9 +123,11 @@ export async function POST(req: Request) {
         } else if (userRole === 'Adult') {
           // User exists but is Adult role - needs upgrade to Parent
           parentAccountExists = false; // Treat as new parent for email flow
+          targetState = 'existing_user_non_parent';
           console.log('[INVITE_INFO] Email belongs to Adult account, will need to upgrade to Parent role:', {
             email: targetEmail,
             currentRole: userRole,
+            targetState,
             isVerified: existingParent.isVerified
           });
         } else {
@@ -137,6 +143,7 @@ export async function POST(req: Request) {
         }
       } else {
         console.log('[INVITE_INFO] Parent email is new, will need to create account and verify payment');
+        targetState = 'new';
       }
     }
     
@@ -234,7 +241,7 @@ export async function POST(req: Request) {
         joinCode: generateJoinCode(),
         targetEmailNormalized: targetEmail.toLowerCase().trim(),
         targetUserId: null, // Will be set by intelligent invite logic later
-        targetState: 'new', // Default to new user flow
+        targetState, // Use intelligent targetState detection
         status: 'pending',
         maxUses: 1,
         used: false,

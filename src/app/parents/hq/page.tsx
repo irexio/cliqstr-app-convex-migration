@@ -51,6 +51,13 @@ export default async function ParentsHQPage() {
           used: true
         }
       });
+      console.log('[PARENTS_HQ] Invite details:', {
+        inviteId,
+        targetState: invite?.targetState,
+        targetUserId: invite?.targetUserId,
+        inviteeEmail: invite?.inviteeEmail,
+        hasSession: !!session
+      });
     } catch (error) {
       console.error('[PARENTS_HQ] Error fetching invite:', error);
     }
@@ -58,11 +65,14 @@ export default async function ParentsHQPage() {
 
   // 🎯 Determine what the user needs to see based on session and invite targetState
   if (!session) {
+    console.log('[PARENTS_HQ] No session - checking targetState:', invite?.targetState);
     if (invite?.targetState === 'existing_parent' || invite?.targetState === 'existing_user_non_parent') {
       // Existing user needs to sign in first - redirect to sign-in page
+      console.log('[PARENTS_HQ] Redirecting existing user to sign-in');
       redirect('/sign-in?redirect=' + encodeURIComponent('/parents/hq'));
     } else {
       // New user (targetState === 'new' or no targetState) needs to sign up
+      console.log('[PARENTS_HQ] New user - showing signup form');
       needsSignup = true;
     }
   } else {
