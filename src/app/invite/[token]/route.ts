@@ -54,33 +54,27 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.redirect(new URL('/join-expired', request.url), 302);
     }
 
-    // Valid invite - set pending_invite cookie and 302 redirect
-    const cookieStore = await cookies();
-    const cookieValue = JSON.stringify({ inviteId: invite.id });
+    // Valid invite - set bulletproof pending_invite cookie and 302 redirect
+    const cookieJson = JSON.stringify({ inviteId: invite.id });
+    const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
     
-    console.log('[INVITE_TOKEN] Setting cookie:', { cookieValue, inviteId: invite.id });
+    console.log('[INVITE_TOKEN] Setting bulletproof cookie:', { cookieJson, cookieValue, inviteId: invite.id });
     
-    cookieStore.set('pending_invite', cookieValue, {
+    const redirectUrl = new URL('/parents/hq#create-child', request.url);
+    const res = NextResponse.redirect(redirectUrl, 302);
+    
+    res.cookies.set('pending_invite', cookieValue, {
+      domain: '.cliqstr.com',
+      path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: true,
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 hours
-      path: '/'
+      maxAge: 86400 // 24 hours
     });
 
-    console.log('[INVITE_TOKEN] Cookie set, 302 to /parents/hq#create-child');
-    console.log('[INVITE_TOKEN] Cookie details:', {
-      name: 'pending_invite',
-      value: cookieValue,
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24,
-      path: '/'
-    });
+    console.log('[INVITE_TOKEN] Bulletproof cookie set, 302 to /parents/hq#create-child');
     
-    // 302 redirect to Parents HQ with hash
-    return NextResponse.redirect(new URL('/parents/hq#create-child', request.url), 302);
+    return res;
 
   } catch (error) {
     console.error('[INVITE_TOKEN] Unexpected error:', error);

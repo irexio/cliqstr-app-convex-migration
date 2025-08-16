@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -25,12 +26,14 @@ export default async function ParentsHQPage() {
   let account = null;
   let invite = null;
 
-  // Parse invite cookie to get inviteId
+  // Parse invite cookie to get inviteId (Base64-URL encoded)
   let inviteId = null;
   if (pendingInviteCookie) {
     try {
       console.log('[PARENTS_HQ] Raw pending_invite cookie:', pendingInviteCookie);
-      const parsed = JSON.parse(pendingInviteCookie);
+      // Decode Base64-URL encoded JSON
+      const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+      const parsed = JSON.parse(decodedJson);
       inviteId = parsed.inviteId;
       console.log('[PARENTS_HQ] Parsed inviteId:', inviteId);
     } catch (e) {

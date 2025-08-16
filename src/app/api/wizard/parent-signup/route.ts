@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     console.log('[WIZARD] Parent signup request received');
     const cookieStore = await cookies();
     
-    // Parse pending_invite cookie (standardized JSON format)
+    // Parse pending_invite cookie (Base64-URL encoded JSON format)
     const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
     console.log('[WIZARD] Pending invite cookie:', pendingInviteCookie);
     if (!pendingInviteCookie) {
@@ -20,9 +20,12 @@ export async function POST(request: NextRequest) {
 
     let inviteId;
     try {
-      const parsed = JSON.parse(pendingInviteCookie);
+      // Decode Base64-URL encoded JSON
+      const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+      const parsed = JSON.parse(decodedJson);
       inviteId = parsed.inviteId;
     } catch (e) {
+      console.error('[WIZARD] Cookie decode error:', e);
       return NextResponse.json({ ok: false, error: 'Invalid pending invite cookie' }, { status: 400 });
     }
 

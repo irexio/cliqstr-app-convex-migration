@@ -58,27 +58,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(new URL('/join-expired', request.url), 302);
     }
 
-    // Valid invite - set pending_invite cookie with JSON format
-    const cookieStore = await cookies();
-    const cookieValue = JSON.stringify({ inviteId: invite.id });
+    // Valid invite - set bulletproof pending_invite cookie
+    const cookieJson = JSON.stringify({ inviteId: invite.id });
+    const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
     
-    console.log('[RESOLVE_JOIN_CODE] Setting cookie:', { cookieValue, inviteId: invite.id });
+    console.log('[RESOLVE_JOIN_CODE] Setting bulletproof cookie:', { cookieJson, cookieValue, inviteId: invite.id });
     
-    cookieStore.set('pending_invite', cookieValue, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24, // 24 hours
-      path: '/'
-    });
-
-    console.log('[RESOLVE_JOIN_CODE] Cookie set, returning success with redirect URL');
-
-    // Return success with redirect URL
-    return NextResponse.json({ 
+    const res = NextResponse.json({ 
       success: true, 
       redirectUrl: '/parents/hq#create-child' 
     });
+    
+    res.cookies.set('pending_invite', cookieValue, {
+      domain: '.cliqstr.com',
+      path: '/',
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      maxAge: 86400 // 24 hours
+    });
+
+    console.log('[RESOLVE_JOIN_CODE] Bulletproof cookie set, returning success');
+
+    return res;
 
   } catch (error) {
     console.error('[RESOLVE_JOIN_CODE] Unexpected error:', error);
