@@ -1,7 +1,7 @@
 ## 🔐 APA Invite Flow & Enforcement Spec
 
 **Owner:** Mimi (Robyn)  
-**Updated:** August 5, 2025  
+**Updated:** August 16, 2025
 **Audience:** WS (Developer), Internal Team  
 **Purpose:** Define and enforce rules for APA-compliant invite flows, signup logic, and parent/child safety enforcement.
 
@@ -25,7 +25,7 @@
 
 ### 👤 Invited Adult
 
-- ✅ No credit card required
+- ✅ A credit card is required
 - ✅ May access only the cliq they were invited to
 - ❌ Cannot create cliqs, invite others, or access advanced features
 - ✅ Upgrade CTA available in "My Cliqs" and Account dropdown
@@ -36,12 +36,13 @@
 ### 🧒 Invited Child (Invited by Adult)
 
 - ✅ Inviter must already have an active plan with verified card
-- ✅ Parent receives email (trusted adult contact)
+- ✅ Parent/Guardian receives email (trusted adult contact)
 - ✅ Parent must:
   - Click invite link
+  - Create a parent account
   - Verify identity via credit card (not charged)
   - Approve the invite and create child account in `/parents/hq`
-- ❌ No child account is created until verification + approval complete
+-   Parent creates & manages child account determins permissions and uses on cliqstr. Invited child parent, does not get a profile, but gets a Parent Account.
 
 ---
 
@@ -50,6 +51,7 @@
 - ✅ Parent HQ permission must be ON (`canInviteChildren: true`)
 - ✅ Must enter parent email (or SMS via Twilio in future)
 - ✅ Parent must verify via card before invite is approved
+- ✅ Parent creates & manages child account determins permissions and uses on cliqstr. Invited child parent, does not get a profile, but gets a Parent Account.
 
 ---
 
@@ -83,11 +85,11 @@
 | Action                        | Card Required? | Notes |
 |------------------------------|----------------|-------|
 | Adult Signup                 | ✅             | For trial + plan + age verification |
-| Invited Adult (via email)    | ❌             | Read-only cliq access |
+| Invited Adult (via email)    | ✅             | Read-only cliq access |
 | Invite a Child               | ✅ (if inviter is parent) | Parent must verify identity |
 | Approve a Child              | ✅             | Always required for APA approval |
 | Create Child During Signup   | ✅             | Verification step in Parent path |
-| Child Creates a Cliq         | ❌ (parent permission required) | Not allowed unless toggled |
+| Child Creates a Cliq         | ✅ (parent permission required) | Not allowed unless toggled |
 | Child Invites a Child/Adult  | ✅ (via parent approval) | Approval = card required |
 
 ---
@@ -109,11 +111,9 @@ WS must:
 3. ✅ Add "Upgrade Plan" CTA:
    - In `MyCliqs` dashboard
    - In account dropdown
-4. ✅ Ensure account dropdown links to correct `/profile/[handle]`
+4. ❌ Ensure account dropdown links to correct My Profile
 5. ✅ Verify credit card check is enforced in:
-   - Invite flow
-   - Invite approval
-   - Child creation from sign-up
+   - For all members: Invite flow, Invite approval, Child & Adult creation from sign-up
 6. ✅ Confirm email templates (3 types):
    - Invited Adult
    - Invited Child (sent to parent)

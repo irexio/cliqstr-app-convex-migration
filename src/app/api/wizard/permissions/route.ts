@@ -28,29 +28,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, code: 'not_parent' }, { status: 403 });
     }
 
-    // Sol's Rule: Load invite via pending_invite cookie
+    // Parse pending_invite cookie (standardized JSON format)
     const cookieStore = await cookies();
-    const inviteCookie = cookieStore.get('pending_invite')?.value;
+    const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
     
-    const body = await req.json().catch(() => ({}));
-    const inviteCode = inviteCookie || body.inviteCode;
+    let inviteId;
+    if (pendingInviteCookie) {
+      try {
+        const parsed = JSON.parse(pendingInviteCookie);
+        inviteId = parsed.inviteId;
+      } catch (e) {
+        console.log('[WIZARD] Invalid pending invite cookie');
+        return NextResponse.json({ ok: false, code: 'invalid_invite_cookie' }, { status: 400 });
+      }
+    }
 
-    if (!inviteCode) {
-      console.log('[WIZARD] No invite code found');
+    if (!inviteId) {
+      console.log('[WIZARD] No invite ID found');
       return NextResponse.json({ ok: false, code: 'no_invite' }, { status: 400 });
     }
 
-    // Find the invite
-    const invite = await prisma.invite.findFirst({
-      where: { code: inviteCode }
+    // Find the invite by ID
+    const invite = await prisma.invite.findUnique({
+      where: { id: inviteId }
     });
 
     if (!invite) {
-      console.log('[WIZARD] Invite not found:', inviteCode);
+      console.log('[WIZARD] Invite not found:', inviteId);
       return NextResponse.json({ ok: false, code: 'invite_not_found' }, { status: 404 });
     }
 
     // Extract permissions from request
+    const body = await req.json().catch(() => ({}));
     const { permissions } = body;
     if (!permissions) {
       console.log('[WIZARD] No permissions provided');

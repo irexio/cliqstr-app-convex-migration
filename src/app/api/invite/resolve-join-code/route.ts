@@ -44,9 +44,9 @@ export async function POST(req: Request) {
       return NextResponse.redirect(new URL('/join-expired', req.url));
     }
 
-    // Set pending_invite cookie
+    // Set pending_invite cookie with standardized JSON format
     const cookieStore = await cookies();
-    cookieStore.set('pending_invite', invite.token, {
+    cookieStore.set('pending_invite', JSON.stringify({ inviteId: invite.id }), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

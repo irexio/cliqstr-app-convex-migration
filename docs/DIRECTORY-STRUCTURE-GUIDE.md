@@ -1,5 +1,5 @@
 # 📁 Cliqstr App Directory Structure Guide
-
+Last Updated: August 16, 2025
 ## 🏗️ Root Level Structure
 
 ### Core Configuration Files
@@ -24,20 +24,65 @@ This follows the new Next.js App Router structure where folders = routes:
 - **`/sign-up`** - Registration flow with email verification
 - **`/auth`** - Authentication utilities and callbacks
 - **`/account`** - Account management system (email, password, security settings)
-- **`/profile`** - Social profile management (username, avatar, bio)
+-❌ **`/profile`** - Social profile management (username, avatar, bio)
 - **`/forgot-password`** - Password reset flow
 - **`/reset-password`** - Password reset completion
 - **`/verify-email`** - Email verification
 - **`/verification-pending`**, **`/verification-success`**, **`/verification-error`** - Email verification states
 
 #### Parent & Child System
-- **`/parents`** - **Parents HQ with beautiful single-page design**
+**🔄 CRITICAL FLOWS - READ CAREFULLY FOR CONTEXT**
+
+**FLOW 1: Child Invite → Parent Approval (Most Common)**
+1. **Child receives invite** → Email with cliq-xxxxx code → `/invite/[token]` 
+2. **Invite validation** → `/api/invites/validate` → Determines if parent approval needed
+3. **Parent approval required** → Redirects to `/invite/parent` → Shows "Parent/Guardian must approve"
+4. **Parent email sent** → Uses `/api/send-parent-email` → Parent gets approval email
+5. **Parent clicks email** → `/invite/accept?code=cliq-xxxxx` → Validates invite code
+6. **Parent approval flow** → `/parent-approval` → Parent sees child's invite details
+7. **Parent creates account OR signs in** → Either signup flow or existing account login
+8. **Parent approval completion** → `/api/parent-approval/complete` → Creates ParentLink, sets child credentials
+9. **Success** → Parent redirected to `/parents/hq` → Child can now sign in
+
+**FLOW 2: Parent Creates Child Account (Family Plan)**
+1. **Parent visits** → `/parents/hq` → Beautiful single-page Parents HQ
+2. **Server-driven step detection** → Determines what parent needs to do next
+3. **Child creation modal** → Integrated child account setup form
+4. **Child account created** → Direct parent control, no approval needed
+5. **Permissions setup** → Simple checkbox interface for child safety controls
+6. **Success** → Child account ready, parent has full control
+
+**FLOW 3: Adult Invite (No Parent Approval)**
+1. **Adult receives invite** → Email with cliq-xxxxx code → `/invite/[token]`
+2. **Age verification** → Uses Account.birthdate (immutable) → Adult confirmed
+3. **Direct signup/signin** → No parent approval needed
+4. **Join cliq** → Immediate access to cliq
+
+**🏗️ DIRECTORY STRUCTURE:**
+- **`/parents`** - **Parents HQ with beautiful single-page design** (main parent dashboard)
 - **`/parent`** - Parent-specific features and signup
-- **`/parent-approval`** - Child invite approval flows
+- **`/parent-approval`** - Child invite approval flows (FLOW 1 above)
 - **`/child`** - Child-specific dashboard and features
 - **`/child-account-created`** - Child account creation success
 - **`/awaiting-approval`** - Child waiting state
 - **`/verify-parent`** - Parent verification flow
+- **`/invite/[token]`** - **CRITICAL** - Token-based invite acceptance (all flows start here)
+- **`/invite/parent`** - Parent approval required page
+- **`/invite/adult`** - Adult invite acceptance page
+
+**🔑 KEY DATABASE MODELS:**
+- **`Invite`** - Contains cliq-xxxxx codes, targetState, inviteRole, expiration
+- **`ParentLink`** - Links parents to children (parentId + childId + type)
+- **`ChildSettings`** - Child permissions and safety controls
+- **`Account`** - Contains immutable birthdate for age verification (NEVER use MyProfile.birthdate for security!)
+- **`MyProfile`** - Social profile data (editable birthdate for display only)
+
+**⚠️ CRITICAL SECURITY RULES:**
+1. **Age verification ALWAYS uses Account.birthdate** (immutable, set at signup)
+2. **MyProfile.birthdate is for social display only** (editable, never for security)
+3. **ParentLink.parentId required** for parent control queries
+4. **Invite codes are cliq-xxxxx format** (branded, APA-safe)
+5. **Session-based auth only** (no JWT tokens - violates APA compliance)
 
 #### Core Social Features
 - **`/cliqs`** - Cliq (group) creation, management, and viewing

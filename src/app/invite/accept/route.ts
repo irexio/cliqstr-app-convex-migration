@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 
 /**
- * 🎯 Sol's Server-Side Invite Accept Route Handler
+ * 🎯 Legacy Invite Accept Route - 302 Redirect to Token Route
  * 
  * Flow:
- * 1. Validate invite code
- * 2. Set pending_invite cookie (HttpOnly, Secure, SameSite=Lax, Max-Age=900)
- * 3. 303 redirect to /parents/hq (always)
+ * 1. Validate invite code exists
+ * 2. Look up invite token
+ * 3. 302 redirect to /invite/[token] (which sets standardized cookie)
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -20,33 +19,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // 2. Validate invite exists and is pending
+    // 2. Look up invite by code to get token
     const invite = await prisma.invite.findUnique({
       where: { code: inviteCode },
-      include: {
-        cliq: {
-          select: { id: true, name: true }
-        }
-      }
+      select: { token: true, status: true, expiresAt: true }
     });
 
     if (!invite || invite.status !== 'pending' || (invite.expiresAt && invite.expiresAt < new Date())) {
       return NextResponse.redirect(new URL('/invite/invalid', request.url));
     }
 
-    // 3. Set pending_invite cookie (Sol's specification) - Fixed for Next.js 15
-    const cookieStore = await cookies();
-    cookieStore.set('pending_invite', inviteCode, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      domain: process.env.NODE_ENV === 'production' ? '.cliqstr.com' : undefined,
-      maxAge: 900, // 15 minutes
-      path: '/'
-    });
-
-    // 4. 303 redirect to /parents/hq (always, regardless of invite type)
-    return NextResponse.redirect(new URL('/parents/hq', request.url), 303);
+    // 3. 302 redirect to token route (which will set standardized cookie)
+    return NextResponse.redirect(new URL(`/invite/${invite.token}`, request.url), 302);
 
   } catch (error) {
     console.error('[INVITE_ACCEPT] Database error:', error);

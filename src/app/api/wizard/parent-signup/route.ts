@@ -9,10 +9,18 @@ export async function POST(request: NextRequest) {
   try {
     const cookieStore = await cookies();
     
-    // Sol's Rule: Require pending_invite cookie
-    const inviteCode = cookieStore.get('pending_invite')?.value;
-    if (!inviteCode) {
+    // Parse pending_invite cookie (standardized JSON format)
+    const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
+    if (!pendingInviteCookie) {
       return NextResponse.json({ ok: false, error: 'No pending invite' }, { status: 400 });
+    }
+
+    let inviteId;
+    try {
+      const parsed = JSON.parse(pendingInviteCookie);
+      inviteId = parsed.inviteId;
+    } catch (e) {
+      return NextResponse.json({ ok: false, error: 'Invalid pending invite cookie' }, { status: 400 });
     }
 
     // Parse request body
@@ -27,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // 🎯 Sol's Rule: Validate invite (not expired)
     const invite = await prisma.invite.findUnique({
-      where: { code: inviteCode },
+      where: { id: inviteId },
       select: {
         id: true,
         expiresAt: true,
@@ -114,7 +122,7 @@ export async function POST(request: NextRequest) {
     console.log('[WIZARD] Parent signup successful:', {
       userId: result.user.id,
       email: normalizedEmail,
-      inviteCode
+      inviteId
     });
 
     // 🎯 Sol's Rule: Response with no redirect
