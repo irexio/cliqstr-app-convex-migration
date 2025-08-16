@@ -62,7 +62,7 @@ export default async function ParentsHQPage() {
       // Existing user needs to sign in first - redirect to sign-in page
       redirect('/sign-in?redirect=' + encodeURIComponent('/parents/hq'));
     } else {
-      // New user (targetState === 'new_user' or no targetState) needs to sign up
+      // New user (targetState === 'new' or no targetState) needs to sign up
       needsSignup = true;
     }
   } else {
