@@ -67,6 +67,15 @@ export async function middleware(req: NextRequest) {
 
     // If not authenticated and not on a public page, send to sign-in with returnTo
     if (!user) {
+      // Special case: Allow /parents/hq access if there's a pending_invite cookie (new parent signup flow)
+      if (pathname === '/parents/hq') {
+        const pendingInviteCookie = req.cookies.get('pending_invite');
+        if (pendingInviteCookie) {
+          // Allow access for new parent signup flow
+          return NextResponse.next();
+        }
+      }
+      
       const url = req.nextUrl.clone();
       url.pathname = '/sign-in';
       url.search = `?returnTo=${encodeURIComponent(pathname + (search || ''))}`;
