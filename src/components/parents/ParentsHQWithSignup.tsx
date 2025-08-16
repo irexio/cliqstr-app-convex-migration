@@ -61,12 +61,17 @@ export default function ParentsHQWithSignup({
       plan: (fd.get('plan') as string) || 'invited-free',
     };
 
+    console.log('[CLIENT] Starting parent signup with payload:', { ...payload, password: '***' });
+
     try {
+      console.log('[CLIENT] Making fetch request to /api/wizard/parent-signup');
       const res = await fetch('/api/wizard/parent-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      
+      console.log('[CLIENT] Fetch response received:', { status: res.status, ok: res.ok });
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.ok) {
