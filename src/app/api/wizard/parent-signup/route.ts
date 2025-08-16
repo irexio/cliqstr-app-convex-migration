@@ -7,11 +7,14 @@ import { sessionOptions } from '@/lib/auth/session-config';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('[WIZARD] Parent signup request received');
     const cookieStore = await cookies();
     
     // Parse pending_invite cookie (standardized JSON format)
     const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
+    console.log('[WIZARD] Pending invite cookie:', pendingInviteCookie);
     if (!pendingInviteCookie) {
+      console.log('[WIZARD] No pending invite cookie found');
       return NextResponse.json({ ok: false, error: 'No pending invite' }, { status: 400 });
     }
 
@@ -25,8 +28,10 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const { firstName, lastName, email, birthdate, password, plan } = await request.json();
+    console.log('[WIZARD] Request data:', { firstName, lastName, email, birthdate: !!birthdate, password: !!password, plan });
     
     if (!firstName || !lastName || !email || !birthdate || !password) {
+      console.log('[WIZARD] Missing required fields');
       return NextResponse.json({ ok: false, error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -45,8 +50,11 @@ export async function POST(request: NextRequest) {
     });
 
     if (!invite || invite.status !== 'pending' || (invite.expiresAt && invite.expiresAt < new Date())) {
+      console.log('[WIZARD] Invalid invite:', { invite, status: invite?.status, expired: invite?.expiresAt && invite.expiresAt < new Date() });
       return NextResponse.json({ ok: false, error: 'Invalid or expired invite' }, { status: 400 });
     }
+    
+    console.log('[WIZARD] Starting database transaction');
 
     // 🎯 Sol's Atomic Transaction
     const result = await prisma.$transaction(async (tx) => {

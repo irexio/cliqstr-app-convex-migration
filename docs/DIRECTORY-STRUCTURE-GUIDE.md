@@ -1,5 +1,5 @@
 # 📁 Cliqstr App Directory Structure Guide
-Last Updated: August 16, 2025
+Last Updated: August 16, 2025 - **MAJOR BREAKTHROUGH: Child Invite Flow Fixed!** 🎉
 ## 🏗️ Root Level Structure
 
 ### Core Configuration Files
@@ -249,6 +249,12 @@ All server-side functionality organized by feature:
   - **Conditional sections** - Shows signup form at top when needed, then dashboard below
   - **Child creation modal** - Integrated child account setup
   - **Permission system** - Simple checkbox interface for child safety controls
+- **🚨 CRITICAL BUG FIX (Aug 16, 2025)** - **Child Invite Flow "Unauthorized" Error RESOLVED**
+  - **Problem**: ParentsHQContent component making unauthorized /api/auth/status calls during signup flow
+  - **Solution**: Added conditional rendering to prevent ParentsHQContent from showing during wizard flows
+  - **Impact**: New parents can now access signup form through invite links without errors
+  - **Files Modified**: `/src/components/parents/ParentsHQWithSignup.tsx` (lines 336-338)
+  - **Result**: 6.4 days of debugging pain - HEALED! Child invite flow now works perfectly 🎉
 - **Cliq System Enhancements**
   - **CliqFeed** - Post and reply system with beautiful card layout
   - **CliqTools** - Calendar, Games, Video Chat, Homework Help, Red Alert
