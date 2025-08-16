@@ -24,6 +24,14 @@ export default function ParentsHQWithSignup({
   inviteId,
   targetState
 }: ParentsHQWithSignupProps) {
+  
+  // Debug logging for email prefill issue
+  console.log('[CLIENT DEBUG] ParentsHQWithSignup props:', {
+    prefillEmail,
+    inviteId,
+    targetState,
+    needsSignup
+  });
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);

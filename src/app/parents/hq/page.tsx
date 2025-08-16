@@ -75,8 +75,18 @@ export default async function ParentsHQPage() {
         hasSession: !!session,
         rawCookie: pendingInviteCookie
       });
+      
+      // If invite not found, log the issue
+      if (!invite) {
+        console.error('[PARENTS_HQ] No invite found for inviteId:', inviteId);
+      }
     } catch (error) {
-      console.error('[PARENTS_HQ] Error fetching invite:', error);
+      console.error('[PARENTS_HQ] Database error fetching invite:', {
+        inviteId,
+        error: error instanceof Error ? error.message : String(error),
+        code: error instanceof Error && 'code' in error ? error.code : 'unknown'
+      });
+      // Don't throw - continue with null invite to show error state
     }
   }
 
