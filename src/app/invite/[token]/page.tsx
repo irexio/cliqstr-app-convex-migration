@@ -4,13 +4,13 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 interface InvitePageProps {
-  params: {
+  params: Promise<{
     token: string;
-  };
+  }>;
 }
 
 export default async function InvitePage({ params }: InvitePageProps) {
-  const { token } = params;
+  const { token } = await params;
 
   try {
     // Validate invite token

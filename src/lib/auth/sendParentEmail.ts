@@ -7,6 +7,7 @@ type SendParentEmailParams = {
   childName: string;
   childId: string;
   inviteCode?: string;
+  joinCode?: string;
   subject?: string;
   html?: string;
 };
@@ -16,6 +17,7 @@ export async function sendParentEmail({
   childName,
   childId,
   inviteCode,
+  joinCode,
   subject,
   html,
 }: SendParentEmailParams) {
@@ -44,6 +46,10 @@ export async function sendParentEmail({
           Approve ${childName}'s Account
         </a>
       </div>
+      ${joinCode ? `<p style="margin: 20px 0; text-align: center; font-size: 14px; color: #666;">
+        Or manually enter this code at cliqstr.com: 
+        <strong style="font-family: monospace; background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 16px;">${joinCode}</strong>
+      </p>` : ''}
       <p style="font-size: 14px; color: #666;"><strong>This link will expire in 3 days.</strong></p>
       <p style="font-size: 12px; color: #888;">If you did not request this, you can safely ignore it.</p>
     </div>
