@@ -29,11 +29,15 @@ export default async function ParentsHQPage() {
   let inviteId = null;
   if (pendingInviteCookie) {
     try {
+      console.log('[PARENTS_HQ] Raw pending_invite cookie:', pendingInviteCookie);
       const parsed = JSON.parse(pendingInviteCookie);
       inviteId = parsed.inviteId;
+      console.log('[PARENTS_HQ] Parsed inviteId:', inviteId);
     } catch (e) {
       console.error('[PARENTS_HQ] Invalid pending_invite cookie:', e);
     }
+  } else {
+    console.log('[PARENTS_HQ] No pending_invite cookie found');
   }
 
   // Get invite details if we have an inviteId
