@@ -147,6 +147,13 @@ export default async function ParentsHQPage() {
   let prefillEmail = '';
   if (invite) {
     prefillEmail = invite.inviteeEmail || '';
+    console.log('[PARENTS_HQ] Using prefillEmail from invite:', {
+      inviteId: invite.id,
+      prefillEmail,
+      inviteeEmail: invite.inviteeEmail
+    });
+  } else {
+    console.log('[PARENTS_HQ] No invite found - empty prefillEmail');
   }
 
   return (
