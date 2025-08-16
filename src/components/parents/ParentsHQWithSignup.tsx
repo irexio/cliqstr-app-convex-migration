@@ -28,6 +28,23 @@ export default function ParentsHQWithSignup({
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Handle case where user needs to sign in (not sign up)
+  const needsSignin = !needsSignup && !needsChildCreation && !needsPermissions && !needsUpgradeToParent;
+  
+  // If user needs to sign in, redirect to sign-in page with return URL
+  if (needsSignin) {
+    const returnUrl = encodeURIComponent('/parents/hq#create-child');
+    router.push(`/sign-in?returnTo=${returnUrl}`);
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting to sign in...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Handle parent signup form submission
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

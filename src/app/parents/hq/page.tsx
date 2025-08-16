@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { getServerSession } from '@/lib/auth/getServerSession';
 import { prisma } from '@/lib/prisma';
 import ParentsHQWithSignup from '@/components/parents/ParentsHQWithSignup';
@@ -58,10 +59,10 @@ export default async function ParentsHQPage() {
   // 🎯 Determine what the user needs to see based on session and invite targetState
   if (!session) {
     if (invite?.targetState === 'existing_parent' || invite?.targetState === 'existing_user_non_parent') {
-      // Existing user needs to sign in first
-      needsSignup = false; // They need to sign in, not sign up
+      // Existing user needs to sign in first - redirect to sign-in page
+      redirect('/sign-in?redirect=' + encodeURIComponent('/parents/hq'));
     } else {
-      // New user needs to sign up
+      // New user (targetState === 'new_user' or no targetState) needs to sign up
       needsSignup = true;
     }
   } else {

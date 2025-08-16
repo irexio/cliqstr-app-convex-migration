@@ -241,14 +241,14 @@ export default function SignInForm() {
       const returnTo = searchParams.get('returnTo');
       const storedParentContext = sessionStorage.getItem('parentApprovalContext');
       
-      if (returnTo && returnTo.includes('parent-approval')) {
-        console.log('[APA] Parent approval context detected, redirecting to:', returnTo);
+      if (returnTo && (returnTo.includes('parent-approval') || returnTo.includes('parents/hq'))) {
+        console.log('[APA] Parent context detected, redirecting to:', returnTo);
         // Force Next.js to rehydrate with updated state
         router.refresh();
         // Add a short delay to ensure session cookie is processed
         await new Promise((resolve) => setTimeout(resolve, 1000));
-        // Redirect to parent approval completion
-        window.location.replace(returnTo);
+        // Redirect to the specified return URL
+        window.location.replace(decodeURIComponent(returnTo));
         return;
       }
       
