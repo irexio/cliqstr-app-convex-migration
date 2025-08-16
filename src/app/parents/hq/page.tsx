@@ -26,16 +26,25 @@ export default async function ParentsHQPage() {
   let account = null;
   let invite = null;
 
-  // Parse invite cookie to get inviteId (Base64-URL encoded)
+  // Parse invite cookie to get inviteId (handle both Base64-URL and legacy JSON formats)
   let inviteId = null;
   if (pendingInviteCookie) {
     try {
       console.log('[PARENTS_HQ] Raw pending_invite cookie:', pendingInviteCookie);
-      // Decode Base64-URL encoded JSON
-      const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
-      const parsed = JSON.parse(decodedJson);
-      inviteId = parsed.inviteId;
-      console.log('[PARENTS_HQ] Parsed inviteId:', inviteId);
+      
+      // Try Base64-URL format first
+      try {
+        const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+        const parsed = JSON.parse(decodedJson);
+        inviteId = parsed.inviteId;
+        console.log('[PARENTS_HQ] Parsed inviteId (Base64-URL):', inviteId);
+      } catch (base64Error) {
+        // Fallback to legacy JSON format
+        console.log('[PARENTS_HQ] Base64-URL decode failed, trying legacy JSON format');
+        const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
+        inviteId = parsed.inviteId;
+        console.log('[PARENTS_HQ] Parsed inviteId (legacy JSON):', inviteId);
+      }
     } catch (e) {
       console.error('[PARENTS_HQ] Invalid pending_invite cookie:', e);
     }

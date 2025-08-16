@@ -20,10 +20,19 @@ export async function POST(request: NextRequest) {
 
     let inviteId;
     try {
-      // Decode Base64-URL encoded JSON
-      const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
-      const parsed = JSON.parse(decodedJson);
-      inviteId = parsed.inviteId;
+      // Try Base64-URL format first
+      try {
+        const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+        const parsed = JSON.parse(decodedJson);
+        inviteId = parsed.inviteId;
+        console.log('[WIZARD] Parsed inviteId (Base64-URL):', inviteId);
+      } catch (base64Error) {
+        // Fallback to legacy JSON format
+        console.log('[WIZARD] Base64-URL decode failed, trying legacy JSON format');
+        const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
+        inviteId = parsed.inviteId;
+        console.log('[WIZARD] Parsed inviteId (legacy JSON):', inviteId);
+      }
     } catch (e) {
       console.error('[WIZARD] Cookie decode error:', e);
       return NextResponse.json({ ok: false, error: 'Invalid pending invite cookie' }, { status: 400 });
