@@ -21,6 +21,7 @@ import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 import { logLogin } from '@/lib/auth/userActivityLogger';
+import { checkRateLimit, getClientIP } from '@/lib/auth/rateLimiter';
 
 function parseIdentifier(raw: string) {
   const id = (raw || '').trim();
@@ -32,6 +33,23 @@ function parseIdentifier(raw: string) {
 // NUCLEAR CACHE BUST - Force complete refresh
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    const rateLimitResult = checkRateLimit(clientIP);
+    
+    if (!rateLimitResult.allowed) {
+      const resetTime = rateLimitResult.resetTime;
+      const waitSeconds = resetTime ? Math.ceil((resetTime - Date.now()) / 1000) : 60;
+      
+      return NextResponse.json(
+        { 
+          error: 'Too many sign-in attempts. Please try again later.',
+          retryAfter: waitSeconds
+        }, 
+        { status: 429 }
+      );
+    }
+
     const { identifier, password } = await req.json();
 
     if (!identifier || !password) {

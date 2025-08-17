@@ -9,6 +9,7 @@ import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { normalizeInviteCode } from '@/lib/auth/generateInviteCode';
 import { logSignup } from '@/lib/auth/userActivityLogger';
+import { checkRateLimit, getClientIP } from '@/lib/auth/rateLimiter';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +34,23 @@ const signUpSchema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(req);
+    const rateLimitResult = checkRateLimit(clientIP);
+    
+    if (!rateLimitResult.allowed) {
+      const resetTime = rateLimitResult.resetTime;
+      const waitSeconds = resetTime ? Math.ceil((resetTime - Date.now()) / 1000) : 60;
+      
+      return NextResponse.json(
+        { 
+          error: 'Too many sign-up attempts. Please try again later.',
+          retryAfter: waitSeconds
+        }, 
+        { status: 429 }
+      );
+    }
+
     // Wrap the initial parsing in a try-catch to handle malformed JSON
     let body;
     try {

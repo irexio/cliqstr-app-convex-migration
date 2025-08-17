@@ -1,12 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { hash } from 'bcryptjs';
 import { getIronSession } from 'iron-session';
-import { sessionOptions } from '@/lib/auth/session-config';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { checkRateLimit, getClientIP } from '@/lib/auth/rateLimiter';
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(request);
+    const rateLimitResult = checkRateLimit(clientIP);
+    
+    if (!rateLimitResult.allowed) {
+      const resetTime = rateLimitResult.resetTime;
+      const waitSeconds = resetTime ? Math.ceil((resetTime - Date.now()) / 1000) : 60;
+      
+      return NextResponse.json(
+        { 
+          ok: false,
+          error: 'Too many signup attempts. Please try again later.',
+          retryAfter: waitSeconds
+        }, 
+        { status: 429 }
+      );
+    }
+
     console.log('[WIZARD] Parent signup request received');
     const cookieStore = await cookies();
     
