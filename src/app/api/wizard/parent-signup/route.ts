@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     // 🎯 Sol's Atomic Transaction
     const result = await prisma.$transaction(async (tx) => {
       // Hash password with bcrypt
-      const hashedPassword = await bcrypt.hash(password, 12);
+      const hashedPassword = await hash(password, 12);
 
       // Upsert User
       const user = await tx.user.upsert({
