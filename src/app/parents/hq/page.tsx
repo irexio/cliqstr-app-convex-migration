@@ -60,6 +60,7 @@ export default async function ParentsHQPage() {
         select: {
           id: true,
           code: true,
+          cliqId: true,
           targetState: true,
           targetUserId: true,
           targetEmailNormalized: true,

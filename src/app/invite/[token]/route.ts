@@ -21,6 +21,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       where: { token },
       select: {
         id: true,
+        cliqId: true,
         status: true,
         used: true,
         targetState: true,
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Valid invite - set bulletproof pending_invite cookie and 302 redirect
     const cookieJson = JSON.stringify({ 
       inviteId: invite.id,
+      cliqId: invite.cliqId,
       inviteType: invite.inviteType,
       friendFirstName: invite.friendFirstName,
       friendLastName: invite.friendLastName 
@@ -88,13 +90,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     
     res.cookies.set('pending_invite', cookieValue, cookieOptions);
 
-    // Delete legacy cookie variants
-    res.cookies.delete('pending_invite');
-    
+    // Clean up any legacy cookie variants with wrong domain (only if in production)
     if (isProduction) {
-      // Also delete with domain for production
-      res.cookies.set('pending_invite', '', {
-        domain: '.cliqstr.com',
+      // Delete cookie without domain specifier (if it exists from dev/preview)
+      res.cookies.set('pending_invite_legacy', '', {
         path: '/',
         httpOnly: true,
         secure: true,

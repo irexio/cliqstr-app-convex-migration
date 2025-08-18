@@ -81,13 +81,10 @@ export async function POST(request: NextRequest) {
     
     res.cookies.set('pending_invite', cookieValue, cookieOptions);
 
-    // Delete legacy cookie variants
-    res.cookies.delete('pending_invite');
-    
+    // Clean up any legacy cookie variants with wrong domain (only if in production)
     if (isProduction) {
-      // Also delete with domain for production
-      res.cookies.set('pending_invite', '', {
-        domain: '.cliqstr.com',
+      // Delete cookie without domain specifier (if it exists from dev/preview)
+      res.cookies.set('pending_invite_legacy', '', {
         path: '/',
         httpOnly: true,
         secure: true,
