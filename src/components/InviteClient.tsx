@@ -36,6 +36,7 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
   
   // New simplified state for redesigned invite form
   const [friendFirstName, setFriendFirstName] = useState('');
+  const [friendLastName, setFriendLastName] = useState('');
   const [trustedAdultContact, setTrustedAdultContact] = useState('');
   const [inviteType, setInviteType] = useState<'child' | 'adult' | ''>(''); // Must be explicitly selected
   const [inviteNote, setInviteNote] = useState('');
@@ -72,6 +73,9 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
         if (!friendFirstName.trim()) {
           throw new Error("Child's first name is required");
         }
+        if (!friendLastName.trim()) {
+          throw new Error("Child's last name is required");
+        }
         if (!trustedAdultContact.trim()) {
           throw new Error('Parent/guardian email is required');
         }
@@ -99,8 +103,9 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       };
 
       if (inviteType === 'child') {
-        // Child invites need friendFirstName and trustedAdultContact
+        // Child invites need friendFirstName, friendLastName and trustedAdultContact
         payload.friendFirstName = friendFirstName.trim();
+        payload.friendLastName = friendLastName.trim();
         payload.trustedAdultContact = trustedAdultContact.trim();
       } else {
         // Adult invites need inviteeEmail
@@ -133,6 +138,7 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       setSuccess(true);
       // Reset form
       setFriendFirstName('');
+      setFriendLastName('');
       setTrustedAdultContact('');
       setInviteType('');
       setInviteNote('');
@@ -209,18 +215,34 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
 
       {/* Dynamic Form Fields Based on Invite Type */}
       {inviteType === 'child' && (
-        <div>
-          <Label htmlFor="friendFirstName">Child's First Name *</Label>
-          <Input
-            id="friendFirstName"
-            type="text"
-            value={friendFirstName}
-            onChange={(e) => setFriendFirstName(e.target.value)}
-            placeholder="Enter child's first name"
-            required
-            className="mt-1"
-          />
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="friendFirstName">Child's First Name *</Label>
+              <Input
+                id="friendFirstName"
+                type="text"
+                value={friendFirstName}
+                onChange={(e) => setFriendFirstName(e.target.value)}
+                placeholder="First name"
+                required
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="friendLastName">Child's Last Name *</Label>
+              <Input
+                id="friendLastName"
+                type="text"
+                value={friendLastName}
+                onChange={(e) => setFriendLastName(e.target.value)}
+                placeholder="Last name"
+                required
+                className="mt-1"
+              />
+            </div>
+          </div>
+        </>
       )}
 
       {/* Email Field - Label Changes Based on Invite Type */}

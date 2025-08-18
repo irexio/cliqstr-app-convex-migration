@@ -59,12 +59,16 @@ export default async function ParentsHQPage() {
         where: { id: inviteId },
         select: {
           id: true,
+          code: true,
           targetState: true,
           targetUserId: true,
           targetEmailNormalized: true,
           inviteeEmail: true,
           status: true,
-          used: true
+          used: true,
+          friendFirstName: true,
+          friendLastName: true,
+          inviteType: true
         }
       });
       console.log('[PARENTS_HQ] Invite details:', {
@@ -164,7 +168,10 @@ export default async function ParentsHQPage() {
       needsUpgradeToParent={needsUpgradeToParent}
       prefillEmail={prefillEmail}
       inviteId={inviteId}
+      inviteCode={invite?.code || undefined}
       targetState={invite?.targetState}
+      friendFirstName={invite?.friendFirstName || undefined}
+      friendLastName={invite?.friendLastName || undefined}
     />
   );
 }

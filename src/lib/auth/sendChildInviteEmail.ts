@@ -25,6 +25,7 @@ interface ChildInviteEmailParams {
   inviterName: string;      // Name of the person sending the invite
   inviteLink: string;       // Link to accept the invite
   friendFirstName: string;  // Child's first name
+  friendLastName?: string;  // Child's last name
   inviteNote?: string;      // Optional message to the parent
   inviteCode: string;       // Invite code for manual entry
   parentAccountExists?: boolean; // Whether parent already has account
@@ -36,14 +37,16 @@ export async function sendChildInviteEmail({
   inviterName,
   inviteLink,
   friendFirstName,
+  friendLastName = '',
   inviteNote,
   inviteCode,
   parentAccountExists = false
 }: ChildInviteEmailParams) {
-  console.log(`[CHILD_INVITE_EMAIL] Sending invite for ${friendFirstName} to ${to}`);
+  const childFullName = friendLastName ? `${friendFirstName} ${friendLastName}` : friendFirstName;
+  console.log(`[CHILD_INVITE_EMAIL] Sending invite for ${childFullName} to ${to}`);
   
   const declineLink = `${BASE_URL}/api/invite/decline?code=${inviteCode}`;
-  const subject = `${inviterName} invited your child ${friendFirstName} to Cliqstr — Your approval is required`;
+  const subject = `${inviterName} invited your child ${childFullName} to Cliqstr — Your approval is required`;
 
   const html = `
     <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto; background: white; padding: 40px 20px;">
@@ -51,7 +54,7 @@ export async function sendChildInviteEmail({
       <h1 style="color: #333; font-size: 24px; margin-bottom: 20px; font-weight: 600;">Hi there,</h1>
       
       <p style="color: #555; margin-bottom: 20px;">
-        <strong>${inviterName}</strong> has invited your child, <strong>${friendFirstName}</strong>, to join their private Cliq on Cliqstr.
+        <strong>${inviterName}</strong> has invited your child, <strong>${childFullName}</strong>, to join their private Cliq on Cliqstr.
       </p>
       
       <p style="color: #555; margin-bottom: 16px;">
@@ -63,17 +66,17 @@ export async function sendChildInviteEmail({
       </p>
       
       <div style="background: #f8f9fa; border-left: 4px solid #000; padding: 20px; margin: 24px 0;">
-        <p style="margin: 0; color: #333; font-weight: 600; font-size: 16px;">🔐 Before ${friendFirstName} can join, your approval is required.</p>
+        <p style="margin: 0; color: #333; font-weight: 600; font-size: 16px;">🔐 Before ${childFullName} can join, your approval is required.</p>
       </div>
       
       <p style="color: #555; margin-bottom: 8px;">To activate their account, we ask that you:</p>
       <ul style="color: #555; margin-bottom: 20px; padding-left: 20px;">
         ${parentAccountExists 
           ? `<li style="margin-bottom: 8px;">Sign in to your existing Cliqstr account</li>
-             <li style="margin-bottom: 8px;">Review ${friendFirstName}'s invitation and group access</li>`
+             <li style="margin-bottom: 8px;">Review ${childFullName}'s invitation and group access</li>`
           : `<li style="margin-bottom: 8px;">Create a Parent account</li>
              <li style="margin-bottom: 8px;">Confirm your identity with a credit card (you will not be charged)</li>
-             <li style="margin-bottom: 8px;">Review ${friendFirstName}'s invitation and group access</li>`
+             <li style="margin-bottom: 8px;">Review ${childFullName}'s invitation and group access</li>`
         }
       </ul>
       
@@ -84,7 +87,7 @@ export async function sendChildInviteEmail({
       <div style="background: #f0f8ff; border-left: 4px solid #4a90e2; padding: 20px; margin: 24px 0;">
         <p style="margin: 0 0 12px; color: #333; font-weight: 600;">🎁 Good to know:</p>
         <ul style="margin: 0; padding-left: 20px; color: #555;">
-          <li style="margin-bottom: 8px;">${friendFirstName} can join this Cliq for free</li>
+          <li style="margin-bottom: 8px;">${childFullName} can join this Cliq for free</li>
           <li style="margin-bottom: 8px;">They will only be able to interact within ${inviterName}'s group</li>
           <li style="margin-bottom: 0;">You can upgrade later to unlock more features or create new Cliqs — but no payment is required to approve their invite</li>
         </ul>

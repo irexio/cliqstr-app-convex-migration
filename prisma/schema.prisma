@@ -171,6 +171,7 @@ model Invite {
   maxUses               Int?
   message               String?
   friendFirstName       String?
+  friendLastName        String?
   inviteNote            String?
   inviteType            String?
   trustedAdultContact   String?

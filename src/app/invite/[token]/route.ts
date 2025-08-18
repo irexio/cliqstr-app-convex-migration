@@ -25,6 +25,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         used: true,
         targetState: true,
         expiresAt: true,
+        inviteType: true,
+        friendFirstName: true,
+        friendLastName: true,
+        trustedAdultContact: true,
+        invitedRole: true,
       }
     });
 
@@ -55,7 +60,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Valid invite - set bulletproof pending_invite cookie and 302 redirect
-    const cookieJson = JSON.stringify({ inviteId: invite.id });
+    const cookieJson = JSON.stringify({ 
+      inviteId: invite.id,
+      inviteType: invite.inviteType,
+      friendFirstName: invite.friendFirstName,
+      friendLastName: invite.friendLastName 
+    });
     const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
     
     console.log('[INVITE_TOKEN] Setting bulletproof cookie and deleting legacy variants:', { cookieJson, cookieValue, inviteId: invite.id });

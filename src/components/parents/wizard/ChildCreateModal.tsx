@@ -1,16 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface ChildCreateModalProps {
   inviteId?: string;
+  inviteCode?: string;
+  prefillFirstName?: string;
+  prefillLastName?: string;
 }
 
-export default function ChildCreateModal({ inviteId }: ChildCreateModalProps) {
+export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstName, prefillLastName }: ChildCreateModalProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [suggestedUsername, setSuggestedUsername] = useState('');
+  const [generatedPassword, setGeneratedPassword] = useState('');
+
+  // Generate username suggestion based on child's name
+  useEffect(() => {
+    if (prefillFirstName && prefillLastName) {
+      const firstName = prefillFirstName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const lastName = prefillLastName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const year = new Date().getFullYear();
+      
+      // Generate a few options and pick one
+      const options = [
+        `${firstName}_${lastName}`,
+        `${firstName}${lastName}${year}`,
+        `${firstName[0]}${lastName}`,
+      ];
+      setSuggestedUsername(options[0]);
+    }
+  }, [prefillFirstName, prefillLastName]);
+
+  // Generate a memorable password
+  useEffect(() => {
+    const words = ['Sunshine', 'Rainbow', 'Happy', 'Buddy', 'Star', 'Magic', 'Dream', 'Smile'];
+    const numbers = ['2025', '123', '789', '456'];
+    const symbols = ['!', '@', '#', '*'];
+    
+    const word1 = words[Math.floor(Math.random() * words.length)];
+    const word2 = words[Math.floor(Math.random() * words.length)];
+    const num = numbers[Math.floor(Math.random() * numbers.length)];
+    const sym = symbols[Math.floor(Math.random() * symbols.length)];
+    
+    setGeneratedPassword(`${word1}${num}${word2}${sym}`);
+  }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -24,7 +62,7 @@ export default function ChildCreateModal({ inviteId }: ChildCreateModalProps) {
       username: (fd.get('username') as string)?.trim(),
       password: (fd.get('password') as string) || '',
       birthdate: (fd.get('birthdate') as string) || '',
-      inviteId: inviteId,
+      code: inviteCode, // API expects 'code' not 'inviteId'
     };
 
     try {
@@ -36,7 +74,12 @@ export default function ChildCreateModal({ inviteId }: ChildCreateModalProps) {
 
       const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.ok) {
-        setErr(data?.message || data?.reason || 'Unable to create child account. Please try again.');
+        // Use the specific message if provided, otherwise fallback to reason or generic error
+        const errorMessage = data?.message || 
+                           (data?.reason === 'username_taken' ? 'This username is already taken. Please choose another.' : 
+                            data?.reason === 'duplicate_child' ? data?.message : 
+                            data?.reason || 'Unable to create child account. Please try again.');
+        setErr(errorMessage);
         setSubmitting(false);
         return;
       }
@@ -61,25 +104,33 @@ export default function ChildCreateModal({ inviteId }: ChildCreateModalProps) {
             <input 
               name="firstName" 
               placeholder="Child's first name" 
+              defaultValue={prefillFirstName || ''}
               required 
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
             />
             <input 
               name="lastName" 
               placeholder="Child's last name" 
+              defaultValue={prefillLastName || ''}
               required 
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
             />
           </div>
           
-          <input
-            name="username"
-            placeholder="Username for your child"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            pattern="[a-zA-Z0-9_]+"
-            title="Username can only contain letters, numbers, and underscores"
-          />
+          <div>
+            <input
+              name="username"
+              placeholder="Username for your child"
+              defaultValue={suggestedUsername}
+              required
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              pattern="[a-zA-Z0-9_]+"
+              title="Username can only contain letters, numbers, and underscores"
+            />
+            {suggestedUsername && (
+              <p className="text-xs text-gray-500 mt-1">Suggested username based on child's name</p>
+            )}
+          </div>
           
           <div>
             <label className="block text-sm text-gray-600 mb-1">Child's birthdate</label>
@@ -92,15 +143,33 @@ export default function ChildCreateModal({ inviteId }: ChildCreateModalProps) {
             />
           </div>
           
-          <input
-            name="password"
-            type="password"
-            placeholder="Create password for your child"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            autoComplete="new-password"
-            minLength={8}
-          />
+          <div className="relative">
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Create password for your child"
+              defaultValue={generatedPassword}
+              required
+              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoComplete="new-password"
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
+          <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
+            <p className="font-semibold mb-1">📝 Important: Save this password</p>
+            <p>Write down this password to give to {prefillFirstName || 'your child'}. They'll need it to sign in.</p>
+            {generatedPassword && (
+              <p className="mt-2 text-xs text-gray-600">We've suggested a strong password, but you can change it if you prefer.</p>
+            )}
+          </div>
 
           <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
             <p><strong>Note:</strong> Your child will be able to customize their profile (nickname, avatar, etc.) after their account is created.</p>

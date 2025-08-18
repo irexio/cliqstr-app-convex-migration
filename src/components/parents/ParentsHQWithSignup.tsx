@@ -12,7 +12,10 @@ interface ParentsHQWithSignupProps {
   needsUpgradeToParent: boolean;
   prefillEmail: string;
   inviteId?: string;
+  inviteCode?: string;
   targetState?: string;
+  friendFirstName?: string;
+  friendLastName?: string;
 }
 
 export default function ParentsHQWithSignup({ 
@@ -22,7 +25,10 @@ export default function ParentsHQWithSignup({
   needsUpgradeToParent,
   prefillEmail,
   inviteId,
-  targetState
+  inviteCode,
+  targetState,
+  friendFirstName,
+  friendLastName
 }: ParentsHQWithSignupProps) {
   
   // Debug logging for email prefill issue
@@ -305,7 +311,12 @@ export default function ParentsHQWithSignup({
 
       {/* Child Creation Section - shown when needed */}
       {needsChildCreation && (
-        <ChildCreateModal inviteId={inviteId} />
+        <ChildCreateModal 
+          inviteId={inviteId}
+          inviteCode={inviteCode}
+          prefillFirstName={friendFirstName}
+          prefillLastName={friendLastName}
+        />
       )}
 
       {/* Permissions Section - shown when needed */}

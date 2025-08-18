@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       // New fields for redesigned invite system
       inviteType = 'adult',
       friendFirstName,
+      friendLastName,
       trustedAdultContact,
       inviteNote
     } = body;
@@ -75,6 +76,11 @@ export async function POST(req: Request) {
       if (!friendFirstName) {
         console.log('[INVITE_ERROR] Missing friendFirstName for child invite');
         return NextResponse.json({ error: 'Child\'s first name is required' }, { status: 400 });
+      }
+      
+      if (!friendLastName) {
+        console.log('[INVITE_ERROR] Missing friendLastName for child invite');
+        return NextResponse.json({ error: 'Child\'s last name is required' }, { status: 400 });
       }
       
       if (!trustedAdultContact) {
@@ -191,6 +197,7 @@ export async function POST(req: Request) {
         token: true,
         invitedRole: true,
         friendFirstName: true,
+        friendLastName: true,
         trustedAdultContact: true,
         inviteType: true,
         inviteNote: true
@@ -209,12 +216,13 @@ export async function POST(req: Request) {
       
       // Update the existing invite with the new fields if needed
       if (inviteType === 'child') {
-        if (existingInvite.friendFirstName !== friendFirstName || existingInvite.inviteNote !== inviteNote) {
+        if (existingInvite.friendFirstName !== friendFirstName || existingInvite.friendLastName !== friendLastName || existingInvite.inviteNote !== inviteNote) {
           await prisma.invite.update({
             where: { id: existingInvite.id },
             data: {
               // Use Prisma's raw update to set fields that might not be in the TypeScript definitions yet
               friendFirstName,
+              friendLastName,
               trustedAdultContact,
               inviteType,
               inviteNote
@@ -261,6 +269,7 @@ export async function POST(req: Request) {
       if (inviteType === 'child') {
         Object.assign(inviteData, {
           friendFirstName,
+          friendLastName,
           trustedAdultContact,
           inviteNote: inviteNote || undefined,
           parentAccountExists // Store whether parent already has account
@@ -337,6 +346,7 @@ export async function POST(req: Request) {
         inviterName,
         inviteLink,
         friendFirstName,
+        friendLastName,
         inviteNote,
         inviteCode,
         parentAccountExists

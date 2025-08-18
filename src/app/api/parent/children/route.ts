@@ -78,6 +78,39 @@ export async function POST(req: Request) {
 
     try {
       const child = await prisma.$transaction(async (tx) => {
+        // Check for duplicate child (same parent + same child name)
+        const existingChild = await tx.parentLink.findFirst({
+          where: {
+            email: parent.email,
+            child: {
+              myProfile: {
+                firstName: firstName.trim(),
+                lastName: lastName.trim()
+              }
+            }
+          },
+          include: {
+            child: {
+              include: {
+                myProfile: true
+              }
+            }
+          }
+        });
+
+        if (existingChild) {
+          console.log('[PARENT/CHILDREN/CREATE] Duplicate child found:', {
+            parentEmail: parent.email,
+            childName: `${firstName} ${lastName}`,
+            existingChildId: existingChild.childId
+          });
+          throw Object.assign(new Error('duplicate_child'), { 
+            code: 'duplicate_child',
+            existingChildId: existingChild.childId,
+            existingUsername: existingChild.child.myProfile?.username
+          });
+        }
+
         let invite: any = null;
         if (code) {
           invite = await tx.invite.findUnique({
@@ -160,6 +193,14 @@ export async function POST(req: Request) {
       res.headers.set('Cache-Control', 'no-store');
       return res;
     } catch (err: any) {
+      // Handle duplicate child account
+      if (err?.code === 'duplicate_child') {
+        return NextResponse.json({ 
+          ok: false, 
+          reason: 'duplicate_child',
+          message: `A child named ${firstName} ${lastName} already exists. Please provide a unique name for this child.`
+        }, { status: 409 });
+      }
       // Handle unique constraint violation for username or email
       if (err?.code === 'P2002') {
         return NextResponse.json({ ok: false, reason: 'username_taken' }, { status: 409 });
