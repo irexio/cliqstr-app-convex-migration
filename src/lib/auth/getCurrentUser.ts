@@ -15,13 +15,21 @@ export async function getCurrentUser() {
   try {
     // Import dynamically to avoid issues with server/client boundary
     const { getIronSession } = await import('iron-session');
+    const { NextRequest, NextResponse } = await import('next/server');
     
-    // Get cookieStore directly - compatible with how parent-signup saves the session
+    // Get cookieStore and create request/response objects to match parent-signup pattern
     const cookieStore = await cookies();
     
-    // Get the encrypted session using cookieStore directly (same as parent-signup route)
+    // Create mock request with cookies for iron-session compatibility
+    const request = new NextRequest('http://localhost', {
+      headers: { cookie: cookieStore.toString() }
+    });
+    const response = NextResponse.next();
+    
+    // Get the encrypted session using same pattern as parent-signup route
     const session = await getIronSession<SessionData>(
-      cookieStore as any,
+      request,
+      response,
       sessionOptions
     );
 

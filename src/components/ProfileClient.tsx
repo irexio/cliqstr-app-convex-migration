@@ -104,7 +104,7 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden mt-8">
+      <div className="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
       {/* Banner Section */}
       <div className="relative h-60 bg-gradient-to-r from-gray-100 to-gray-200">
         {profileData.bannerUrl ? (
@@ -236,6 +236,12 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
                     if (profileData.birthdate.includes('T')) {
                       // ISO format: 2023-07-15T00:00:00.000Z
                       date = new Date(profileData.birthdate);
+                    } else if (profileData.birthdate.length === 8 && /^\d{8}$/.test(profileData.birthdate)) {
+                      // Handle MMDDYYYY format like 07071960
+                      const month = profileData.birthdate.substring(0, 2);
+                      const day = profileData.birthdate.substring(2, 4);
+                      const year = profileData.birthdate.substring(4, 8);
+                      date = new Date(`${year}-${month}-${day}T00:00:00`);
                     } else {
                       // Date string format: 2023-07-15
                       date = new Date(profileData.birthdate + 'T00:00:00');
