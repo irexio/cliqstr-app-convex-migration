@@ -1,6 +1,7 @@
 // lib/auth/getCurrentUser.ts
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
 /**
  * 🔐 APA-HARDENED: Retrieves the current user from a secure encrypted session cookie.
@@ -14,7 +15,6 @@ export async function getCurrentUser() {
   try {
     // Import dynamically to avoid issues with server/client boundary
     const { getIronSession } = await import('iron-session');
-    const { sessionOptions, SessionData } = await import('@/lib/auth/session-config');
     
     // Get cookieStore directly - compatible with how parent-signup saves the session
     const cookieStore = await cookies();
