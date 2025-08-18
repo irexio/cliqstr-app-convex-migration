@@ -169,8 +169,17 @@ export async function POST(request: NextRequest) {
       return { user, account, profile };
     });
 
-    // 🎯 Sol's Rule: Start iron-session with proper session data
-    const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+    console.log('[WIZARD] Parent signup successful:', {
+      userId: result.user.id,
+      email: normalizedEmail,
+      inviteId
+    });
+
+    // 🎯 Sol's Rule: Create response first, then set session on it (like sign-in route)
+    const response = NextResponse.json({ ok: true });
+    
+    // Set encrypted session with policy using NextRequest and NextResponse
+    const session = await getIronSession<SessionData>(request, response, sessionOptions);
     const now = Date.now();
     const timeoutMins = 7 * 24 * 60; // 7 days
     const idleCutoffMins = 60; // 1 hour idle timeout
@@ -184,16 +193,16 @@ export async function POST(request: NextRequest) {
     session.expiresAt = now + timeoutMins * 60 * 1000;
     session.idleCutoffMinutes = idleCutoffMins;
     session.refreshIntervalMinutes = refreshIntervalMins;
+    
+    console.log('[WIZARD] Session data prepared, attempting save...');
     await session.save();
+    console.log('[WIZARD] Session saved successfully');
 
-    console.log('[WIZARD] Parent signup successful:', {
-      userId: result.user.id,
-      email: normalizedEmail,
-      inviteId
-    });
+    // Set headers for caching and expiry hint
+    response.headers.set('Cache-Control', 'private, no-store');
+    response.headers.set('X-Session-Expires-At', new Date(session.expiresAt).toISOString());
 
-    // 🎯 Sol's Rule: Response with no redirect
-    return NextResponse.json({ ok: true });
+    return response;
 
   } catch (error) {
     console.error('[WIZARD] Parent signup error:', error);

@@ -89,7 +89,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax' as const,
-      maxAge: 86400, // 24 hours
+      maxAge: 604800, // 7 days (604800 seconds)
       // For production, set domain to work with both apex and www
       // For Vercel deployments, don't set domain to avoid cross-domain issues
       ...(isProduction && request.url.includes('cliqstr.com') ? { domain: '.cliqstr.com' } : {})
