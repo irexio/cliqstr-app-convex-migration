@@ -65,6 +65,7 @@ export default async function ParentsHQPage() {
           targetUserId: true,
           targetEmailNormalized: true,
           inviteeEmail: true,
+          trustedAdultContact: true,
           status: true,
           used: true,
           friendFirstName: true,
@@ -149,13 +150,21 @@ export default async function ParentsHQPage() {
   }
 
   // Extract email from invite if available
+  // For child invites, use trustedAdultContact (parent email)
+  // For adult invites, use inviteeEmail
   let prefillEmail = '';
   if (invite) {
-    prefillEmail = invite.inviteeEmail || '';
+    if (invite.inviteType === 'child') {
+      prefillEmail = invite.trustedAdultContact || '';
+    } else {
+      prefillEmail = invite.inviteeEmail || '';
+    }
     console.log('[PARENTS_HQ] Using prefillEmail from invite:', {
       inviteId: invite.id,
+      inviteType: invite.inviteType,
       prefillEmail,
-      inviteeEmail: invite.inviteeEmail
+      inviteeEmail: invite.inviteeEmail,
+      trustedAdultContact: invite.trustedAdultContact
     });
   } else {
     console.log('[PARENTS_HQ] No invite found - empty prefillEmail');

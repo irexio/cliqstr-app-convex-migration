@@ -143,8 +143,8 @@ export async function POST(request: NextRequest) {
       await tx.invite.update({
         where: { id: invite.id },
         data: {
-          invitedUserId: user.id,
-          status: 'accepted'
+          invitedUserId: user.id
+          // Keep status as 'pending' - will be set to 'accepted' when child is created
           // Do NOT set used = true yet - keep invite alive
         }
       });
