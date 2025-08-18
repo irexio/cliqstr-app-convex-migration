@@ -225,20 +225,34 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
             )}
             <div className="flex gap-6 mt-4 text-sm text-gray-600">
               <span>Birthday: {
-                profileData.birthdate && profileData.birthdate !== 'Invalid Date' ? 
-                  (() => {
-                    try {
-                      const date = new Date(profileData.birthdate + 'T00:00:00');
-                      if (isNaN(date.getTime())) return 'Not set';
-                      return date.toLocaleDateString('en-US', 
-                        profileData.showYear 
-                          ? { year: 'numeric', month: 'long', day: 'numeric' }
-                          : { month: 'long', day: 'numeric' }
-                      );
-                    } catch {
-                      return 'Not set';
+                (() => {
+                  if (!profileData.birthdate || profileData.birthdate === 'Invalid Date') {
+                    return 'Not set';
+                  }
+                  
+                  try {
+                    // Handle both ISO string and date string formats
+                    let date;
+                    if (profileData.birthdate.includes('T')) {
+                      // ISO format: 2023-07-15T00:00:00.000Z
+                      date = new Date(profileData.birthdate);
+                    } else {
+                      // Date string format: 2023-07-15
+                      date = new Date(profileData.birthdate + 'T00:00:00');
                     }
-                  })() : 'Not set'
+                    
+                    if (isNaN(date.getTime())) return 'Not set';
+                    
+                    return date.toLocaleDateString('en-US', 
+                      profileData.showYear 
+                        ? { year: 'numeric', month: 'long', day: 'numeric' }
+                        : { month: 'long', day: 'numeric' }
+                    );
+                  } catch (error) {
+                    console.error('Date parsing error:', error, 'Input:', profileData.birthdate);
+                    return 'Not set';
+                  }
+                })()
               }</span>
             </div>
           </div>
@@ -257,7 +271,6 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
 
       {/* My Wall Section */}
       <div className="px-8 py-6">
-        <h2 className="text-xl font-semibold text-black mb-6">{sectionLabel}</h2>
         <ScrapbookGallery
           items={scrapbookItems}
           userId={profileData.id}

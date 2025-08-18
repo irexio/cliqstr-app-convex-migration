@@ -106,7 +106,7 @@ export default function ScrapbookGallery({
         {isOwner && !showCaptionInput && !isUploading && (
           <button
             onClick={handleStartUpload}
-            className="px-4 py-2 bg-black text-white rounded-full text-sm hover:bg-gray-800 flex items-center gap-1"
+            className="px-4 py-2 bg-black text-white rounded-lg text-sm hover:bg-gray-800 flex items-center gap-1 font-medium"
           >
             <span className="text-lg">+</span> Add to {sectionLabel}
           </button>

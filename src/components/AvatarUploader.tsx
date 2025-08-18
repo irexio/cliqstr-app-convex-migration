@@ -74,6 +74,7 @@ export default function AvatarUploader({
         <div className="flex justify-center mb-4">
           <UploadButton
             endpoint="avatar"
+            config={{ mode: 'auto' }}
             onClientUploadComplete={handleUploadSuccess}
             onUploadError={handleUploadError}
             onUploadBegin={() => {
@@ -81,8 +82,16 @@ export default function AvatarUploader({
               setMessage(null);
             }}
             appearance={{
-              button: "bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors shadow-sm",
+              button: "bg-[#c032d1] hover:bg-[#a02ba8] text-white px-6 py-3 rounded-lg text-sm font-medium transition-colors shadow-sm",
               allowedContent: "text-xs text-gray-500 mt-2"
+            }}
+            content={{
+              button: isUploading ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  Uploading...
+                </div>
+              ) : 'Select Profile Photo'
             }}
           />
         </div>
