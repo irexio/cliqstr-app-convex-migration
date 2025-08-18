@@ -14,21 +14,14 @@ export async function getCurrentUser() {
   try {
     // Import dynamically to avoid issues with server/client boundary
     const { getIronSession } = await import('iron-session');
-    const { sessionOptions } = await import('@/lib/auth/session-config');
-    type SessionData = { userId: string; createdAt: number };
+    const { sessionOptions, SessionData } = await import('@/lib/auth/session-config');
     
-    // Create a mock request object with cookies
-    const cookieStore = cookies();
-    const mockRequest = {
-      headers: {
-        cookie: cookieStore.toString(),
-      },
-    } as any;
+    // Get cookieStore directly - compatible with how parent-signup saves the session
+    const cookieStore = await cookies();
     
-    // Get the encrypted session
+    // Get the encrypted session using cookieStore directly (same as parent-signup route)
     const session = await getIronSession<SessionData>(
-      mockRequest,
-      new Response(),
+      cookieStore as any,
       sessionOptions
     );
 
@@ -37,17 +30,19 @@ export async function getCurrentUser() {
       return null;
     }
 
-    // Check session age using cookie maxAge or env override, falling back to safe defaults
-    // Priority: SESSION_TIMEOUT_MINUTES env > cookie maxAge > 30/240 defaults
-    const configuredMaxAgeSec = (sessionOptions.cookieOptions as any)?.maxAge as number | undefined;
-    const defaultTimeoutMins = process.env.NODE_ENV === 'production' ? 30 : 240;
-    const envTimeout = process.env.SESSION_TIMEOUT_MINUTES ? Number(process.env.SESSION_TIMEOUT_MINUTES) : undefined;
-    const timeoutMinutes = envTimeout ?? (configuredMaxAgeSec ? Math.floor(configuredMaxAgeSec / 60) : defaultTimeoutMins);
-    const sessionAge = Date.now() - session.createdAt;
-    if (sessionAge > timeoutMinutes * 60 * 1000) {
-      console.log(`[APA] Session expired after ${Math.round(sessionAge / (60 * 1000))} minutes`);
-      // Note: We can't destroy the session here in Server Components
-      // The session will be invalid on next request
+    // Check session expiration using the new session format
+    const now = Date.now();
+    
+    // Check if session has expired based on expiresAt field
+    if (session.expiresAt && session.expiresAt < now) {
+      console.log(`[APA] Session expired at ${new Date(session.expiresAt).toISOString()}`);
+      return null;
+    }
+    
+    // Check idle timeout
+    const idleTimeMs = session.idleCutoffMinutes ? session.idleCutoffMinutes * 60 * 1000 : 60 * 60 * 1000; // Default 1 hour
+    if (session.lastActivityAt && (now - session.lastActivityAt) > idleTimeMs) {
+      console.log(`[APA] Session idle timeout exceeded`);
       return null;
     }
 

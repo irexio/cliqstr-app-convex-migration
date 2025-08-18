@@ -152,10 +152,21 @@ export async function POST(request: NextRequest) {
       return { user, account, profile };
     });
 
-    // 🎯 Sol's Rule: Start iron-session
-    const session = await getIronSession(cookieStore, sessionOptions);
-    (session as any).userId = result.user.id;
-    (session as any).createdAt = Date.now();
+    // 🎯 Sol's Rule: Start iron-session with proper session data
+    const session = await getIronSession<SessionData>(cookieStore, sessionOptions);
+    const now = Date.now();
+    const timeoutMins = 7 * 24 * 60; // 7 days
+    const idleCutoffMins = 60; // 1 hour idle timeout
+    const refreshIntervalMins = 15; // Refresh every 15 minutes
+    
+    session.userId = result.user.id;
+    session.createdAt = now; // legacy field
+    session.issuedAt = now;
+    session.lastActivityAt = now;
+    session.lastAuthAt = now;
+    session.expiresAt = now + timeoutMins * 60 * 1000;
+    session.idleCutoffMinutes = idleCutoffMins;
+    session.refreshIntervalMinutes = refreshIntervalMins;
     await session.save();
 
     console.log('[WIZARD] Parent signup successful:', {

@@ -41,6 +41,16 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 🔒 Security check: User must have a valid plan to join ANY cliq
+    if (!user.plan) {
+      console.error('[SECURITY] User attempted to join cliq without plan:', {
+        userId: user.id,
+        email: user.email,
+        cliqId
+      });
+      return NextResponse.json({ error: 'Account setup incomplete - no plan assigned' }, { status: 403 });
+    }
+
     // Get user's Account data for age verification (APA-safe)
     if (!user.account?.birthdate) {
       console.log('[APA] User missing account birthdate in cliq join:', user.email);

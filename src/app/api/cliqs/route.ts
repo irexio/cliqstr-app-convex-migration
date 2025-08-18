@@ -37,6 +37,16 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // 🔒 Security check: User must have a valid plan to access cliqs
+    if (!user.plan) {
+      console.error('[SECURITY] User attempted to access cliq without plan:', {
+        userId: user.id,
+        email: user.email,
+        cliqId
+      });
+      return NextResponse.json({ error: 'Account setup incomplete - no plan assigned' }, { status: 403 });
+    }
+
     // APA-compliant access control: Verify user is a member of this cliq
     try {
       await requireCliqMembership(user.id, cliqId);
