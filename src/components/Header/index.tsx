@@ -283,7 +283,7 @@ export function HeaderComponent() {
                     </div>
                     
                     <Link 
-                      href={`/profile/${userData?.myProfile?.username || userData?.id}`} 
+                      href={`/profile/${userData?.myProfile?.username || userData?.email?.split('@')[0] || 'user'}`} 
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       onClick={() => setIsUserMenuOpen(false)}
                     >

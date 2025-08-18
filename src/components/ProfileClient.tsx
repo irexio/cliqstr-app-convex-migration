@@ -255,71 +255,17 @@ export default function ProfileClient({ profile, scrapbookItems, onRefresh }: Pr
         </div>
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="border-b border-gray-200 px-8">
-        <nav className="flex space-x-8">
-          <button
-            onClick={() => setActiveTab('about')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
-              activeTab === 'about'
-                ? 'border-black text-black'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            About
-          </button>
-          <button
-            onClick={() => setActiveTab('wall')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm transition ${
-              activeTab === 'wall'
-                ? 'border-black text-black'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            {sectionLabel}
-          </button>
-        </nav>
-      </div>
-
-      {/* Tab Content */}
+      {/* My Wall Section */}
       <div className="px-8 py-6">
-        {activeTab === 'about' && (
-          <div className="max-w-2xl">
-            <h2 className="text-xl font-semibold text-black mb-4">About</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">About Me</h3>
-                <p className="text-gray-700">
-                  {profileData.bio || 'No bio added yet.'}
-                </p>
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900 mb-1">Birthday</h3>
-                <p className="text-gray-700">
-                  {new Date(profileData.birthdate + 'T00:00:00').toLocaleDateString('en-US', 
-                    profileData.showYear 
-                      ? { year: 'numeric', month: 'long', day: 'numeric' }
-                      : { month: 'long', day: 'numeric' }
-                  )}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'wall' && (
-          <div>
-            {/* ScrapbookGallery Integration */}
-            <ScrapbookGallery
-              items={scrapbookItems}
-              userId={profileData.id}
-              isOwner={profileData.isOwner}
-              sectionLabel={sectionLabel}
-              layoutStyle={'masonry'}
-              onItemAdded={onRefresh}
-            />
-          </div>
-        )}
+        <h2 className="text-xl font-semibold text-black mb-6">{sectionLabel}</h2>
+        <ScrapbookGallery
+          items={scrapbookItems}
+          userId={profileData.id}
+          isOwner={profileData.isOwner}
+          sectionLabel={sectionLabel}
+          layoutStyle={'masonry'}
+          onItemAdded={onRefresh}
+        />
       </div>
 
       {/* Edit Profile Modal */}

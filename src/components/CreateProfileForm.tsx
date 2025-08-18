@@ -205,6 +205,7 @@ export default function CreateProfileForm() {
             <div className="flex-1">
               <UploadDropzone
                 endpoint="avatar"
+                config={{ mode: 'auto' }}
                 onClientUploadComplete={(res) => {
                   console.log('[PROFILE] Avatar upload complete:', res);
                   setUploadingAvatar(false);
@@ -226,7 +227,22 @@ export default function CreateProfileForm() {
                   setUploadingAvatar(true);
                   setError('');
                 }}
-                className="ut-button:bg-black ut-button:ut-readying:bg-gray-500 ut-button:ut-uploading:bg-gray-500"
+                appearance={{
+                  container: 'border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-[#c032d1] transition-colors',
+                  button: 'bg-[#c032d1] text-white px-6 py-3 rounded-lg font-medium hover:bg-[#a02ba8] transition-colors text-base',
+                  label: 'text-gray-600 text-sm mb-2 block',
+                  allowedContent: 'text-xs text-gray-500 mt-2'
+                }}
+                content={{
+                  button: uploadingAvatar ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                      Uploading...
+                    </div>
+                  ) : 'Select Profile Picture',
+                  label: 'Drop your profile picture here or click to browse',
+                  allowedContent: 'PNG, JPG up to 4MB - uploads automatically when selected'
+                }}
               />
               {uploadingAvatar && (
                 <p className="text-sm text-gray-600 mt-2">Uploading avatar...</p>
@@ -249,6 +265,7 @@ export default function CreateProfileForm() {
           )}
           <UploadDropzone
             endpoint="banner"
+            config={{ mode: 'auto' }}
             onClientUploadComplete={(res) => {
               console.log('[PROFILE] Banner upload complete:', res);
               setUploadingBanner(false);
@@ -270,7 +287,22 @@ export default function CreateProfileForm() {
               setUploadingBanner(true);
               setError('');
             }}
-            className="ut-button:bg-black ut-button:ut-readying:bg-gray-500 ut-button:ut-uploading:bg-gray-500"
+            appearance={{
+              container: 'border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-black transition-colors',
+              button: 'bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-800 transition-colors text-base',
+              label: 'text-gray-600 text-sm mb-2 block',
+              allowedContent: 'text-xs text-gray-500 mt-2'
+            }}
+            content={{
+              button: uploadingBanner ? (
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full"></div>
+                  Uploading...
+                </div>
+              ) : 'Select Cover Photo',
+              label: 'Drop your cover photo here or click to browse',
+              allowedContent: 'PNG, JPG up to 4MB - uploads automatically when selected'
+            }}
           />
           {uploadingBanner && (
             <p className="text-sm text-gray-600 mt-2">Uploading banner...</p>

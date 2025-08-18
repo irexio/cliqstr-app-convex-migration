@@ -15,6 +15,9 @@ type UserData = {
     stripeStatus?: string;
     plan?: string;
   };
+  myProfile?: {
+    username: string;
+  };
 };
 
 type MobileMenuProps = {
@@ -121,7 +124,7 @@ export function MobileMenu({
               </div>
 
               <Link 
-                href={`/profile/${userId}`} 
+                href={`/profile/${userData?.myProfile?.username || userData?.email?.split('@')[0] || 'user'}`} 
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

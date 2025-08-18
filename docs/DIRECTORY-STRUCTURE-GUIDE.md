@@ -1,5 +1,5 @@
 # 📁 Cliqstr App Directory Structure Guide
-Last Updated: August 16, 2025 - **MAJOR BREAKTHROUGH: Child Invite Flow Fixed!** 🎉
+Last Updated: August 17, 2025 - **CHILD INVITE FLOW ENHANCED: Full Name Support Added!** 🎯
 ## 🏗️ Root Level Structure
 
 ### Core Configuration Files
@@ -249,6 +249,21 @@ All server-side functionality organized by feature:
   - **Conditional sections** - Shows signup form at top when needed, then dashboard below
   - **Child creation modal** - Integrated child account setup
   - **Permission system** - Simple checkbox interface for child safety controls
+- **🎯 CHILD INVITE ENHANCEMENT (Aug 17, 2025)** - **Full Name Support & UX Improvements**
+  - **friendLastName Field**: Added to Invite model and throughout entire invite flow
+  - **Enhanced Parent Identification**: Parents now see "Johnny Smith" vs "Johnny Jones" in emails
+  - **Smart Username Generation**: Child creation form suggests usernames based on full name
+  - **Prefilled Forms**: Child creation modal auto-fills with invited child's first and last name
+  - **Enhanced Cookie Data**: Invite cookies now include complete child name information
+  - **Database Migration**: Added `User.deletedAt` (admin soft-delete) and `Invite.friendLastName` fields
+  - **TypeScript Fixes**: Resolved null vs undefined prop type mismatches throughout flow
+  - **Files Enhanced**: 
+    - `/src/app/api/invite/create/route.ts` - Full name collection and validation
+    - `/src/lib/auth/sendChildInviteEmail.ts` - Display full child names in emails
+    - `/src/components/parents/wizard/ChildCreateModal.tsx` - Smart prefilling and username suggestions
+    - `/src/app/invite/[token]/route.ts` - Enhanced cookie data with child names
+    - `/src/app/parents/hq/page.tsx` - Complete invite data passing
+  - **Result**: Parents can now clearly identify which specific child is being invited 🎯
 - **🚨 CRITICAL BUG FIX (Aug 16, 2025)** - **Child Invite Flow "Unauthorized" Error RESOLVED**
   - **Problem**: ParentsHQContent component making unauthorized /api/auth/status calls during signup flow
   - **Solution**: Added conditional rendering to prevent ParentsHQContent from showing during wizard flows
