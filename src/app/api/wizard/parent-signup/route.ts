@@ -29,12 +29,29 @@ export async function POST(request: NextRequest) {
     console.log('[WIZARD] Parent signup request received');
     const cookieStore = await cookies();
     
+    // Enhanced debugging for cookie issues
+    const allCookies = cookieStore.getAll();
+    console.log('[WIZARD] All cookies found:', allCookies.map(c => ({ name: c.name, hasValue: !!c.value })));
+    
     // Parse pending_invite cookie (Base64-URL encoded JSON format)
     const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
-    console.log('[WIZARD] Pending invite cookie:', pendingInviteCookie);
+    console.log('[WIZARD] Pending invite cookie raw value:', pendingInviteCookie);
+    console.log('[WIZARD] Cookie exists:', !!pendingInviteCookie);
+    
     if (!pendingInviteCookie) {
-      console.log('[WIZARD] No pending invite cookie found');
-      return NextResponse.json({ ok: false, error: 'No pending invite' }, { status: 400 });
+      console.log('[WIZARD] No pending invite cookie found - checking for legacy variants');
+      const legacyCookie = cookieStore.get('pending_invite_legacy')?.value;
+      console.log('[WIZARD] Legacy cookie found:', !!legacyCookie);
+      
+      return NextResponse.json({ 
+        ok: false, 
+        error: 'No pending invite cookie found. Please click the invite link again.',
+        debug: {
+          allCookies: allCookies.map(c => c.name),
+          pendingInvite: !!pendingInviteCookie,
+          legacy: !!legacyCookie
+        }
+      }, { status: 400 });
     }
 
     let inviteId;

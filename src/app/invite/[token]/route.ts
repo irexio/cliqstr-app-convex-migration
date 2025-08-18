@@ -77,6 +77,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     
     // Determine if we're in production based on URL
     const isProduction = request.url.includes('cliqstr.com');
+    console.log('[INVITE_TOKEN] Environment detection:', { 
+      url: request.url, 
+      isProduction,
+      host: request.headers.get('host')
+    });
     
     // Set the canonical Base64-URL cookie with proper domain handling
     const cookieOptions = {
@@ -85,8 +90,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       secure: isProduction,
       sameSite: 'lax' as const,
       maxAge: 86400, // 24 hours
-      ...(isProduction ? { domain: '.cliqstr.com' } : {})
+      // For production, set domain to work with both apex and www
+      // For Vercel deployments, don't set domain to avoid cross-domain issues
+      ...(isProduction && request.url.includes('cliqstr.com') ? { domain: '.cliqstr.com' } : {})
     };
+    
+    console.log('[INVITE_TOKEN] Cookie options:', cookieOptions);
     
     res.cookies.set('pending_invite', cookieValue, cookieOptions);
 
