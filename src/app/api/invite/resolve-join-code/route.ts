@@ -66,33 +66,35 @@ export async function POST(request: NextRequest) {
     
     const res = NextResponse.redirect(new URL('/parents/hq', request.url), 302);
     
-    // Set the canonical Base64-URL cookie
-    res.cookies.set('pending_invite', cookieValue, {
-      domain: '.cliqstr.com',
+    // Determine if we're in production based on URL
+    const isProduction = request.url.includes('cliqstr.com');
+    
+    // Set the canonical Base64-URL cookie with proper domain handling
+    const cookieOptions = {
       path: '/',
       httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 86400 // 24 hours
-    });
+      secure: isProduction,
+      sameSite: 'lax' as const,
+      maxAge: 86400, // 24 hours
+      ...(isProduction ? { domain: '.cliqstr.com' } : {})
+    };
+    
+    res.cookies.set('pending_invite', cookieValue, cookieOptions);
 
     // Delete legacy cookie variants
-    res.cookies.set('pending_invite', '', {
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 0 // Delete
-    });
+    res.cookies.delete('pending_invite');
     
-    res.cookies.set('pending_invite', '', {
-      domain: '.cliqstr.com',
-      path: '/',
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      expires: new Date(0) // Delete
-    });
+    if (isProduction) {
+      // Also delete with domain for production
+      res.cookies.set('pending_invite', '', {
+        domain: '.cliqstr.com',
+        path: '/',
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax',
+        expires: new Date(0)
+      });
+    }
 
     console.log('[RESOLVE_JOIN_CODE] Bulletproof cookie set, returning success');
 

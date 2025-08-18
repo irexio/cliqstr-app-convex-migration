@@ -240,9 +240,9 @@ export async function POST(req: Request) {
         invitedRole: inviteType === 'child' ? 'child' : 'adult'
       });
       
-      // Prepare the invite data with 30-day expiry (extended for testing)
+      // Prepare the invite data with 7-day expiry
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
+      expiresAt.setDate(expiresAt.getDate() + 7);
       
       const inviteData: any = {
         token: crypto.randomUUID(),
