@@ -25,4 +25,6 @@ export interface SessionData {
   lastAuthAt: number; // for step-up reauth
   idleCutoffMinutes: number;
   refreshIntervalMinutes: number;
+  // Magic link / invite support
+  inviteId?: string; // set when redeeming an invite; used to prepopulate PHQ
 }

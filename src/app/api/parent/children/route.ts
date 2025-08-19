@@ -72,7 +72,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, reason: 'missing_fields' }, { status: 400 });
     }
 
-    console.log('[PARENTS_HQ][api] start', { code: code ?? null, userId: parent.id });
+    console.log('[PARENTS_HQ][api] start', { 
+      code: code ?? 'NO_CODE', 
+      userId: parent.id,
+      firstName,
+      lastName,
+      username 
+    });
 
     const hashed = await hash(password, 10);
 

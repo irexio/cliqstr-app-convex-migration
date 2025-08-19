@@ -65,6 +65,12 @@ export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstNam
       code: inviteCode, // API expects 'code' not 'inviteId'
     };
 
+    console.log('[CHILD_CREATE] Submitting child creation:', { 
+      ...payload, 
+      password: '***',
+      inviteCode 
+    });
+
     try {
       const res = await fetch('/api/parent/children', {
         method: 'POST',
@@ -73,19 +79,28 @@ export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstNam
       });
 
       const data = await res.json().catch(() => ({}));
+      console.log('[CHILD_CREATE] API response:', { ok: res.ok, data });
+      
       if (!res.ok || !data?.ok) {
         // Use the specific message if provided, otherwise fallback to reason or generic error
         const errorMessage = data?.message || 
                            (data?.reason === 'username_taken' ? 'This username is already taken. Please choose another.' : 
                             data?.reason === 'duplicate_child' ? data?.message : 
                             data?.reason || 'Unable to create child account. Please try again.');
+        console.error('[CHILD_CREATE] Failed:', errorMessage);
         setErr(errorMessage);
         setSubmitting(false);
         return;
       }
 
-      // Success - refresh to show next step
-      router.refresh();
+      // Success - redirect to dashboard or permissions page
+      // The child account has been created and linked to the parent
+      console.log('[CHILD_CREATE] Success! Redirecting to dashboard...');
+      
+      // Small delay to ensure database writes are complete
+      setTimeout(() => {
+        window.location.href = '/parents/hq';
+      }, 500);
     } catch (e) {
       setErr('Network error. Please check your connection and try again.');
       setSubmitting(false);

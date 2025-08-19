@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from '@/lib/auth/session-config';
 
 export const runtime = 'nodejs';
 
@@ -71,8 +73,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
     
     console.log('[INVITE_TOKEN] Setting bulletproof cookie and deleting legacy variants:', { cookieJson, cookieValue, inviteId: invite.id });
-    
-    const redirectUrl = new URL('/parents/hq#create-child', request.url);
+    // Determine redirect based on invite type
+    const nextPath = invite.inviteType === 'child' ? '/parents/hq' : '/choose-plan';
+    const redirectUrl = new URL(nextPath, request.url);
     const res = NextResponse.redirect(redirectUrl, 302);
     
     // Determine if we're in production based on URL
@@ -99,6 +102,26 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     
     res.cookies.set('pending_invite', cookieValue, cookieOptions);
 
+    // Also persist inviteId into iron-session for server-side step detection
+    try {
+      const currentCookies = cookies();
+      const reqForSession = new NextRequest(request.url, {
+        headers: { cookie: currentCookies.toString() },
+      });
+      const resForSession = NextResponse.next();
+      const iron = await getIronSession<any>(reqForSession, resForSession, sessionOptions);
+      iron.inviteId = invite.id;
+      await iron.save();
+      // Merge any Set-Cookie headers produced by iron-session into our redirect response
+      const setCookie = resForSession.headers.get('set-cookie');
+      if (setCookie) {
+        res.headers.append('set-cookie', setCookie);
+      }
+      console.log('[INVITE_TOKEN] Saved inviteId to iron-session:', invite.id);
+    } catch (sessionErr) {
+      console.error('[INVITE_TOKEN] Failed to persist inviteId in iron-session:', sessionErr);
+    }
+
     // Clean up any legacy cookie variants with wrong domain (only if in production)
     if (isProduction) {
       // Delete cookie without domain specifier (if it exists from dev/preview)
@@ -111,7 +134,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       });
     }
 
-    console.log('[INVITE_TOKEN] Bulletproof cookie set and legacy variants deleted, 302 to /parents/hq#create-child');
+    console.log('[INVITE_TOKEN] Cookie set, iron-session updated, 302 to', redirectUrl.pathname);
     
     return res;
 
@@ -121,3 +144,4 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.redirect(new URL('/join-invalid', request.url), 302);
   }
 }
+

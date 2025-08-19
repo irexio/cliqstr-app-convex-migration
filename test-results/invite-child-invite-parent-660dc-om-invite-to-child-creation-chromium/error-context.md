@@ -1,0 +1,80 @@
+# Page snapshot
+
+```yaml
+- banner:
+  - link "cliqstr":
+    - /url: /
+  - navigation:
+    - link "Explore Public Cliqs":
+      - /url: /explore
+    - link "How It Works":
+      - /url: /how-it-works
+    - link "About":
+      - /url: /about
+    - link "FAQs":
+      - /url: /faqs
+  - button "Join with Invite"
+  - link "Sign In":
+    - /url: /sign-in
+  - link "Sign Up":
+    - /url: /sign-up
+- main:
+  - heading "Create your Parent account" [level=2]
+  - textbox "First name": Parent
+  - textbox "Last name": Smith
+  - textbox "Email": newparent@example.com
+  - text: Birthdate
+  - textbox: 1985-01-01
+  - textbox "Password": TestPassword123!
+  - text: Choose your plan
+  - radio "Invited-Free Access to invited cliq only" [checked]
+  - text: Invited-Free Access to invited cliq only
+  - radio "Basic Create and join multiple cliqs"
+  - text: Basic Create and join multiple cliqs
+  - radio "Family Full family management features"
+  - text: Family Full family management features
+  - button "Creating account…" [disabled]
+- contentinfo:
+  - heading "cliqstr" [level=2]
+  - paragraph: Cliqstr is a private social platform for families, friends, and safe online communities.
+  - paragraph: 🚧 Currently in Beta
+  - paragraph:
+    - text: Interested in what we’re building?
+    - link "inquiry@cliqstr.com":
+      - /url: mailto:inquiry@cliqstr.com
+  - paragraph:
+    - text: Want to join our team?
+    - link "wizards@cliqstr.com":
+      - /url: mailto:wizards@cliqstr.com
+  - heading "Pages" [level=3]
+  - list:
+    - listitem:
+      - link "Explore Public Cliqs":
+        - /url: /explore
+    - listitem:
+      - link "How It Works":
+        - /url: /how-it-works
+    - listitem:
+      - link "About":
+        - /url: /about
+    - listitem:
+      - link "FAQs":
+        - /url: /faqs
+  - heading "Legal" [level=3]
+  - list:
+    - listitem:
+      - link "Privacy Policy":
+        - /url: /privacy
+    - listitem:
+      - link "Terms of Service":
+        - /url: /terms
+    - listitem:
+      - link "Cliqstr Safety":
+        - /url: /safety
+  - heading "Start Your Cliq" [level=3]
+  - paragraph: Create a private space for the people you trust most.
+  - link "Start Free Trial":
+    - /url: /sign-up
+  - text: © 2025 Cliqstr. Built with ❤️ for families and friends.
+- alert
+```

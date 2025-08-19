@@ -97,8 +97,9 @@ export default function ParentsHQWithSignup({
         return;
       }
 
-      // Success - refresh to show next step
-      router.refresh();
+      // Success - force reload to show next step with new session
+      // Using window.location instead of router.refresh() to ensure session is picked up
+      window.location.href = '/parents/hq#create-child';
     } catch (e) {
       setErr('Network error. Please check your connection and try again.');
       setSubmitting(false);
@@ -125,8 +126,8 @@ export default function ParentsHQWithSignup({
         return;
       }
 
-      // Success - refresh to show next step
-      router.refresh();
+      // Success - force reload to show next step  
+      window.location.href = '/parents/hq#create-child';
     } catch (e) {
       setErr('Network error. Please check your connection and try again.');
       setSubmitting(false);
@@ -162,8 +163,8 @@ export default function ParentsHQWithSignup({
         return;
       }
 
-      // Success - refresh to show dashboard
-      router.refresh();
+      // Success - redirect to dashboard
+      window.location.href = '/parents/hq';
     } catch (e) {
       setErr('Network error. Please check your connection and try again.');
       setSubmitting(false);

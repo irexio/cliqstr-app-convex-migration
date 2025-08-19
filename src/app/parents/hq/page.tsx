@@ -3,6 +3,9 @@ export const runtime = 'nodejs';
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { NextRequest, NextResponse } from 'next/server';
+import { getIronSession } from 'iron-session';
+import { sessionOptions } from '@/lib/auth/session-config';
 import { getServerSession } from '@/lib/auth/getServerSession';
 import { prisma } from '@/lib/prisma';
 import ParentsHQWithSignup from '@/components/parents/ParentsHQWithSignup';
@@ -26,24 +29,43 @@ export default async function ParentsHQPage() {
   let account = null;
   let invite = null;
 
-  // Parse invite cookie to get inviteId (handle both Base64-URL and legacy JSON formats)
-  let inviteId = null;
+  // Prefer inviteId from secure iron-session; fallback to legacy pending_invite cookie
+  let inviteId: string | null = null;
+  try {
+    const request = new NextRequest('http://localhost', {
+      headers: { cookie: cookieStore.toString() },
+    });
+    const response = NextResponse.next();
+    const iron = await getIronSession<any>(request, response, sessionOptions);
+    if (iron?.inviteId) {
+      inviteId = iron.inviteId as string;
+      console.log('[PARENTS_HQ] inviteId from iron-session:', inviteId);
+    }
+  } catch (e) {
+    console.error('[PARENTS_HQ] Error reading iron-session for inviteId:', e);
+  }
+
+  // Legacy: Parse invite cookie to get inviteId (handle both Base64-URL and legacy JSON formats)
   if (pendingInviteCookie) {
     try {
       console.log('[PARENTS_HQ] Raw pending_invite cookie:', pendingInviteCookie);
       
       // Try Base64-URL format first
       try {
-        const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
-        const parsed = JSON.parse(decodedJson);
-        inviteId = parsed.inviteId;
-        console.log('[PARENTS_HQ] Parsed inviteId (Base64-URL):', inviteId);
+        if (!inviteId) {
+          const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+          const parsed = JSON.parse(decodedJson);
+          inviteId = parsed.inviteId;
+          console.log('[PARENTS_HQ] Parsed inviteId (Base64-URL):', inviteId);
+        }
       } catch (base64Error) {
         // Fallback to legacy JSON format
         console.log('[PARENTS_HQ] Base64-URL decode failed, trying legacy JSON format');
-        const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
-        inviteId = parsed.inviteId;
-        console.log('[PARENTS_HQ] Parsed inviteId (legacy JSON):', inviteId);
+        if (!inviteId) {
+          const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
+          inviteId = parsed.inviteId;
+          console.log('[PARENTS_HQ] Parsed inviteId (legacy JSON):', inviteId);
+        }
       }
     } catch (e) {
       console.error('[PARENTS_HQ] Invalid pending_invite cookie:', e);
@@ -63,6 +85,7 @@ export default async function ParentsHQPage() {
           cliqId: true,
           targetState: true,
           targetUserId: true,
+          invitedUserId: true,
           targetEmailNormalized: true,
           inviteeEmail: true,
           trustedAdultContact: true,
@@ -117,21 +140,48 @@ export default async function ParentsHQPage() {
         });
         
         if (account?.role === 'Parent') {
+          console.log('[PARENTS_HQ] Parent authenticated, checking next step:', {
+            hasInvite: !!invite,
+            inviteStatus: invite?.status,
+            inviteUsed: invite?.used,
+            inviteType: invite?.inviteType,
+            targetUserId: invite?.targetUserId
+          });
+          
           // Parent is authenticated - determine next step based on invite
-          if (invite) {
+          if (invite && invite.inviteType === 'child') {
             if (invite.status === 'pending' && !invite.used) {
-              // Check if child account exists for this invite
-              const childExists = invite.targetUserId ? await prisma.user.findFirst({
-                where: { id: invite.targetUserId },
-                include: { account: true }
-              }) : null;
-              
-              if (!childExists || childExists.account?.role !== 'Child') {
+              // For child invites, invitedUserId should be the child's ID (set during child creation)
+              // If it's not set yet, we need to create the child
+              if (!invite.invitedUserId) {
+                console.log('[PARENTS_HQ] Child invite pending, no child created yet - setting needsChildCreation = true');
                 needsChildCreation = true;
               } else {
-                needsPermissions = true;
+                // Check if the invitedUser is actually a child
+                const childExists = await prisma.user.findFirst({
+                  where: { id: invite.invitedUserId },
+                  include: { account: true }
+                });
+                
+                console.log('[PARENTS_HQ] Child exists check:', {
+                  invitedUserId: invite.invitedUserId,
+                  childExists: !!childExists,
+                  childRole: childExists?.account?.role
+                });
+                
+                if (!childExists || childExists.account?.role !== 'Child') {
+                  console.log('[PARENTS_HQ] InvitedUser is not a child, setting needsChildCreation = true');
+                  needsChildCreation = true;
+                } else {
+                  console.log('[PARENTS_HQ] Child already exists, setting needsPermissions = true');
+                  needsPermissions = true;
+                }
               }
+            } else {
+              console.log('[PARENTS_HQ] Invite already used or not pending, no child creation needed');
             }
+          } else if (!invite) {
+            console.log('[PARENTS_HQ] No invite found after parent auth - showing dashboard');
           }
         } else if (account?.role && account.role !== 'Parent') {
           // Existing user but not Parent - needs upgrade
@@ -177,7 +227,7 @@ export default async function ParentsHQPage() {
       needsPermissions={needsPermissions}
       needsUpgradeToParent={needsUpgradeToParent}
       prefillEmail={prefillEmail}
-      inviteId={inviteId}
+      inviteId={inviteId || undefined}
       inviteCode={invite?.code || undefined}
       targetState={invite?.targetState}
       friendFirstName={invite?.friendFirstName || undefined}

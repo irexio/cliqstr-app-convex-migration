@@ -1,5 +1,5 @@
 # 📁 Cliqstr App Directory Structure Guide
-Last Updated: August 17, 2025 - **CHILD INVITE FLOW ENHANCED: Full Name Support Added!** 🎯
+Last Updated: August 18, 2025 - **PARENT HQ FLOW FIXED: Step 1 Freezing Issue Resolved!** 🎯
 ## 🏗️ Root Level Structure
 
 ### Core Configuration Files
@@ -33,16 +33,16 @@ This follows the new Next.js App Router structure where folders = routes:
 #### Parent & Child System
 **🔄 CRITICAL FLOWS - READ CAREFULLY FOR CONTEXT**
 
-**FLOW 1: Child Invite → Parent Approval (Most Common)**
-1. **Child receives invite** → Email with cliq-xxxxx code → `/invite/[token]` 
-2. **Invite validation** → `/api/invites/validate` → Determines if parent approval needed
-3. **Parent approval required** → Redirects to `/invite/parent` → Shows "Parent/Guardian must approve"
-4. **Parent email sent** → Uses `/api/send-parent-email` → Parent gets approval email
-5. **Parent clicks email** → `/invite/accept?code=cliq-xxxxx` → Validates invite code
-6. **Parent approval flow** → `/parent-approval` → Parent sees child's invite details
-7. **Parent creates account OR signs in** → Either signup flow or existing account login
-8. **Parent approval completion** → `/api/parent-approval/complete` → Creates ParentLink, sets child credentials
-9. **Success** → Parent redirected to `/parents/hq` → Child can now sign in
+**FLOW 1: Child Invite → Parent Approval (Most Common) ✅ FIXED!**
+1. **Cliq owner sends child invite** → Email sent to parent with invite link
+2. **Parent clicks invite link** → `/invite/[token]` → Sets cookie, redirects to `/parents/hq#create-child`
+3. **Parent HQ Step 1** → Parent signup form (if not authenticated)
+4. **Parent creates account** → `/api/wizard/parent-signup` → Session created ✅
+5. **Page reloads with session** → Shows Step 2: Child creation form (FIXED: was freezing here)
+6. **Parent creates child account** → `/api/parent/children` → Child account created, invite consumed
+7. **Success** → Redirects to `/parents/hq` dashboard → Child added to cliq
+
+**🔧 Recent Fix:** Changed `router.refresh()` to `window.location.href` redirects to ensure session is properly picked up after parent signup.
 
 **FLOW 2: Parent Creates Child Account (Family Plan)**
 1. **Parent visits** → `/parents/hq` → Beautiful single-page Parents HQ

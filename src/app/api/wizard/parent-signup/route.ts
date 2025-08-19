@@ -157,14 +157,9 @@ export async function POST(request: NextRequest) {
       });
 
       // Update Invite - Sol's Rule: Keep it alive until final step
-      await tx.invite.update({
-        where: { id: invite.id },
-        data: {
-          invitedUserId: user.id
-          // Keep status as 'pending' - will be set to 'accepted' when child is created
-          // Do NOT set used = true yet - keep invite alive
-        }
-      });
+      // DO NOT set invitedUserId yet - that should be the child's ID, not the parent's
+      // The invite remains pending until the child account is created
+      console.log('[WIZARD] Keeping invite alive for child creation, not updating invitedUserId');
 
       return { user, account, profile };
     });
