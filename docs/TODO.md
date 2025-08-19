@@ -1,8 +1,90 @@
 # TODO - Cliqstr Development Tasks
 
+## Testing Setup Review (2025-08-19)
+
+### Summary of Changes
+- Created comprehensive LOCAL-TESTING-GUIDE.md for testing without running automated tests
+- Identified three testing approaches: Manual, Playwright, and Database inspection
+- Documented all critical user flows that need testing
+- Added troubleshooting guide for common issues
+- Included utility scripts for database and server management
+
+### Testing Infrastructure Status
+- **Playwright Tests**: Available for automated testing (10 test files covering major flows)
+- **Manual Testing**: Primary recommended approach with detailed instructions
+- **Database Tools**: Prisma Studio available for state inspection
+- **Email Testing**: Console logging in dev mode (no actual emails sent)
+
+### Key Testing Requirements
+1. Database must be running (PostgreSQL)
+2. Environment variables must be configured
+3. Dev server runs on port 3000
+4. Session-based auth requires cookie support
+5. Parent approval mandatory for child accounts
+
+### Next Steps for Testing
+1. Start with manual testing following the guide
+2. Use test checklist to verify all flows
+3. Monitor console logs for debugging
+4. Use Prisma Studio to verify database state
+5. Consider Playwright for regression testing once familiar with manual flows
+
+---
+
+## Recently Completed - Child Invite Flow Freezing Fix
+
+### Date: 2025-08-18 (Latest)
+### Developer: Claude
+
+#### Summary
+Fixed critical issue where the Parent HQ child invite flow was freezing at step 1 (parent signup), preventing parents from approving their children's cliq invitations.
+
+#### The Problem:
+- When a cliq owner invited a child, parents would click the invite link and land on `/parents/hq#create-child`
+- After completing step 1 (parent signup), the page would freeze and not advance to step 2 (child creation)
+- This was blocking the entire child invite flow for 9+ days
+
+#### Root Cause:
+- `router.refresh()` wasn't properly handling the session state change after parent signup
+- Server-side components weren't re-evaluating with the new session
+- The page kept showing the signup form even though the parent was authenticated
+
+#### The Fix:
+Changed all `router.refresh()` calls to `window.location.href` redirects in the Parent HQ flow:
+
+**Files Modified:**
+- `src/components/parents/ParentsHQWithSignup.tsx`:
+  - Parent signup success: `window.location.href = '/parents/hq#create-child'`
+  - Upgrade to parent: `window.location.href = '/parents/hq#create-child'`
+  - Permissions save: `window.location.href = '/parents/hq'`
+  
+- `src/components/parents/wizard/ChildCreateModal.tsx`:
+  - Child creation success: `window.location.href = '/parents/hq'` (with 500ms delay)
+  - Added console logging for debugging
+
+#### Why This Works:
+- Full page reload ensures session cookies are properly read
+- Server components re-evaluate with the new authenticated state
+- The correct step is shown based on the updated session
+
+#### The Flow Now Works:
+1. ✅ Cliq owner invites child → generates invite link
+2. ✅ Parent clicks link → redirected to `/parents/hq#create-child`
+3. ✅ Step 1: Parent signs up → page reloads with session
+4. ✅ Step 2: Parent creates child account → child added to cliq
+5. ✅ Success → Parent sees dashboard with their child
+
+#### Security Maintained:
+- Parent approval still mandatory
+- All permissions set by parent
+- Invite only consumed after full completion
+- Child properly linked via ParentLink table
+
+---
+
 ## Recently Completed - Parent Invite Flow Critical Fixes
 
-### Date: 2025-08-18 (Updated)
+### Date: 2025-08-18 (Earlier)
 ### Developer: Claude
 
 #### Summary
