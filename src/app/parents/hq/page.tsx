@@ -133,7 +133,7 @@ export default async function ParentsHQPage() {
     }
   } else {
     try {
-      const userId = (session as any)?.userId;
+      const userId = (session as any)?.id ?? (session as any)?.userId;
       if (userId) {
         account = await prisma.account.findFirst({
           where: { userId: userId }
