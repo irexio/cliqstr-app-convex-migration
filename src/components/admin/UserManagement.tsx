@@ -10,6 +10,7 @@ interface User {
     role: string;
     plan: string | null;
     isApproved: boolean;
+    suspended?: boolean;
   };
   myProfile?: {
     id: string;
@@ -26,6 +27,7 @@ export default function UserManagement() {
   const [roleFilter, setRoleFilter] = useState('All');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [passwordResetLoading, setPasswordResetLoading] = useState<string | null>(null);
+  const [roleDraft, setRoleDraft] = useState<Record<string, string>>({});
   
   // Fetch users
   useEffect(() => {
@@ -94,7 +96,7 @@ export default function UserManagement() {
   };
 
   // Handle user actions
-  const handleUserAction = async (userId: string, action: 'approve' | 'deactivate' | 'delete') => {
+  const handleUserAction = async (userId: string, action: 'approve' | 'deactivate' | 'delete' | 'suspend' | 'unsuspend') => {
     setActionLoading(userId);
     setError('');
     setSuccess('');
@@ -117,7 +119,10 @@ export default function UserManagement() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action }),
         });
-        if (!res.ok) throw new Error('Action failed');
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.reason || 'Action failed');
+        }
         if (action === 'approve') {
           setUsers(prev => prev.map(u => {
             if (u.id !== userId) return u;
@@ -132,11 +137,59 @@ export default function UserManagement() {
             return { ...u, account: { ...acc, isApproved: false } };
           }));
           setSuccess('User deactivated');
+        } else if (action === 'suspend') {
+          setUsers(prev => prev.map(u => {
+            if (u.id !== userId) return u;
+            const acc = u.account ?? { id: '', role: 'Adult', plan: null, isApproved: false };
+            return { ...u, account: { ...acc, suspended: true } };
+          }));
+          setSuccess('User suspended');
+        } else if (action === 'unsuspend') {
+          setUsers(prev => prev.map(u => {
+            if (u.id !== userId) return u;
+            const acc = u.account ?? { id: '', role: 'Adult', plan: null, isApproved: false };
+            return { ...u, account: { ...acc, suspended: false } };
+          }));
+          setSuccess('User unsuspended');
         }
       }
     } catch (err) {
       console.error('Error performing action:', err);
-      setError('Operation failed. Please try again.');
+      setError(err instanceof Error ? err.message : 'Operation failed. Please try again.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle role change
+  const handleChangeRole = async (userId: string, nextRole: string) => {
+    setActionLoading(userId);
+    setError('');
+    setSuccess('');
+    try {
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'change_role', targetRole: nextRole }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.reason || 'Failed to change role');
+      }
+      setUsers(prev => prev.map(u => u.id === userId ? {
+        ...u,
+        account: {
+          id: u.account?.id || '',
+          role: nextRole,
+          plan: u.account?.plan ?? null,
+          isApproved: u.account?.isApproved ?? true,
+          suspended: u.account?.suspended ?? false,
+        }
+      } : u));
+      setSuccess('Role updated');
+    } catch (err) {
+      console.error('Error changing role:', err);
+      setError(err instanceof Error ? err.message : 'Failed to change role');
     } finally {
       setActionLoading(null);
     }
@@ -255,6 +308,9 @@ export default function UserManagement() {
                     ) : (
                       <span className="text-orange-600">Pending</span>
                     )}
+                    {user.account?.suspended && (
+                      <span className="ml-2 inline-block text-xs px-2 py-0.5 rounded bg-gray-200 text-gray-700 align-middle">Suspended</span>
+                    )}
                   </td>
                   <td className="p-3">
                     {new Date(user.createdAt).toLocaleDateString()}
@@ -289,6 +345,46 @@ export default function UserManagement() {
                         {actionLoading === user.id ? '...' : 'Deactivate'}
                       </button>
                       
+                      {user.account?.suspended ? (
+                        <button
+                          onClick={() => handleUserAction(user.id, 'unsuspend')}
+                          disabled={actionLoading === user.id}
+                          className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
+                        >
+                          {actionLoading === user.id ? '...' : 'Unsuspend'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => handleUserAction(user.id, 'suspend')}
+                          disabled={actionLoading === user.id}
+                          className="text-xs bg-gray-600 text-white px-2 py-1 rounded hover:bg-gray-700"
+                        >
+                          {actionLoading === user.id ? '...' : 'Suspend'}
+                        </button>
+                      )}
+
+                      {/* Role change controls */}
+                      <div className="flex items-center gap-1">
+                        <select
+                          value={roleDraft[user.id] ?? user.account?.role ?? 'Adult'}
+                          onChange={(e) => setRoleDraft(prev => ({ ...prev, [user.id]: e.target.value }))}
+                          className="text-xs border border-gray-300 rounded px-2 py-1"
+                        >
+                          <option value="Admin">Admin</option>
+                          <option value="Parent">Parent</option>
+                          <option value="Adult">Adult</option>
+                          <option value="Child">Child</option>
+                        </select>
+                        <button
+                          onClick={() => handleChangeRole(user.id, roleDraft[user.id] ?? user.account?.role ?? 'Adult')}
+                          disabled={actionLoading === user.id}
+                          className="text-xs bg-black text-white px-2 py-1 rounded hover:bg-gray-800"
+                          title="Change role"
+                        >
+                          {actionLoading === user.id ? '...' : 'Update Role'}
+                        </button>
+                      </div>
+
                       <button
                         onClick={() => handleUserAction(user.id, 'delete')}
                         disabled={actionLoading === user.id}

@@ -47,7 +47,7 @@ export async function GET(req: Request) {
           id: true,
           email: true,
           createdAt: true,
-          account: { select: { id: true, role: true, plan: true, isApproved: true } },
+          account: { select: { id: true, role: true, plan: true, isApproved: true, suspended: true } },
           myProfile: { select: { id: true, username: true } },
         },
       }),

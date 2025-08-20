@@ -21,6 +21,11 @@ interface AuthStatus {
       plan?: string | null;
       isApproved: boolean;
     };
+    account?: {
+      role?: string;
+      plan?: string | null;
+      isApproved?: boolean;
+    } | null;
   };
 }
 
@@ -47,16 +52,20 @@ export default function AdminDashboard() {
         }
         
         const data = await res.json();
-        setAuthStatus(data);
+        const next: AuthStatus = {
+          isAuthenticated: Boolean(data?.user),
+          user: data?.user,
+        };
+        setAuthStatus(next);
         
         // If not authenticated, don't redirect - show login form instead
-        if (!data.isAuthenticated) {
+        if (!next.isAuthenticated) {
           setLoading(false);
           return;
         }
 
         // If authenticated but not admin, redirect to not authorized
-        if (data.user?.account?.role !== 'Admin') {
+        if (next.user?.account?.role !== 'Admin') {
           router.push('/not-authorized');
           return;
         }
@@ -97,14 +106,18 @@ export default function AdminDashboard() {
       const authCheckRes = await fetch('/api/auth/status');
       if (authCheckRes.ok) {
         const authData = await authCheckRes.json();
+        const next: AuthStatus = {
+          isAuthenticated: Boolean(authData?.user),
+          user: authData?.user,
+        };
         
-        if (authData.user?.account?.role !== 'Admin') {
+        if (next.user?.account?.role !== 'Admin') {
           setError('You do not have admin privileges');
           return;
         }
         
         // Success - update auth status and refresh page
-        setAuthStatus(authData);
+        setAuthStatus(next);
         window.location.reload();
       }
     } catch (error) {

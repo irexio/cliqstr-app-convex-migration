@@ -1,0 +1,47 @@
+How to run scripts locally
+Most scripts are either:
+
+.js/.cjs → run with node
+.ts → run with ts-node or tsx (both are in devDependencies)
+Use one of these forms:
+
+node scripts/some-script.js
+node scripts/some-script.cjs
+npx ts-node scripts/some-script.ts
+npx tsx scripts/some-script.ts
+Common scripts and examples
+Ensure admin exists
+node scripts/ensure-admin.cjs
+or: npx tsx scripts/ensure-admin.ts
+Check local DB connection and env
+node scripts/check-local-db.js
+node scripts/sanity-check.cjs
+Verify admin details
+node scripts/check-admin-user.js
+Create essential test users
+node scripts/create-essential-users.js
+Remove a user by email (interactive confirmation)
+npx ts-node scripts/remove-user.ts user@example.com
+Route inventory (debug and docs)
+node scripts/route-analyzer.js
+Kill port (PowerShell)
+npx kill-port 3000
+or: PowerShell script
+powershell -ExecutionPolicy Bypass -File scripts/kill-port.ps1
+Unlock workspace (PowerShell)
+powershell -ExecutionPolicy Bypass -File scripts/unlock-workspace.ps1
+Notes
+Make sure .env.local has your local DATABASE_URL before running any DB-touching scripts.
+The TypeScript runners:
+ts-node: npx ts-node path/to.ts
+tsx (faster): npx tsx path/to.ts
+On Windows PowerShell, arguments are space-separated. Example:
+npx ts-node scripts/remove-user.ts "new.adult+1@cliqstr.test"
+Safe starter sequence (non-destructive)
+node scripts/check-local-db.js
+node scripts/check-admin-user.js
+node scripts/sanity-check.cjs
+node scripts/route-analyzer.js
+If you want, I can run the non-destructive checks for you and paste the output here, then pause before any destructive operations. Summary: Use node for .js/.cjs and npx tsx/ts-node for .ts, with the examples above.
+
+Feedback submitted
