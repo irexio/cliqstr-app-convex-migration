@@ -119,10 +119,24 @@ export async function POST(req: Request) {
 
         let invite: any = null;
         if (code) {
+          // Accept either legacy 'code' or the newer 'token'. Try 'code' first.
           invite = await tx.invite.findUnique({
             where: { code },
             select: { id: true, status: true, used: true, expiresAt: true, invitedRole: true, cliqId: true },
           });
+
+          if (!invite) {
+            // Fallback: treat provided value as 'token'
+            invite = await tx.invite.findUnique({
+              where: { token: code },
+              select: { id: true, status: true, used: true, expiresAt: true, invitedRole: true, cliqId: true },
+            });
+            if (invite) {
+              console.log('[PARENTS_HQ][api] invite resolved by token');
+            }
+          } else {
+            console.log('[PARENTS_HQ][api] invite resolved by code');
+          }
 
           const now = new Date();
           const expired = !!invite?.expiresAt && invite.expiresAt.getTime() < now.getTime();

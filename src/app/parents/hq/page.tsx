@@ -102,6 +102,7 @@ export default async function ParentsHQPage() {
         select: {
           id: true,
           code: true,
+          token: true,
           cliqId: true,
           targetState: true,
           targetUserId: true,
@@ -248,7 +249,7 @@ export default async function ParentsHQPage() {
       needsUpgradeToParent={needsUpgradeToParent}
       prefillEmail={prefillEmail}
       inviteId={inviteId || undefined}
-      inviteCode={invite?.code || undefined}
+      inviteCode={(invite?.code || invite?.token) || undefined}
       targetState={invite?.targetState}
       friendFirstName={invite?.friendFirstName || undefined}
       friendLastName={invite?.friendLastName || undefined}
