@@ -188,6 +188,10 @@ export async function POST(request: NextRequest) {
     session.expiresAt = now + timeoutMins * 60 * 1000;
     session.idleCutoffMinutes = idleCutoffMins;
     session.refreshIntervalMinutes = refreshIntervalMins;
+    // Preserve invite context so server can advance wizard steps after signup
+    if (inviteId) {
+      session.inviteId = inviteId as string;
+    }
     
     console.log('[WIZARD] Session data prepared, attempting save...');
     await session.save();

@@ -9,7 +9,8 @@ export async function POST(req: NextRequest) {
 
     // 🎯 Sol's Rule: Auth parent
     const session = await getServerSession();
-    const userId = (session as any)?.userId;
+    // getServerSession() returns the user object from getCurrentUser(), which has `id`, not `userId`
+    const userId = (session as any)?.id || (session as any)?.userId;
     if (!userId) {
       console.log('[WIZARD] No session found');
       return NextResponse.json({ ok: false, code: 'unauthorized' }, { status: 401 });
@@ -28,15 +29,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, code: 'not_parent' }, { status: 403 });
     }
 
-    // Parse pending_invite cookie (standardized JSON format)
+    // Parse pending_invite cookie (support Base64-URL encoded JSON and legacy JSON)
     const cookieStore = await cookies();
     const pendingInviteCookie = cookieStore.get('pending_invite')?.value;
-    
     let inviteId;
     if (pendingInviteCookie) {
       try {
-        const parsed = JSON.parse(pendingInviteCookie);
-        inviteId = parsed.inviteId;
+        // Try Base64-URL encoded JSON first
+        try {
+          const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+          const parsed = JSON.parse(decodedJson);
+          inviteId = parsed.inviteId;
+          console.log('[WIZARD] Parsed inviteId from Base64-URL cookie:', inviteId);
+        } catch (base64Err) {
+          // Fallback to legacy JSON (possibly URI encoded)
+          const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
+          inviteId = parsed.inviteId;
+          console.log('[WIZARD] Parsed inviteId from legacy JSON cookie:', inviteId);
+        }
       } catch (e) {
         console.log('[WIZARD] Invalid pending invite cookie');
         return NextResponse.json({ ok: false, code: 'invalid_invite_cookie' }, { status: 400 });
