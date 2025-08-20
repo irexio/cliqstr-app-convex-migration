@@ -29,42 +29,45 @@ export default async function ParentsHQPage() {
   let account = null;
   let invite = null;
 
-  // Prefer inviteId from secure iron-session; fallback to legacy pending_invite cookie
+  // Prefer inviteId from the fresh pending_invite cookie; fallback to iron-session
   let inviteId: string | null = null;
-  try {
-    const request = new NextRequest('http://localhost', {
-      headers: { cookie: cookieStore.toString() },
-    });
-    const response = NextResponse.next();
-    const iron = await getIronSession<any>(request, response, sessionOptions);
-    if (iron?.inviteId) {
-      inviteId = iron.inviteId as string;
-      console.log('[PARENTS_HQ] inviteId from iron-session:', inviteId);
-    }
-  } catch (e) {
-    console.error('[PARENTS_HQ] Error reading iron-session for inviteId:', e);
-  }
 
-  // Legacy: Parse invite cookie to get inviteId (handle both Base64-URL and legacy JSON formats)
+  // 1) Try cookie first (handles Base64-URL and legacy JSON formats)
   if (pendingInviteCookie) {
     try {
       console.log('[PARENTS_HQ] Raw pending_invite cookie:', pendingInviteCookie);
-      
       // Try Base64-URL format first
       try {
-        if (!inviteId) {
-          const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
-          const parsed = JSON.parse(decodedJson);
-          inviteId = parsed.inviteId;
-          console.log('[PARENTS_HQ] Parsed inviteId (Base64-URL):', inviteId);
-        }
+        const decodedJson = Buffer.from(pendingInviteCookie, 'base64url').toString('utf-8');
+        const parsed = JSON.parse(decodedJson);
+        inviteId = parsed.inviteId;
+        console.log('[PARENTS_HQ] Parsed inviteId from cookie (Base64-URL):', inviteId);
       } catch (base64Error) {
         // Fallback to legacy JSON format
         console.log('[PARENTS_HQ] Base64-URL decode failed, trying legacy JSON format');
-        if (!inviteId) {
-          const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
-          inviteId = parsed.inviteId;
-          console.log('[PARENTS_HQ] Parsed inviteId (legacy JSON):', inviteId);
+        const parsed = JSON.parse(decodeURIComponent(pendingInviteCookie));
+        inviteId = parsed.inviteId;
+        console.log('[PARENTS_HQ] Parsed inviteId from cookie (legacy JSON):', inviteId);
+      }
+
+      // Persist the fresh cookie inviteId into iron-session for subsequent requests
+      if (inviteId) {
+        try {
+          const request = new NextRequest('http://localhost', {
+            headers: { cookie: cookieStore.toString() },
+          });
+          const response = NextResponse.next();
+          const iron = await getIronSession<any>(request, response, sessionOptions);
+          iron.inviteId = inviteId;
+          await iron.save();
+          const setCookie = response.headers.get('set-cookie');
+          if (setCookie) {
+            // Note: In a server component, we can't mutate the outgoing headers here,
+            // but saving ensures iron-session writes for subsequent middleware/requests.
+            console.log('[PARENTS_HQ] Synced inviteId to iron-session');
+          }
+        } catch (syncErr) {
+          console.warn('[PARENTS_HQ] Failed to sync inviteId to iron-session:', syncErr);
         }
       }
     } catch (e) {
@@ -72,6 +75,23 @@ export default async function ParentsHQPage() {
     }
   } else {
     console.log('[PARENTS_HQ] No pending_invite cookie found');
+  }
+
+  // 2) If cookie not present/invalid, fallback to secure iron-session
+  if (!inviteId) {
+    try {
+      const request = new NextRequest('http://localhost', {
+        headers: { cookie: cookieStore.toString() },
+      });
+      const response = NextResponse.next();
+      const iron = await getIronSession<any>(request, response, sessionOptions);
+      if (iron?.inviteId) {
+        inviteId = iron.inviteId as string;
+        console.log('[PARENTS_HQ] inviteId from iron-session (fallback):', inviteId);
+      }
+    } catch (e) {
+      console.error('[PARENTS_HQ] Error reading iron-session for inviteId:', e);
+    }
   }
 
   // Get invite details if we have an inviteId
