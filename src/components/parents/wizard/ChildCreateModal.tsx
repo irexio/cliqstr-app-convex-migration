@@ -9,9 +9,11 @@ interface ChildCreateModalProps {
   inviteCode?: string;
   prefillFirstName?: string;
   prefillLastName?: string;
+  stepIndex?: number;
+  totalSteps?: number;
 }
 
-export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstName, prefillLastName }: ChildCreateModalProps) {
+export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstName, prefillLastName, stepIndex, totalSteps }: ChildCreateModalProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -110,9 +112,11 @@ export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstNam
   return (
     <div className="bg-white border-b border-gray-200 py-8">
       <div className="max-w-md mx-auto px-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-          Create your child's account
-        </h2>
+        {stepIndex && totalSteps && (
+          <div className="text-center text-sm text-gray-500 mb-1">Step {stepIndex} of {totalSteps}</div>
+        )}
+        <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">Create your child's account</h2>
+        <p className="text-center text-gray-600 mb-6">After this, you'll set your child's permissions.</p>
         
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
@@ -178,16 +182,16 @@ export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstNam
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
-          <div className="text-sm text-blue-600 bg-blue-50 p-3 rounded-lg">
-            <p className="font-semibold mb-1">📝 Important: Save this password</p>
-            <p>Write down this password to give to {prefillFirstName || 'your child'}. They'll need it to sign in.</p>
+          <div className="text-sm text-white bg-black p-3 rounded-lg border border-black">
+            <p className="font-semibold mb-1 text-white">📝 Important: Save this password</p>
+            <p className="text-gray-200">Write down this password to give to {prefillFirstName || 'your child'}. They'll need it to sign in.</p>
             {generatedPassword && (
-              <p className="mt-2 text-xs text-gray-600">We've suggested a strong password, but you can change it if you prefer.</p>
+              <p className="mt-2 text-xs text-gray-300">We've suggested a strong password, but you can change it if you prefer.</p>
             )}
           </div>
 
-          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-            <p><strong>Note:</strong> Your child will be able to customize their profile (nickname, avatar, etc.) after their account is created.</p>
+          <div className="text-sm text-white bg-black p-3 rounded-lg border border-black">
+            <p className="text-gray-200"><strong className="text-white">Note:</strong> Your child will be able to customize their profile (nickname, avatar, etc.) after their account is created.</p>
           </div>
 
           {err && <p className="text-sm text-red-600">{err}</p>}
@@ -195,7 +199,7 @@ export default function ChildCreateModal({ inviteId, inviteCode, prefillFirstNam
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {submitting ? 'Creating child account…' : 'Create child account'}
           </button>

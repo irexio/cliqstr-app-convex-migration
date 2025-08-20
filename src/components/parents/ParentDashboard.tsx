@@ -90,13 +90,13 @@ export default function ParentDashboard() {
   return (
     <div className="space-y-4">
       {/* Create Child Account Section */}
-      <div className="border rounded p-4 bg-blue-50">
-        <h3 className="font-semibold mb-2">Create New Child Account</h3>
+      <div className="border border-black rounded p-4 bg-black text-white">
+        <h3 className="font-semibold mb-2 text-white">Create New Child Account</h3>
         
         {!showCreateForm ? (
           <button
             onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-black text-white px-4 py-2 rounded hover:bg-gray-900"
           >
             + Create Child Account
           </button>
@@ -128,7 +128,7 @@ export default function ParentDashboard() {
               <button
                 type="submit"
                 disabled={creating}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:opacity-50"
+                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 disabled:opacity-50"
               >
                 {creating ? 'Creating...' : 'Create Account'}
               </button>
@@ -138,7 +138,7 @@ export default function ParentDashboard() {
                   setShowCreateForm(false);
                   setCreateForm({ username: '', password: '' });
                 }}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className="bg-black text-white px-4 py-2 rounded hover:bg-gray-900"
               >
                 Cancel
               </button>

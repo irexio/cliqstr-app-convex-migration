@@ -84,8 +84,8 @@ export async function sendChildInviteEmail({
         This lets us confirm that an adult is aware and in control of how their child uses Cliqstr.
       </p>
       
-      <div style="background: #f0f8ff; border-left: 4px solid #4a90e2; padding: 20px; margin: 24px 0;">
-        <p style="margin: 0 0 12px; color: #333; font-weight: 600;">🎁 Good to know:</p>
+      <div style="background: #f8f9fa; border-left: 4px solid #000; padding: 20px; margin: 24px 0;">
+        <p style="margin: 0 0 12px; color: #000; font-weight: 600;">🎁 Good to know:</p>
         <ul style="margin: 0; padding-left: 20px; color: #555;">
           <li style="margin-bottom: 8px;">${childFullName} can join this Cliq for free</li>
           <li style="margin-bottom: 8px;">They will only be able to interact within ${inviterName}'s group</li>

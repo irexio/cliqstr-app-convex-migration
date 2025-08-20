@@ -110,15 +110,15 @@ export default function BuildCliqClient() {
         </div>
 
         {/* Age Gating Fields - Available for all cliq types */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-blue-900 mb-3">🛡️ Age Restrictions (Optional)</h3>
-          <p className="text-xs text-blue-700 mb-4">
+        <div className="bg-black border border-black rounded-lg p-4 text-white">
+          <h3 className="text-sm font-semibold text-white mb-3">🛡️ Age Restrictions (Optional)</h3>
+          <p className="text-xs text-gray-200 mb-4">
             Set age limits to control who can join your {privacy} cliq. Leave blank for no restrictions.
           </p>
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="minAge" className="text-sm text-blue-800">Minimum Age</Label>
+                <Label htmlFor="minAge" className="text-sm text-white">Minimum Age</Label>
                 <Input
                   id="minAge"
                   type="number"
@@ -132,7 +132,7 @@ export default function BuildCliqClient() {
               </div>
               
               <div>
-                <Label htmlFor="maxAge" className="text-sm text-blue-800">Maximum Age</Label>
+                <Label htmlFor="maxAge" className="text-sm text-white">Maximum Age</Label>
                 <Input
                   id="maxAge"
                   type="number"
@@ -157,10 +157,10 @@ export default function BuildCliqClient() {
             Recommended size: 1200×400px (landscape). Max file size: 4MB.
           </p>
           {uploading && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                <span className="text-sm text-blue-700">Uploading image...</span>
+            <div className="mb-4 p-3 bg-black border border-black rounded-lg">
+              <div className="flex items-center gap-2 text-white">
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                <span className="text-sm text-white">Uploading image...</span>
               </div>
             </div>
           )}
@@ -170,7 +170,7 @@ export default function BuildCliqClient() {
             appearance={{
               container: `border-dashed border-2 p-4 rounded-lg ${
                 uploading 
-                  ? 'border-blue-300 bg-blue-50 opacity-50' 
+                  ? 'border-black bg-black opacity-50' 
                   : bannerImage 
                     ? 'border-green-300 bg-green-50'
                     : 'border-neutral-300 bg-neutral-50'

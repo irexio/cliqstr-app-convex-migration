@@ -42,6 +42,16 @@ export default function ParentsHQWithSignup({
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Determine dynamic steps present in this session
+  const stepsOrder = [
+    needsSignup ? 'PARENT_SIGNUP' : null,
+    needsUpgradeToParent ? 'UPGRADE_PARENT' : null,
+    needsChildCreation ? 'CHILD_CREATE' : null,
+    needsPermissions ? 'PERMISSIONS' : null,
+  ].filter(Boolean) as string[];
+  const totalSteps = stepsOrder.length;
+  const stepIndex = (key: string) => stepsOrder.indexOf(key) + 1; // 1-based
+
   // Handle parent signup form submission
   async function handleSignup(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -160,9 +170,9 @@ export default function ParentsHQWithSignup({
       {needsSignup && (
         <div className="bg-white border-b border-gray-200 py-8">
           <div className="max-w-md mx-auto px-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-              Create your Parent account
-            </h2>
+            <div className="text-center text-sm text-gray-500 mb-1">Step {stepIndex('PARENT_SIGNUP')} of {totalSteps}</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">Create your Parent account</h2>
+            <p className="text-center text-gray-600 mb-6">Next you will create your child's account and set permissions.</p>
             
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -246,7 +256,7 @@ export default function ParentsHQWithSignup({
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {submitting ? 'Creating account…' : 'Create account'}
               </button>
@@ -259,12 +269,12 @@ export default function ParentsHQWithSignup({
       {needsUpgradeToParent && (
         <div className="bg-white border-b border-gray-200 py-8">
           <div className="max-w-md mx-auto px-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-              Upgrade to Parent Account
-            </h2>
+            <div className="text-center text-sm text-gray-500 mb-1">Step {stepIndex('UPGRADE_PARENT')} of {totalSteps}</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">Upgrade to Parent Account</h2>
+            <p className="text-center text-gray-600 mb-6">Next you will create your child's account and set permissions.</p>
             
-            <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-700">
+            <div className="mb-6 p-4 bg-black rounded-lg border border-black">
+              <p className="text-sm text-white">
                 You're about to become a Parent on Cliqstr and manage a child account. 
                 This will give you access to parental controls and monitoring features.
               </p>
@@ -284,7 +294,7 @@ export default function ParentsHQWithSignup({
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {submitting ? 'Upgrading account…' : 'Become a Parent'}
               </button>
@@ -300,6 +310,8 @@ export default function ParentsHQWithSignup({
           inviteCode={inviteCode}
           prefillFirstName={friendFirstName}
           prefillLastName={friendLastName}
+          stepIndex={stepIndex('CHILD_CREATE')}
+          totalSteps={totalSteps}
         />
       )}
 
@@ -307,9 +319,9 @@ export default function ParentsHQWithSignup({
       {needsPermissions && (
         <div className="bg-white border-b border-gray-200 py-8">
           <div className="max-w-md mx-auto px-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-              Set Child Permissions
-            </h2>
+            <div className="text-center text-sm text-gray-500 mb-1">Step {stepIndex('PERMISSIONS')} of {totalSteps}</div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2 text-center">Set Child Permissions</h2>
+            <p className="text-center text-gray-600 mb-6">Final step: choose what your child can do on Cliqstr.</p>
             
             <form onSubmit={handlePermissions} className="space-y-4">
               <div className="space-y-3">
@@ -334,7 +346,7 @@ export default function ParentsHQWithSignup({
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {submitting ? 'Saving permissions…' : 'Save permissions'}
               </button>
