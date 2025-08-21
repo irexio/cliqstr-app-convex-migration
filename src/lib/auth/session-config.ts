@@ -13,9 +13,6 @@ export const sessionOptions: SessionOptions = {
       ? {}
       : { maxAge: 7 * 24 * 60 * 60 }),
     path: '/',
-    // Ensure one session cookie works on both apex and www in production
-    // Do NOT set a domain for dev/preview to avoid localhost/preview host issues
-    ...(process.env.NODE_ENV === 'production' ? { domain: '.cliqstr.com' } : {}),
   },
 };
 
