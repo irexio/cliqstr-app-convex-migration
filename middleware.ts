@@ -5,12 +5,19 @@ import { NextResponse } from 'next/server';
 const PUBLIC_PATHS = [
   '/', '/sign-in', '/sign-up',
   '/verify-email', '/verification-success', '/verification-error',
-  '/invite/accept', '/invite/invalid', '/invite/declined', '/invite/sent',
+  // Invite flows: allow the entire /invite/* space (token links, manual, legacy accept)
+  '/invite', '/invite/accept', '/invite/invalid', '/invite/declined', '/invite/sent', '/invite/manual',
+  // TEMP: allow mocked plan selection while unauthenticated (remove when Stripe is live)
+  '/choose-plan',
   '/email-confirmation',
 ];
 
 function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + '?'));
+  return PUBLIC_PATHS.some((p) =>
+    pathname === p ||
+    pathname.startsWith(p + '?') ||
+    pathname.startsWith(p + '/') // enable wildcard-like behavior for groups such as /invite/*
+  );
 }
 
 // Paths a pending child is NOT allowed to access
