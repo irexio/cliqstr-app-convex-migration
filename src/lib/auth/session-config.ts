@@ -7,7 +7,11 @@ export const sessionOptions: SessionOptions = {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    // QA toggle: when true, omit maxAge so cookies expire on browser close
+    // Otherwise default to 7 days
+    ...(process.env.QA_SESSION_SESSION_ONLY === 'true'
+      ? {}
+      : { maxAge: 7 * 24 * 60 * 60 }),
     path: '/',
     // Ensure one session cookie works on both apex and www in production
     // Do NOT set a domain for dev/preview to avoid localhost/preview host issues

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 
-type AcceptBody = { code?: string };
+type AcceptBody = { code?: string; token?: string; joinCode?: string };
 
 export async function POST(req: Request) {
   try {
@@ -14,33 +14,69 @@ export async function POST(req: Request) {
 
     const body = (await req.json().catch(() => ({}))) as AcceptBody;
     const code = body?.code?.trim();
-    if (!code) {
-      return NextResponse.json({ ok: false, reason: 'missing_code' }, { status: 400 });
+    const token = body?.token?.trim();
+    const joinCode = body?.joinCode?.trim();
+    if (!code && !token && !joinCode) {
+      return NextResponse.json({ ok: false, reason: 'missing_code_or_token' }, { status: 400 });
     }
 
-    // Fetch invite and basic cliq context
-    const invite = await prisma.invite.findUnique({
-      where: { code },
-      select: {
-        id: true,
-        status: true,         // 'pending' | 'accepted' | ...
-        used: true,
-        expiresAt: true,
-        invitedRole: true,    // 'adult' | 'child' (casing may vary)
-        cliqId: true,
-        inviterId: true,
-        inviteeEmail: true,
-        trustedAdultContact: true,
-        invitedUserId: true,
-      },
-    });
+    // Fetch invite by priority: token -> joinCode -> legacy code
+    const invite = token
+      ? await prisma.invite.findUnique({
+          where: { token },
+          select: {
+            id: true,
+            status: true,
+            used: true,
+            expiresAt: true,
+            invitedRole: true,
+            cliqId: true,
+            inviterId: true,
+            inviteeEmail: true,
+            trustedAdultContact: true,
+            invitedUserId: true,
+          },
+        })
+      : joinCode
+      ? await prisma.invite.findUnique({
+          where: { joinCode },
+          select: {
+            id: true,
+            status: true,
+            used: true,
+            expiresAt: true,
+            invitedRole: true,
+            cliqId: true,
+            inviterId: true,
+            inviteeEmail: true,
+            trustedAdultContact: true,
+            invitedUserId: true,
+          },
+        })
+      : await prisma.invite.findUnique({
+          where: { code: code! },
+          select: {
+            id: true,
+            status: true,
+            used: true,
+            expiresAt: true,
+            invitedRole: true,
+            cliqId: true,
+            inviterId: true,
+            inviteeEmail: true,
+            trustedAdultContact: true,
+            invitedUserId: true,
+          },
+        });
 
     const now = new Date();
     const expired = !!invite?.expiresAt && invite.expiresAt.getTime() < now.getTime();
 
     // Basic trace
     console.log('[ACCEPT/INVITE/CHECK]', {
-      code,
+      code: code || '(none)',
+      token: token || '(none)',
+      joinCode: joinCode || '(none)',
       found: !!invite,
       status: invite?.status,
       used: invite?.used,
@@ -57,8 +93,9 @@ export async function POST(req: Request) {
 
     // Child invites: redirect to Parents HQ to complete APA flow
     if (role === 'child') {
-      console.log('[INVITE/ACCEPT][server]', { code, role, outcome: 'child_redirect_parents_hq' });
-      const url = new URL(`/parents/hq?inviteCode=${encodeURIComponent(code)}`, req.url);
+      console.log('[INVITE/ACCEPT][server]', { code, token, joinCode, role, outcome: 'child_redirect_parents_hq' });
+      const inviteParam = token ?? joinCode ?? code ?? '';
+      const url = new URL(`/parents/hq?inviteCode=${encodeURIComponent(inviteParam)}`, req.url);
       return NextResponse.redirect(url);
     }
     
@@ -92,7 +129,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, reason: 'missing_cliq' }, { status: 400 });
     }
 
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // 1) Upsert membership (idempotent via composite unique)
       const membership = await tx.membership.upsert({
         where: { userId_cliqId: { userId, cliqId: invite.cliqId! } },
@@ -102,10 +139,11 @@ export async function POST(req: Request) {
 
       // 2) Mark invite accepted/used + bind to this user (idempotent-safe)
       await tx.invite.update({
-        where: { code },
+        where: { id: invite.id },
         data: {
           status: 'accepted',
           used: true,
+          acceptedAt: new Date(),
           invitedUserId: userId,
         },
       });
@@ -120,7 +158,9 @@ export async function POST(req: Request) {
     });
 
     console.log('[INVITE/ACCEPT][server]', {
-      code,
+      code: code || '(none)',
+      token: token || '(none)',
+      joinCode: joinCode || '(none)',
       role,
       outcome: 'adult_join',
       userId,

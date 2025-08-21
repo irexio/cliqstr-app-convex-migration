@@ -70,29 +70,75 @@ export async function POST(req: NextRequest) {
 
     // Extract permissions from request
     const body = await req.json().catch(() => ({}));
-    const { permissions } = body;
+    const { permissions } = body as any;
     if (!permissions) {
       console.log('[WIZARD] No permissions provided');
       return NextResponse.json({ ok: false, code: 'missing_permissions' }, { status: 400 });
     }
 
+    // Enforce critical monitoring acceptance
+    if (permissions.isSilentlyMonitored === false) {
+      console.log('[WIZARD] Monitoring must be enabled');
+      return NextResponse.json({ ok: false, code: 'require_monitoring', message: 'Silent monitoring must remain enabled to continue.' }, { status: 400 });
+    }
+
     console.log('[WIZARD] Saving permissions:', permissions);
 
     // 🎯 Sol's Rule: Atomic transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Persist permission choices - find the child from the invite
       if (invite.invitedUserId) {
         const childAccount = await tx.account.findFirst({
-          where: { 
+          where: {
             userId: invite.invitedUserId,
             role: 'Child'
           }
         });
 
         if (childAccount) {
-          // Update child settings with permissions (simplified for now)
-          console.log('[WIZARD] Would save permissions for child:', invite.invitedUserId, permissions);
-          // TODO: Implement proper child settings save once schema is confirmed
+          // Find child's profile
+          const childProfile = await tx.myProfile.findFirst({
+            where: { userId: invite.invitedUserId }
+          });
+
+          if (childProfile) {
+            // Map incoming permission flags to ChildSettings schema
+            const settingsUpdate: any = {
+              // Cliq creation/joining controls
+              canCreatePublicCliqs: !!permissions.canCreatePublicCliqs,
+              canJoinPublicCliqs: !!permissions.canJoinPublicCliqs,
+              // There is no explicit canCreatePrivateCliqs; map to canCreateCliqs
+              canCreateCliqs: !!(permissions.canCreatePrivateCliqs ?? permissions.canCreateCliqs),
+              // Invites and other simple flags if provided (no-ops if undefined)
+              canSendInvites: permissions.canSendInvites === undefined ? undefined : !!permissions.canSendInvites,
+              canInviteChildren: permissions.canInviteChildren === undefined ? undefined : !!permissions.canInviteChildren,
+              canInviteAdults: permissions.canInviteAdults === undefined ? undefined : !!permissions.canInviteAdults,
+              // Content controls
+              canAccessGames: permissions.canAccessGames === undefined ? undefined : !!permissions.canAccessGames,
+              canPostImages: permissions.canPostImages === undefined ? undefined : !!permissions.canPostImages,
+              canShareYouTube: permissions.canShareYouTube === undefined ? undefined : !!permissions.canShareYouTube,
+              // Monitoring
+              isSilentlyMonitored: permissions.isSilentlyMonitored === undefined ? true : !!permissions.isSilentlyMonitored,
+              // Always require approval by default unless explicitly disabled earlier in flow
+              inviteRequiresApproval: permissions.inviteRequiresApproval === undefined ? true : !!permissions.inviteRequiresApproval,
+            };
+
+            // Remove undefined keys so Prisma doesn't overwrite with null
+            Object.keys(settingsUpdate).forEach((k) => settingsUpdate[k] === undefined && delete settingsUpdate[k]);
+
+            await tx.childSettings.upsert({
+              where: { profileId: childProfile.id },
+              update: settingsUpdate,
+              create: {
+                profileId: childProfile.id,
+                ...settingsUpdate,
+              }
+            });
+
+            console.log('[WIZARD] Saved child settings for child user:', invite.invitedUserId);
+          } else {
+            console.warn('[WIZARD] Child profile not found for invited user:', invite.invitedUserId);
+          }
         }
       }
 
@@ -106,8 +152,7 @@ export async function POST(req: NextRequest) {
         }
       });
 
-      // Sol's Rule: Optionally mark Account.parentOnboardingComplete = true
-      // (Skip for now since field may not exist in schema)
+      // Sol's Rule: Optionally mark Account.parentOnboardingComplete = true (not in schema currently)
       console.log('[WIZARD] Invite marked as used=true, status=completed');
 
       return { success: true };

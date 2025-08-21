@@ -195,6 +195,7 @@ export async function POST(req: Request) {
       select: {
         id: true,
         token: true,
+        joinCode: true,
         invitedRole: true,
         friendFirstName: true,
         friendLastName: true,
@@ -206,12 +207,16 @@ export async function POST(req: Request) {
     
     // If an invite already exists, we'll use it but still send the email
     // This allows for testing email sending with the same email address
-    let inviteCode: string;
+    // linkToken -> used for URL links (/invite/[token])
+    // displayCode -> human-friendly join code to show in emails (joinCode)
+    let linkToken: string;
+    let displayCode: string;
     let inviteRole;
     
     if (existingInvite) {
       console.log('[INVITE_INFO] Invite already exists - will resend email', { email: targetEmail, cliqId });
-      inviteCode = existingInvite.token;
+      linkToken = existingInvite.token;
+      displayCode = existingInvite.joinCode || existingInvite.token;
       inviteRole = existingInvite.invitedRole;
       
       // Update the existing invite with the new fields if needed
@@ -285,7 +290,8 @@ export async function POST(req: Request) {
         targetEmail: invite.inviteeEmail
       });
       
-      inviteCode = invite.token;
+      linkToken = invite.token;
+      displayCode = invite.joinCode || invite.token;
       inviteRole = invite.invitedRole;
       
       // ✅ APA Upgrade: If user invites their own child, promote them to Parent
@@ -331,7 +337,7 @@ export async function POST(req: Request) {
     
     // Construct the invite link with the correct base URL and path
     // Both child and adult invites go to the unified accept flow
-    const inviteLink = `${BASE_URL}/invite/${inviteCode}`;
+    const inviteLink = `${BASE_URL}/invite/${linkToken}`;
     
     console.log('[EMAIL DEBUG] Using invite link:', inviteLink);
     
@@ -348,7 +354,7 @@ export async function POST(req: Request) {
         friendFirstName,
         friendLastName,
         inviteNote,
-        inviteCode,
+        inviteCode: displayCode,
         parentAccountExists
       });
     } else {
@@ -358,7 +364,7 @@ export async function POST(req: Request) {
         cliqName: cliq.name,
         inviterName,
         inviteLink,
-        inviteCode
+        inviteCode: displayCode
       });
     }
     
@@ -370,7 +376,7 @@ export async function POST(req: Request) {
     
     return NextResponse.json({ 
       success: true, 
-      inviteCode: inviteCode, 
+      inviteCode: displayCode, 
       type: inviteType === 'adult' ? 'invite' : 'request'
     });
     

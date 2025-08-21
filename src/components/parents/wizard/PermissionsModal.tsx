@@ -8,6 +8,14 @@ export default function PermissionsModal() {
   const [dmAllowed, setDmAllowed] = useState(false);
   const [discoverable, setDiscoverable] = useState(false);
   const [maxDailyMinutes, setMaxDailyMinutes] = useState(60);
+
+  // Cliq permissions (age-appropriate restrictions communicated in labels)
+  const [canCreatePublicCliqs, setCanCreatePublicCliqs] = useState(false);
+  const [canCreatePrivateCliqs, setCanCreatePrivateCliqs] = useState(false);
+  const [canJoinPublicCliqs, setCanJoinPublicCliqs] = useState(false);
+
+  // Monitoring & Safety (required ON)
+  const [isSilentlyMonitored, setIsSilentlyMonitored] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -17,8 +25,19 @@ export default function PermissionsModal() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        permissions: { dmAllowed, discoverable, maxDailyMinutes }
-      }),
+        permissions: {
+          // General
+          dmAllowed,
+          discoverable,
+          maxDailyMinutes,
+          // Cliqs
+          canCreatePublicCliqs,
+          canCreatePrivateCliqs,
+          canJoinPublicCliqs,
+          // Monitoring (must be true)
+          isSilentlyMonitored,
+        }
+      })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok || !data?.ok) {
@@ -38,6 +57,34 @@ export default function PermissionsModal() {
         </p>
 
         <div className="space-y-4">
+          <div className="rounded-md border border-gray-200 p-3">
+            <h3 className="mb-2 text-sm font-semibold">Cliqs</h3>
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={canCreatePublicCliqs}
+                onChange={(e) => setCanCreatePublicCliqs(e.target.checked)}
+              />
+              <span>Allow creating public cliqs (age-appropriate only)</span>
+            </label>
+            <label className="mt-2 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={canCreatePrivateCliqs}
+                onChange={(e) => setCanCreatePrivateCliqs(e.target.checked)}
+              />
+              <span>Allow creating private cliqs (age-appropriate only)</span>
+            </label>
+            <label className="mt-2 flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={canJoinPublicCliqs}
+                onChange={(e) => setCanJoinPublicCliqs(e.target.checked)}
+              />
+              <span>Allow joining public cliqs (age-appropriate only)</span>
+            </label>
+          </div>
+
           <label className="flex items-center gap-3">
             <input
               type="checkbox"
@@ -68,6 +115,21 @@ export default function PermissionsModal() {
               className="mt-1 w-full rounded-md border px-3 py-2"
             />
           </label>
+
+          <div className="rounded-md border border-red-300 bg-red-50 p-3">
+            <h3 className="text-red-700 mb-2 text-sm font-bold">Monitoring & Safety (Required)</h3>
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                checked={isSilentlyMonitored}
+                onChange={(e) => setIsSilentlyMonitored(e.target.checked)}
+              />
+              <span className="text-red-800 font-semibold">Enable parent/guardian silent monitoring (recommended)</span>
+            </label>
+            <p className="mt-2 text-xs text-red-700">
+              For your child's safety, silent monitoring should remain enabled. You can view activity and receive alerts in Parents HQ.
+            </p>
+          </div>
         </div>
 
         {err && <p className="mt-3 text-sm text-red-600">{err}</p>}

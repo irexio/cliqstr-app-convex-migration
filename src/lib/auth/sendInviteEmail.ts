@@ -31,7 +31,8 @@ export async function sendInviteEmail({
 
   const html = `
     <div style="font-family: sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">
-      <h2>You're invited to join <strong>${cliqName}</strong> on Cliqstr!</h2>
+      <h2 style="margin: 0 0 8px;">${inviterName} has invited you to join their cliq on <strong>Cliqstr</strong>.</h2>
+      <p style="margin: 0 0 16px; color: #555;">Group: <strong>${cliqName}</strong></p>
       <p><strong>${inviterName}</strong> thinks you'd love it.</p>
       <p>
         Cliqstr is a safe, private space for families, kids, and trusted groups.

@@ -21,9 +21,9 @@ export async function POST(request: NextRequest) {
     const normalizedCode = normalizeJoinCode(joinCode);
     console.log('[RESOLVE_JOIN_CODE] Normalized code:', normalizedCode);
 
-    // Find the invite by the normalized code
+    // Find the invite by the normalized join code
     const invite = await prisma.invite.findUnique({
-      where: { code: normalizedCode },
+      where: { joinCode: normalizedCode },
       select: {
         id: true,
         status: true,
@@ -58,44 +58,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.redirect(new URL('/join-expired', request.url), 302);
     }
 
-    // Valid invite - set bulletproof pending_invite cookie
-    const cookieJson = JSON.stringify({ inviteId: invite.id });
-    const cookieValue = Buffer.from(cookieJson, 'utf-8').toString('base64url');
-    
-    console.log('[RESOLVE_JOIN_CODE] Set pending_invite cookie and redirect to PHQ');
-    
-    const res = NextResponse.redirect(new URL('/parents/hq', request.url), 302);
-    
-    // Determine if we're in production based on URL
-    const isProduction = request.url.includes('cliqstr.com');
-    
-    // Set the canonical Base64-URL cookie with proper domain handling
-    const cookieOptions = {
-      path: '/',
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax' as const,
-      maxAge: 86400, // 24 hours
-      ...(isProduction ? { domain: '.cliqstr.com' } : {})
-    };
-    
-    res.cookies.set('pending_invite', cookieValue, cookieOptions);
-
-    // Clean up any legacy cookie variants with wrong domain (only if in production)
-    if (isProduction) {
-      // Delete cookie without domain specifier (if it exists from dev/preview)
-      res.cookies.set('pending_invite_legacy', '', {
-        path: '/',
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        expires: new Date(0)
-      });
-    }
-
-    console.log('[RESOLVE_JOIN_CODE] Bulletproof cookie set, returning success');
-
-    return res;
+    // Valid invite - redirect to canonical token route for unified handling
+    // This ensures adult vs child routing is correct (child -> /parents/hq, adult -> /choose-plan)
+    console.log('[RESOLVE_JOIN_CODE] Redirecting to canonical /invite/[token] route');
+    return NextResponse.redirect(new URL(`/invite/${invite.token}`, request.url), 302);
 
   } catch (error) {
     console.error('[RESOLVE_JOIN_CODE] Unexpected error:', error);
