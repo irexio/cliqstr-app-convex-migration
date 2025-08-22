@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 // Public paths that must remain accessible while logged out
 const PUBLIC_PATHS = [
   '/', '/sign-in', '/sign-up',
+  // Waitlist page (case-insensitive allowance)
+  '/waitlist', '/Waitlist',
   '/verify-email', '/verification-success', '/verification-error',
   // Invite flows: allow the entire /invite/* space (token links, manual, legacy accept)
   '/invite', '/invite/accept', '/invite/invalid', '/invite/declined', '/invite/sent', '/invite/manual',

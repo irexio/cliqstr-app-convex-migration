@@ -10,10 +10,8 @@ import { Poppins } from 'next/font/google';
 import type { Metadata } from 'next';
 // Import from the wrapper which should handle the re-export
 // Version: 2024.1.27.1
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import SessionProvider from '@/components/SessionProvider';
-import PlanBanner from '@/components/PlanBanner';
+import AppFrame from '@/components/AppFrame';
 
 
 const poppins = Poppins({
@@ -37,12 +35,7 @@ export default function RootLayout({
     <html lang="en" className={poppins.variable}>
       <body className="text-[#202020] font-poppins antialiased">
         <SessionProvider>
-          <div className="app-container flex flex-col min-h-screen bg-white">
-            <Header />
-            <PlanBanner />
-            <main className="flex-1 pb-5">{children}</main>
-            <Footer />
-          </div>
+          <AppFrame>{children}</AppFrame>
         </SessionProvider>
       </body>
     </html>
