@@ -18,10 +18,16 @@ export function WaitlistFooter() {
             </p>
 
             <div className="space-y-1 text-sm text-neutral-300">
-              <p>Interested in what we’re building? inquiry@cliqstr.com</p>
-              <p>Want to join our team? wizards@cliqstr.com</p>
               <p>
-                💌 Parent/Guardian Early Access Testers:{' '}
+                Interested in what we’re building?{' '}
+                <a href="mailto:inquiry@cliqstr.com" className="underline hover:text-white">inquiry@cliqstr.com</a>
+              </p>
+              <p>
+                Want to join our team?{' '}
+                <a href="mailto:wizards@cliqstr.com" className="underline hover:text-white">wizards@cliqstr.com</a>
+              </p>
+              <p>
+                💌 Parent/Guardian Early Access Testers{' '}
                 <a href="mailto:testers@cliqstr.com" className="underline hover:text-white">testers@cliqstr.com</a>
               </p>
             </div>
