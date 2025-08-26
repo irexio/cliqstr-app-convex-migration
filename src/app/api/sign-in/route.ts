@@ -233,12 +233,33 @@ export async function POST(req: NextRequest) {
     
     if (pendingInviteCode && (user.account?.role === 'Parent' || user.account?.role === 'Admin')) {
       console.log('[SIGNIN] Parent invite cookie found, redirecting to Parents HQ with code:', pendingInviteCode);
-      
-      // Clear the pending invite cookie
-      response.headers.set('Set-Cookie', 'pending_invite=; Max-Age=0; Path=/; SameSite=Lax; Secure');
-      
-      // Redirect to Parents HQ with invite code
-      return NextResponse.redirect(new URL(`/parents/hq?inviteCode=${encodeURIComponent(pendingInviteCode)}`, req.url));
+
+      // IMPORTANT: Build the redirect response FIRST, then attach the iron-session to it
+      const redirect = NextResponse.redirect(new URL(`/parents/hq?inviteCode=${encodeURIComponent(pendingInviteCode)}`, req.url));
+
+      // Attach a valid session cookie to the redirect response so the client is authenticated after navigation
+      const sessionOnRedirect = await getIronSession<SessionData>(req, redirect, sessionOptions);
+      const now2 = Date.now();
+      const timeoutMins2 = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
+      const refreshIntervalMins2 = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
+      const idleCutoffMins2 = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
+      sessionOnRedirect.userId = user.id;
+      sessionOnRedirect.createdAt = now2; // legacy
+      sessionOnRedirect.issuedAt = now2;
+      sessionOnRedirect.lastActivityAt = now2;
+      sessionOnRedirect.lastAuthAt = now2;
+      sessionOnRedirect.expiresAt = now2 + timeoutMins2 * 60 * 1000;
+      sessionOnRedirect.idleCutoffMinutes = idleCutoffMins2;
+      sessionOnRedirect.refreshIntervalMinutes = refreshIntervalMins2;
+      await sessionOnRedirect.save();
+
+      // Clear the pending invite cookie. Use append to avoid overwriting the session cookie set above.
+      redirect.headers.append('Set-Cookie', 'pending_invite=; Max-Age=0; Path=/; SameSite=Lax; Secure');
+
+      // Log login activity
+      await logLogin(user.id, req);
+
+      return redirect;
     } else {
       console.log('[SIGNIN_DEBUG] No parent invite redirect - either no cookie or not parent/admin role');
     }

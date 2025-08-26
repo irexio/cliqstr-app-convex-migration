@@ -1,4 +1,4 @@
-# 📦 Cliqstr Data Models Guide
+au# 📦 Cliqstr Data Models Guide
 
 ## Core Models Overview
 
