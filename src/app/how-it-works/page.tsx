@@ -39,12 +39,12 @@ export default function HowItWorksPage() {
           </div>
 
           <div className="rounded-xl bg-gray-100 shadow-sm p-5 sm:p-6">
-  <h2 className="text-xl font-semibold text-[#202020] mb-2 font-poppins">3. Share & Connect</h2>
-  <p className="info-body-text">
-    Post updates, photos, creative work, or questions — in a space built for trust, not likes.<br />
-    There’s no pressure to perform. Just honest, expressive feedback from the people in your cliq.
-  </p>
-</div>
+            <h2 className="info-section-title mb-2">3. Share & Connect</h2>
+            <p className="info-body-text">
+              Post updates, photos, creative work, or questions — in a space built for trust, not likes.<br />
+              There’s no pressure to perform. Just honest, expressive feedback from the people in your cliq.
+            </p>
+          </div>
 
           <div className="rounded-xl bg-gray-100 shadow-sm p-5 sm:p-6">
             <h2 className="info-section-title mb-2">4. Meaningful Connections, Grown Safely</h2>
