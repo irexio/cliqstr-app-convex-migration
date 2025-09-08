@@ -12,6 +12,8 @@ import type { Metadata } from 'next';
 // Version: 2024.1.27.1
 import SessionProvider from '@/components/SessionProvider';
 import AppFrame from '@/components/AppFrame';
+import { ConvexClientProvider } from '@/components/providers/ConvexProvider';
+import { AuthProvider } from '@/lib/auth/useAuth';
 
 
 const poppins = Poppins({
@@ -34,9 +36,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={poppins.variable}>
       <body className="text-[#202020] font-poppins antialiased">
-        <SessionProvider>
-          <AppFrame>{children}</AppFrame>
-        </SessionProvider>
+        <ConvexClientProvider>
+          <SessionProvider>
+            <AuthProvider>
+              <AppFrame>{children}</AppFrame>
+            </AuthProvider>
+          </SessionProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   );

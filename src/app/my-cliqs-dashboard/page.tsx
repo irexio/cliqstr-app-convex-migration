@@ -2,10 +2,11 @@
  * 📂 MyCliqs Dashboard — /my-cliqs-dashboard
  *
  * 🔐 APA-Hardened: Accessible only to logged-in users (child or adult)
+ * 🔄 CONVEX-OPTIMIZED: Now uses Convex for real-time updates
  *
  * What this page does:
  * - Displays all cliqs the current user owns or is a member of
- * - Queries both `cliqs` (ownerId) and `memberships` (joined)
+ * - Uses Convex queries for real-time updates
  * - Renders a responsive grid of cards (1 mobile • 2 tablet • 3 desktop)
  * - Each card includes:
  *   - Banner image (if uploaded) or fallback gradient
@@ -20,30 +21,63 @@
  * - Post-import
  */
 
-import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { isValidPlan } from '@/lib/utils/planUtils';
-import { prisma } from '@/lib/prisma';
-import Image from 'next/image';
+'use client';
+
+import { useAuth } from '@/lib/auth/useAuth';
+import { useQuery } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { Id } from '../../../convex/_generated/dataModel';
 import Link from 'next/link';
 import CliqsGrid from '@/components/cliqs/CliqsGrid';
 import { DashboardProfileNudge } from '@/components/ui/ProfileNudge';
-import { guardPendingChildToAwaitingApproval } from '@/lib/guards';
 
-export const dynamic = 'force-dynamic';
+export default function MyCliqsDashboardPage() {
+  const { user, isLoading } = useAuth();
+  
+  // Get user's cliqs using Convex
+  const cliqs = useQuery(api.cliqs.getUserCliqs, 
+    user?.id ? { userId: user.id as Id<"users"> } : "skip"
+  );
 
-export default async function MyCliqsDashboardPage() {
-  await guardPendingChildToAwaitingApproval();
-  const user = await getCurrentUser();
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="p-6 max-w-7xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="bg-gray-200 rounded-lg h-48"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user?.id) {
-    return <div className="p-6 text-red-600 text-center">Unauthorized</div>;
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Unauthorized</h1>
+          <p className="text-gray-600">Please sign in to access your dashboard.</p>
+        </div>
+      </div>
+    );
   }
   
   // Check if account exists first
   if (!user.account) {
     return (
-      <div className="p-6 text-red-600 text-center">
-        Account setup incomplete. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Account Setup Incomplete</h1>
+          <p className="text-gray-600 mb-4">You need to choose a plan to continue.</p>
+          <Link href="/choose-plan" className="text-blue-600 underline">
+            Choose a plan
+          </Link>
+        </div>
       </div>
     );
   }
@@ -53,45 +87,33 @@ export default async function MyCliqsDashboardPage() {
   // Accept ANY string value including empty string as valid
   if (user.account.plan === null || user.account.plan === undefined) {
     return (
-      <div className="p-6 text-red-600 text-center">
-        No plan selected. <a href="/choose-plan" className="underline text-blue-600">Choose a plan</a>.
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">No Plan Selected</h1>
+          <p className="text-gray-600 mb-4">You need to choose a plan to continue.</p>
+          <Link href="/choose-plan" className="text-blue-600 underline">
+            Choose a plan
+          </Link>
+        </div>
       </div>
     );
   }
-  
 
-
-  // Query both owned cliqs and memberships (exclude deleted)
-  const cliqs = await prisma.cliq.findMany({
-    where: {
-      AND: [
-        {
-          OR: [
-            { ownerId: user.id },
-            { memberships: { some: { userId: user.id } } },
-          ],
-        },
-        { deleted: { not: true } }, // Exclude soft-deleted cliqs
-      ],
-    },
-    orderBy: { createdAt: 'desc' },
-    select: {
-      id: true,
-      name: true,
-      description: true,
-      privacy: true,
-      createdAt: true,
-      ownerId: true,
-      coverImage: true,
-    },
-  });
-  
-
+  // Transform Convex data to match expected format
+  const formattedCliqs = cliqs ? cliqs.map(cliq => ({
+    id: cliq._id,
+    name: cliq.name,
+    description: cliq.description || '',
+    privacy: cliq.privacy,
+    createdAt: new Date(cliq.createdAt).toISOString(),
+    ownerId: cliq.ownerId,
+    coverImage: cliq.coverImage,
+  })) : [];
 
   // Determine user state
   // Check if user has created their MyProfile (social media profile)
   const hasProfile = user.myProfile !== null && user.myProfile !== undefined;
-  const hasCliqs = cliqs.length > 0;
+  const hasCliqs = formattedCliqs.length > 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -166,7 +188,7 @@ export default async function MyCliqsDashboardPage() {
           </div>
         </div>
       ) : (
-        <CliqsGrid initialCliqs={cliqs} currentUserId={user.id} />
+        <CliqsGrid initialCliqs={formattedCliqs} currentUserId={user.id} />
       )}
 
       {/* Profile Nudge - Below cliq cards for better UX flow */}

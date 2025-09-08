@@ -1,4 +1,15 @@
 /**
+ * 🚨 DEPRECATED: This route has been rewritten with Convex optimizations
+ * 
+ * Use: /api/send-parent-email/route-convex.ts instead
+ * 
+ * The new version:
+ * - Simplified parent email sending logic
+ * - Uses optimized Convex mutations instead of Prisma
+ * - More efficient and easier to maintain
+ * 
+ * @deprecated Use route-convex.ts instead
+ * 
  * 🔐 APA-HARDENED ROUTE: POST /api/send-parent-email
  * 🛠️ INTERNAL USE ONLY
  *

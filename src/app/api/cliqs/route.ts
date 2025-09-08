@@ -24,8 +24,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { prisma } from '@/lib/prisma';
-import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from '../../../../convex/_generated/api';
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,31 +47,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Account setup incomplete - no plan assigned' }, { status: 403 });
     }
 
-    // APA-compliant access control: Verify user is a member of this cliq
+    // Use Convex to get cliq data (includes membership check)
     try {
-      await requireCliqMembership(user.id, cliqId);
+      const cliq = await convexHttp.query(api.cliqs.getCliq, {
+        cliqId: cliqId as any, // Convert string to Convex ID
+        userId: user.id as any, // Convert string to Convex ID
+      });
+
+      return NextResponse.json({ cliq });
     } catch (error) {
-      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
+      if (error instanceof Error && error.message.includes('Not authorized')) {
+        return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
+      }
+      if (error instanceof Error && error.message.includes('not found')) {
+        return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
+      }
+      throw error;
     }
-
-    const cliq = await prisma.cliq.findUnique({
-      where: { id: cliqId },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        privacy: true,
-        createdAt: true,
-        ownerId: true,
-        coverImage: true,
-      },
-    });
-
-    if (!cliq) {
-      return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
-    }
-
-    return NextResponse.json({ cliq });
   } catch (err) {
     console.error('❌ Error fetching cliq:', err);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });

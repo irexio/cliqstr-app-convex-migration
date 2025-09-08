@@ -2,7 +2,6 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { prisma } from '@/lib/prisma';
 import { getIronSession } from 'iron-session';
 import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
@@ -61,94 +60,18 @@ export async function GET(req: NextRequest) {
       return new NextResponse(JSON.stringify({ user: null }), { status: 200, headers: response.headers });
     }
 
-    const profile = await prisma.myProfile.findUnique({
-      where: { userId: user.id },
-      select: {
-        id: true,
-        username: true,
-        image: true,
-        birthdate: true,
-      },
-    });
-    
-    const account = await prisma.account.findUnique({
-      where: { userId: user.id },
-      select: {
-        id: true,
-        role: true,
-        isApproved: true,
-        stripeStatus: true,
-        plan: true,
-        stripeCustomerId: true
-      },
-    });
-
-    if (!profile) {
-      // Standardized user shape for legacy accounts
-      return NextResponse.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          plan: null,
-          role: 'Adult',
-          approved: false,
-          // Legacy account specific fields
-          legacyAccount: true,
-          profile: {
-            role: 'Adult',
-            approved: false,
-            username: user.email.split('@')[0] || 'user',
-          },
-          account: {
-            stripeStatus: 'incomplete',
-            plan: null
-          }
-        }
-      });
-    }
-
-    const memberships = await prisma.membership.findMany({
-      where: { userId: user.id },
-      include: {
-        cliq: {
-          select: {
-            id: true,
-            name: true,
-            privacy: true,
-          },
-        },
-      },
-    });
-
-    if (account?.role === 'Child' && account?.isApproved === false) {
-      // Standardized user shape for awaiting approval accounts
-      return NextResponse.json({
-        user: {
-          id: user.id,
-          email: user.email,
-          plan: account?.plan ?? null,
-          role: account?.role ?? null,
-          approved: false,
-          // Awaiting approval specific fields
-          profile,
-          account,
-          isAwaitingApproval: true,
-        }
-      });
-    }
-
-    // Standardized user shape for consistent client-side handling
+    // getCurrentUser already returns all the data we need from Convex
+    // Just return the user data in the expected format
     return new NextResponse(JSON.stringify({
       user: {
         id: user.id,
         email: user.email,
-        plan: account?.plan ?? null,
-        role: account?.role ?? null,
-        approved: account?.isApproved ?? null,
-        // Include these for backward compatibility but they're not part of the standard shape
-        memberships,
-        profile,
-        account: account ? { ...account, approved: account.isApproved, isApproved: undefined } : null,
+        plan: user.account?.plan ?? null,
+        role: user.account?.role ?? null,
+        approved: user.account?.isApproved ?? null,
+        profile: user.myProfile,
+        account: user.account,
+        isAwaitingApproval: user.account?.role === 'Child' && !user.account?.isApproved,
       }
     }), { status: 200, headers: response.headers });
   } catch (err) {

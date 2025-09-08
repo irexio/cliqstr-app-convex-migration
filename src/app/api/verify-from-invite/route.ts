@@ -1,3 +1,16 @@
+/**
+ * 🚨 DEPRECATED: This route has been rewritten with Convex optimizations
+ * 
+ * Use: /api/verify-from-invite/route-convex.ts instead
+ * 
+ * The new version:
+ * - Simplified user verification logic
+ * - Uses optimized Convex mutations instead of Prisma
+ * - More efficient and easier to maintain
+ * 
+ * @deprecated Use route-convex.ts instead
+ */
+
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';

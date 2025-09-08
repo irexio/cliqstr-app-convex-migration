@@ -18,7 +18,7 @@ import crypto from 'crypto';
  *
  * Used In:
  *   - Parent HQ or email approval flow for child invites
- *   - Admin dashboard (future: moderation review tools)
+ *   - Sentinel dashboard (future: moderation review tools)
  *
  * Related Routes:
  *   - /api/invite/create → creates invite or inviteRequest depending on role

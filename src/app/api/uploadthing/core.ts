@@ -32,6 +32,21 @@ export const ourFileRouter = {
     .middleware(async () => {
       const user = await getCurrentUser();
       if (!user) throw new Error('Not authenticated');
+      
+      // 🔒 CRITICAL: Check child permissions for image posting
+      if (user.account?.role === 'Child') {
+        const { convexHttp } = await import('@/lib/convex-server');
+        const { api } = await import('../../../convex/_generated/api');
+        
+        const childSettings = await convexHttp.query(api.users.getChildSettings, {
+          profileId: user.myProfile!._id as any,
+        });
+        
+        if (!childSettings?.canPostImages) {
+          throw new Error('You do not have permission to upload images. Please ask your parent to enable this feature.');
+        }
+      }
+      
       return { userId: user.id };
     })
     .onUploadComplete(async ({ metadata, file }) => {

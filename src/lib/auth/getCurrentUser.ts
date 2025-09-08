@@ -1,6 +1,7 @@
 // lib/auth/getCurrentUser.ts
 import { cookies } from 'next/headers';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from '../../../convex/_generated/api';
 import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
 /**
@@ -54,34 +55,9 @@ export async function getCurrentUser() {
       return null;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      include: {
-        myProfile: {
-          select: {
-            id: true,
-            username: true,
-            firstName: true,
-            lastName: true,
-            image: true,
-            bannerImage: true,
-            about: true,
-            birthdate: true,
-            showYear: true,
-          },
-        },
-        account: {
-          select: {
-            role: true,
-            isApproved: true,
-            stripeStatus: true,
-            plan: true,
-            stripeCustomerId: true,
-            suspended: true,
-            birthdate: true, // APA-safe: Immutable birthdate for age verification
-          },
-        },
-      },
+    // Use Convex to get user data
+    const user = await convexHttp.query(api.users.getCurrentUser, {
+      userId: session.userId as any, // Convert string to Convex ID
     });
 
     if (!user) {
@@ -101,15 +77,7 @@ export async function getCurrentUser() {
       approved: user.account?.isApproved,
     });
 
-    return {
-      id: user.id,
-      email: user.email,
-      plan: user.account?.plan ?? null,
-      role: user.account?.role ?? null,
-      approved: user.account?.isApproved ?? null,
-      myProfile: user.myProfile,
-      account: user.account,
-    };
+    return user;
   } catch (error) {
     console.error('[APA] Error in getCurrentUser:', error);
     return null;

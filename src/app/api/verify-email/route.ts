@@ -1,10 +1,14 @@
 /**
- * Email Verification API Endpoint
+ * 🚨 DEPRECATED: This route has been rewritten with Convex optimizations
  * 
- * Purpose:
- * - Processes email verification tokens
- * - Marks accounts as verified when users click verification links
- * - Required verification (users must verify before accessing the app)
+ * Use: /api/verify-email/route-convex.ts instead
+ * 
+ * The new version:
+ * - Simplified email verification logic
+ * - Uses optimized Convex mutations instead of Prisma
+ * - More efficient and easier to maintain
+ * 
+ * @deprecated Use route-convex.ts instead
  */
 
 import { NextResponse } from 'next/server';

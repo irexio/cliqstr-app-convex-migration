@@ -101,7 +101,7 @@ This follows the new Next.js App Router structure where folders = routes:
 - **`/about`**, **`/features`**, **`/how-it-works`**, **`/faqs`** - Marketing pages
 
 #### Admin & Debug
-- **`/admin`** - Admin dashboard for system management
+- **`/sentinel`** - Sentinel dashboard for system management
 - **`/debug`** - Development debugging tools
 - **`/not-authorized`** - Access denied page
 - **`/suspended`** - Account suspension page
@@ -157,7 +157,7 @@ All server-side functionality organized by feature:
 - **`/Header`** - Navigation components (UserDropdown, main header, mobile menu)
 - **`/parents`** - Parent-related components (ParentsHQWithSignup, ParentsHQContent, wizard modals)
 - **`/cliqs`** - Cliq-related UI components (CliqCard, CliqFeed, CliqTools, CreateCliqForm, etc.)
-- **`/admin`** - Admin dashboard components
+- **`/sentinel`** - Sentinel dashboard components
 - **`/ui`** - Base UI components (buttons, forms, modals, avatars, etc.)
 - **`/server`** - Server-side components for data fetching
 - **Root level** - Shared components including:

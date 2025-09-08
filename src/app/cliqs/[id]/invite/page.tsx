@@ -1,10 +1,29 @@
-// 🔐 APA-HARDENED — Cliq Invite Page - 070325
+/**
+ * 🔐 APA-HARDENED — Cliq Invite Page
+ * 🔄 CONVEX-OPTIMIZED: Now uses Convex for real-time cliq data
+ * 
+ * PURPOSE: Allows cliq owners and members to invite new people to join the cliq
+ * 
+ * FEATURES:
+ * - Invite people via email to join the cliq
+ * - Owner can invite anyone to any cliq
+ * - Members can invite to public cliqs
+ * - Child invite approval flow (if enabled by parents)
+ * - Email validation and duplicate invite prevention
+ * 
+ * ACCESS: 
+ * - Cliq owners: Can invite to any cliq
+ * - Cliq members: Can invite to public cliqs only
+ * - Non-members: Blocked from private/semi-private cliqs
+ * 
+ * SECURITY: Authentication required, cliq privacy checks
+ */
 export const dynamic = 'force-dynamic';
 
 import { notFound } from 'next/navigation';
 import InviteClient from '@/components/InviteClient';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { prisma } from '@/lib/prisma';
+import InvitePageContentConvex from '@/components/cliqs/InvitePageContentConvex';
 
 export default async function InvitePage({
   params,
@@ -18,26 +37,7 @@ export default async function InvitePage({
     notFound();
   }
 
-  const cliq = await prisma.cliq.findUnique({
-    where: { id },
-    select: { ownerId: true, privacy: true, name: true },
-  });
-
-  if (!cliq) {
-    notFound();
-  }
-
-  const isOwner = cliq.ownerId === user.id;
-
-  // Block access if not owner and cliq is not public
-  if (!isOwner && cliq.privacy !== 'public') {
-    notFound();
-  }
-
   return (
-    <div className="max-w-xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4">Invite Someone to {cliq.name}</h1>
-      <InviteClient cliqId={id} />
-    </div>
+    <InvitePageContentConvex cliqId={id} currentUserId={user.id} />
   );
 }

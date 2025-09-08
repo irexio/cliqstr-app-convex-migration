@@ -15,7 +15,8 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from '../../../../convex/_generated/api';
 import { compare } from 'bcryptjs';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { getIronSession } from 'iron-session';
@@ -58,20 +59,10 @@ export async function POST(req: NextRequest) {
 
     const { email, username } = parseIdentifier(identifier);
 
-    let user: any = null;
-    if (email) {
-      user = await prisma.user.findUnique({
-        where: { email },
-        include: { myProfile: true, account: true },
-      });
-    } else if (username) {
-      // Resolve via profile username -> user
-      const profile = await prisma.myProfile.findUnique({
-        where: { username },
-        include: { user: { include: { myProfile: true, account: true } } },
-      });
-      user = profile?.user || null;
-    }
+    const user = await convexHttp.query(api.users.getUserForSignIn, {
+      email: email || undefined,
+      username: username || undefined,
+    });
 
     if (!user || !user.password) {
       return NextResponse.json({ error: 'Invalid credentials', reason: 'user_not_found' }, { status: 401 });

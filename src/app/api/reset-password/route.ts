@@ -1,5 +1,18 @@
 export const dynamic = 'force-dynamic';
 
+/**
+ * 🚨 DEPRECATED: This route has been rewritten with Convex optimizations
+ * 
+ * Use: /api/reset-password/route-convex.ts instead
+ * 
+ * The new version:
+ * - Simplified password reset logic
+ * - Uses optimized Convex mutations instead of Prisma
+ * - More efficient and easier to maintain
+ * 
+ * @deprecated Use route-convex.ts instead
+ */
+
 // 🔐 APA-HARDENED RESET PASSWORD ENDPOINT
 // Uses secure one-time reset codes (not persistent tokens) for password recovery
 // Enforces APA requirements for user authentication

@@ -1,12 +1,14 @@
 'use client';
 
-// 🔐 APA-COMPATIBLE — PostForm (using legacy /api route for now)
+// 🔐 APA-COMPATIBLE — PostForm (using Convex)
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useMutation } from 'convex/react';
+import { api } from '../../convex/_generated/api';
+import { Id } from '../../convex/_generated/dataModel';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/Button';
-import { fetchJson } from '@/lib/fetchJson';
+import { useAuth } from '@/lib/auth/useAuth';
 
 interface PostFormProps {
   cliqId: string;
@@ -17,37 +19,39 @@ export default function PostForm({ cliqId, onPostCreated }: PostFormProps) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
+  const { user } = useAuth();
+  const createPost = useMutation(api.posts.createPost);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim()) return;
+    if (!content.trim() || !user?.id) return;
 
     setLoading(true);
     setError('');
 
     try {
-      await fetchJson('/api/posts/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content, cliqId }),
+      const postId = await createPost({
+        content: content.trim(),
+        authorId: user.id as Id<"users">,
+        cliqId: cliqId as Id<"cliqs">,
       });
 
       if (onPostCreated) {
         onPostCreated({
+          id: postId,
           content,
           cliqId,
-          createdAt: new Date().toISOString(),
+          createdAt: Date.now(),
           author: {
+            id: user.id,
             profile: {
-              username: 'You',
+              username: user.myProfile?.username || 'You',
             },
           },
         });
       }
 
       setContent('');
-      router.refresh();
     } catch (err: any) {
       console.error('⚠️ Post error:', err);
       setError(err.message || 'Something went wrong.');

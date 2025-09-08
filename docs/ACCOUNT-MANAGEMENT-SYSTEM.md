@@ -55,7 +55,7 @@ The Cliqstr account management system provides a comprehensive, user-friendly in
   - Manage children's accounts and permissions
 
 **Admins:**
-- **Admin Dashboard** → `/admin`
+- **Sentinel Dashboard** → `/sentinel`
   - Access administrative functions
 
 #### 5. **Account Actions** (Future Enhancement)

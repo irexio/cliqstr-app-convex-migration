@@ -1,5 +1,18 @@
 export const dynamic = 'force-dynamic';
 
+/**
+ * 🚨 DEPRECATED: This route has been rewritten with Convex optimizations
+ * 
+ * Use: /api/user/plan/route-convex.ts instead
+ * 
+ * The new version:
+ * - Simplified plan update logic
+ * - Uses optimized Convex mutations instead of Prisma
+ * - More efficient and easier to maintain
+ * 
+ * @deprecated Use route-convex.ts instead
+ */
+
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { prisma } from '@/lib/prisma';

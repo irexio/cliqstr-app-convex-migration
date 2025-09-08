@@ -15,6 +15,9 @@ const PLANS = [
   { key: 'test', label: 'Test Plan', price: '$0', period: 'mo', recommended: false, features: ['Up to 2 cliqs', '10 posts per cliq', 'Posts auto-expire after 30 days'] }
 ];
 
+// Note for users about temporary configuration
+const TESTING_NOTE = "⚠️ This is a temporary testing configuration. Full plan options will be available after Stripe integration.";
+
 console.log('Plans initialized:', PLANS);
 
 // Commented out plans for future use after Stripe integration
@@ -143,7 +146,13 @@ export default function ChoosePlanForm() {
   console.log('Available plans:', PLANS);
 
   return (
-    <form onSubmit={handleSubmit} className="w-full mx-auto px-2 sm:px-0">
+    <div className="w-full mx-auto px-2 sm:px-0">
+      {/* Testing Configuration Note */}
+      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <p className="text-sm text-yellow-800">{TESTING_NOTE}</p>
+      </div>
+      
+      <form onSubmit={handleSubmit} className="w-full">
       <div className="flex justify-center mb-6 sm:mb-8">
         {PLANS.map((plan) => (
           <div key={plan.key} className="relative w-full max-w-md">
@@ -215,6 +224,7 @@ export default function ChoosePlanForm() {
           {message}
         </p>
       )}
-    </form>
+      </form>
+    </div>
   );
 }

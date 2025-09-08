@@ -2,7 +2,7 @@
 // Applies Next.js 15.3+ ghost fix
 export const dynamic = 'force-dynamic';
 
-import ProfilePageServer from '@/components/server/ProfilePageServer';
+import ProfilePageServerConvex from '@/components/server/ProfilePageServerConvex';
 
 export default async function Page({
   params,
@@ -11,5 +11,5 @@ export default async function Page({
 }) {
   const { username } = await params;
 
-  return <ProfilePageServer username={username} />;
+  return <ProfilePageServerConvex username={username} />;
 }

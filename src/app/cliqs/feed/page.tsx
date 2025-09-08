@@ -19,27 +19,13 @@ export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/prisma';
-import CliqFeed from '@/components/cliqs/CliqFeed';
+import CliqFeedConvex from '@/components/cliqs/CliqFeedConvex';
 
 export default async function FeedPage() {
   const user = await getCurrentUser();
   if (!user?.id) {
     notFound();
   }
-
-  // Fetch current user's profile
-  const currentUserProfile = await prisma.myProfile.findUnique({
-    where: { userId: user.id },
-    select: {
-      username: true,
-      firstName: true,
-      lastName: true,
-      about: true,
-      image: true,
-      bannerImage: true
-    }
-  });
 
   // Use the user's ID as the default cliqId
   // In a production app, you might want to fetch the user's preferred cliq
@@ -51,7 +37,7 @@ export default async function FeedPage() {
         <h1 className="text-3xl font-bold mb-4 text-[#202020] font-poppins">
           Your Cliq Feed
         </h1>
-        <CliqFeed cliqId={defaultCliqId} currentUserProfile={currentUserProfile} />
+        <CliqFeedConvex cliqId={defaultCliqId} currentUserProfile={user.myProfile} />
       </div>
     </main>
   );

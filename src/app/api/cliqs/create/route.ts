@@ -23,7 +23,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from '../../../../convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { z } from 'zod';
 import { isValidPlan } from '@/lib/utils/planUtils';
@@ -71,6 +72,21 @@ export async function POST(req: NextRequest) {
 
     const { name, description, privacy, coverImage, minAge, maxAge } = parsed.data;
 
+    // 🔒 CRITICAL: Check child permissions for public cliq creation
+    if (user.account?.role === 'Child' && (privacy === 'public' || privacy === 'semi_private')) {
+      // Get child settings to check parental permissions
+      const childSettings = await convexHttp.query(api.users.getChildSettings, {
+        profileId: user.myProfile._id as any,
+      });
+      
+      if (!childSettings?.canCreatePublicCliqs) {
+        console.log(`[APA] Child blocked from creating ${privacy} cliq:`, user.email);
+        return NextResponse.json({
+          error: 'You need parent permission to create public or semi-private cliqs'
+        }, { status: 403 });
+      }
+    }
+
     // Validate age range if both are provided
     if (minAge && maxAge && minAge >= maxAge) {
       return NextResponse.json({ 
@@ -78,19 +94,6 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check child permission for public cliqs
-    if (user.role === 'Child' && privacy === 'public') {
-      const childSettings = await prisma.childSettings.findUnique({
-        where: { profileId: user.myProfile.id }
-      });
-
-      if (!childSettings?.canCreatePublicCliqs) {
-        console.log('[APA] Child blocked from creating public cliq:', user.email);
-        return NextResponse.json({
-          error: 'You need parent permission to create public cliqs'
-        }, { status: 403 });
-      }
-    }
 
     const DEFAULT_IMAGE = '/images/default-gradient.png';
     const finalCoverImage =
@@ -101,27 +104,19 @@ export async function POST(req: NextRequest) {
       finalPrivacy = 'semi_private';
     }
 
-    const cliq = await prisma.cliq.create({
-      data: {
-        name,
-        description,
-        privacy: finalPrivacy,
-        coverImage: finalCoverImage,
-        minAge: minAge || null,
-        maxAge: maxAge || null,
-        ownerId: user.id,
-        memberships: {
-          create: {
-            userId: user.id,
-            role: 'Owner',
-          },
-        },
-      },
+    const cliqId = await convexHttp.mutation(api.cliqs.createCliq, {
+      name,
+      description,
+      privacy: finalPrivacy,
+      coverImage: finalCoverImage,
+      minAge: minAge || undefined,
+      maxAge: maxAge || undefined,
+      creatorId: user.id as any,
     });
 
-    console.log(`[CREATE_CLIQ_SUCCESS] Created cliq ${cliq.id} for user ${user.id}`);
+    console.log(`[CREATE_CLIQ_SUCCESS] Created cliq ${cliqId} for user ${user.id}`);
     return NextResponse.json({ 
-      cliq,
+      cliqId,
       success: true,
       message: 'Cliq created successfully'
     });

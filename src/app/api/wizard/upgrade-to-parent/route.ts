@@ -1,3 +1,16 @@
+/**
+ * 🚨 DEPRECATED: This route has been rewritten with Convex optimizations
+ * 
+ * Use: /api/wizard/upgrade-to-parent/route-convex.ts instead
+ * 
+ * The new version:
+ * - Simplified upgrade to parent logic
+ * - Uses optimized Convex mutations instead of Prisma
+ * - More efficient and easier to maintain
+ * 
+ * @deprecated Use route-convex.ts instead
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth/getServerSession';
 import { prisma } from '@/lib/prisma';

@@ -26,7 +26,8 @@ export const dynamic = 'force-dynamic';
  */
 
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from '../../../../convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 import { z } from 'zod';
@@ -55,6 +56,17 @@ export async function POST(req: Request) {
   if (!content && !image) {
     return new NextResponse('Post must include content or an image.', { status: 400 });
   }
+
+  // 🔒 CRITICAL: Check child permissions for image posting
+  if (image && user.account?.role === 'Child') {
+    const childSettings = await convexHttp.query(api.users.getChildSettings, {
+      profileId: user.myProfile!._id as any,
+    });
+    
+    if (!childSettings?.canPostImages) {
+      return new NextResponse('You do not have permission to post images. Please ask your parent to enable this feature.', { status: 403 });
+    }
+  }
   
   // APA-compliant access control: Verify user is a member of this cliq
   try {
@@ -67,14 +79,12 @@ export async function POST(req: Request) {
   expiresAt.setDate(expiresAt.getDate() + 90);
 
   try {
-    const post = await prisma.post.create({
-      data: {
-        content: content || '',
-        image: image || null,
-        cliqId,
-        authorId: user.id,
-        expiresAt,
-      },
+    const post = await convexHttp.mutation(api.posts.createPost, {
+      content: content || '',
+      image: image || undefined,
+      cliqId: cliqId as any,
+      authorId: user.id as any,
+      expiresAt: expiresAt.getTime(),
     });
 
     return NextResponse.json(post);

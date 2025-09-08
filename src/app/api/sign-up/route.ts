@@ -2,7 +2,8 @@
 // Enforces APA requirements: no tokens, session-based auth only, role validation
 
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from '../../../../convex/_generated/api';
 import { hash } from 'bcryptjs';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
@@ -80,7 +81,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Check for existing user
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await convexHttp.query(api.users.userExists, { email });
     if (existingUser) {
       return NextResponse.json({ error: 'Email is already in use' }, { status: 409 });
     }
@@ -110,7 +111,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (inviteCode) {
-      const invite = await prisma.invite.findUnique({ where: { code: normalizeInviteCode(inviteCode) } });
+      const invite = await convexHttp.query(api.invites.getInviteByCode, { code: normalizeInviteCode(inviteCode) });
 
       if (!invite) {
         return NextResponse.json({ error: 'Invalid invite code' }, { status: 400 });
@@ -121,7 +122,7 @@ export async function POST(req: NextRequest) {
 
       // Fetch the cliq and check privacy if invitedCliqId is present
       if (invitedCliqId) {
-        const invitedCliq = await prisma.cliq.findUnique({ where: { id: invitedCliqId }, select: { privacy: true } });
+        const invitedCliq = await convexHttp.query(api.cliqs.getCliq, { cliqId: invitedCliqId, userId: null });
         if (invitedCliq && invitedCliq.privacy === 'public' && isChild) {
           return NextResponse.json({ error: 'Children under 18 cannot join public cliqs without parent approval.' }, { status: 403 });
         }
@@ -134,27 +135,13 @@ export async function POST(req: NextRequest) {
 
     const hashedPassword = await hash(password, 10);
 
-    // Sol's Solution: Use transaction for atomic user/account/invite creation
-    let newUser;
+    // Create user with account using Convex
+    let newUserId;
     try {
-      newUser = await prisma.$transaction(async (tx) => {
       // Normalize email for consistency
       const normalizedEmail = email.trim().toLowerCase();
       
-      // Create user (pre-verified if parent invite)
-      const user = await tx.user.create({
-        data: {
-          email: normalizedEmail,
-          password: hashedPassword,
-          // For parent invites, mark as verified since they clicked email invite
-          isVerified: preVerified || false,
-          // No verification token needed if pre-verified
-          verificationToken: preVerified ? null : undefined,
-          verificationExpires: preVerified ? null : undefined,
-        },
-      });
-
-      // Create Account with APA role/isApproved (SINGLE SOURCE OF TRUTH)
+      // Determine account role
       let accountRole;
       if (context === 'parent_invite' && !isChild) {
         accountRole = 'Parent';
@@ -162,60 +149,54 @@ export async function POST(req: NextRequest) {
         accountRole = invitedRole ?? (isChild ? 'Child' : 'Adult');
       }
       
-      const accountData = {
-        userId: user.id,
-        birthdate: new Date(birthdate),
-        role: accountRole,
-        // Sol's fix: Account.isApproved is the ONLY approval source of truth
-        isApproved: context === 'parent_invite' ? true : !isChild,
-        // For parent invites, automatically assign free test plan
-        ...(context === 'parent_invite' && {
-          plan: 'test',
-        }),
-      };
+      // Create verification token if needed
+      let verificationToken = null;
+      let verificationExpires = null;
+      if (!preVerified && !isChild) {
+        const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
+        verificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+        verificationToken = require('crypto').createHash('sha256').update(code).digest('hex');
+      }
       
-      await tx.account.create({
-        data: accountData,
+      // Create user with account
+      newUserId = await convexHttp.mutation(api.users.createUserWithAccount, {
+        email: normalizedEmail,
+        password: hashedPassword,
+        birthdate: new Date(birthdate).getTime(),
+        role: accountRole,
+        isApproved: context === 'parent_invite' ? true : !isChild,
+        plan: context === 'parent_invite' ? 'test' : undefined,
+        isVerified: preVerified || false,
+        verificationToken,
+        verificationExpires,
       });
 
-      // Update invite status (but ignore Invite.isApproved - Sol's approach)
+      // Update invite status if invite code was used
       if (inviteCode) {
-        await tx.invite.update({
-          where: { code: normalizeInviteCode(inviteCode) },
-          data: { 
-            status: 'accepted',
-            used: true,
-            invitedUserId: user.id
-          },
+        await convexHttp.mutation(api.invites.updateInviteStatus, {
+          inviteId: invite._id,
+          status: 'accepted',
+          used: true,
+          invitedUserId: newUserId,
+          acceptedAt: Date.now(),
         });
       }
       
-      return user;
-    });
-    
-    console.log('[SIGNUP_DEBUG] Transaction completed - user, account, and invite updated atomically');
+      console.log('[SIGNUP_DEBUG] User and account created successfully');
     } catch (error: any) {
-      console.error('[SIGNUP_ERROR] Transaction failed:', error);
-      
-      // Sol's error mapping
-      if (error.code === 'P2002') {
-        return NextResponse.json({ error: 'email_in_use' }, { status: 400 });
-      }
-      
+      console.error('[SIGNUP_ERROR] User creation failed:', error);
       return NextResponse.json({ error: 'server_error' }, { status: 500 });
     }
 
     // Log signup activity
-    await logSignup(newUser.id, inviteCode, req);
+    await logSignup(newUserId, inviteCode, req);
 
     // Add membership if invited to a cliq
     if (invitedCliqId) {
-      await prisma.membership.create({
-        data: {
-          userId: newUser.id,
-          cliqId: invitedCliqId,
-          role: 'Member',
-        },
+      await convexHttp.mutation(api.memberships.createMembership, {
+        userId: newUserId,
+        cliqId: invitedCliqId,
+        role: 'Member',
       });
     }
 
@@ -225,7 +206,7 @@ export async function POST(req: NextRequest) {
       await sendParentEmail({
         to: parentEmail,
         childName: firstName,
-        childId: newUser.id,
+        childId: newUserId,
         inviteCode: inviteCode ?? undefined,
       });
     } else if (!isChild && !preVerified) {
@@ -238,18 +219,18 @@ export async function POST(req: NextRequest) {
         const codeHash = require('crypto').createHash('sha256').update(code).digest('hex');
         
         // Store hash and expiry in User model
-        await prisma.user.update({
-          where: { id: newUser.id },
-          data: {
+        await convexHttp.mutation(api.users.updateUser, {
+          userId: newUserId,
+          updates: {
             verificationToken: codeHash,
-            verificationExpires: expiresAt,
+            verificationExpires: expiresAt.getTime(),
           },
         });
         
         try {
           await sendVerificationEmail({
             to: email,
-            userId: newUser.id,
+            userId: newUserId,
           });
           console.log(`Verification email sent to ${email}`);
         } catch (emailError) {
@@ -272,7 +253,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { 
           success: true, 
-          userId: newUser.id,
+          userId: newUserId,
           isChild: true,
           requiresApproval: true
         },
@@ -286,7 +267,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { 
           success: true, 
-          userId: newUser.id,
+          userId: newUserId,
           isChild: false,
           isVerified: true,
           context: context || 'parent-invite'
@@ -298,7 +279,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { 
           success: true, 
-          userId: newUser.id,
+          userId: newUserId,
           isChild: false,
           redirectUrl: '/verification-pending',
           email: email // Pass email to be stored in localStorage
