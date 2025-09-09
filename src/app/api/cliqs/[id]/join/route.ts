@@ -89,7 +89,7 @@ export async function POST(
 
     // Age gating validation using Account.birthdate (APA-safe)
     const ageValidation = validateAgeRequirements(
-      user.account.birthdate,
+      new Date(user.account.birthdate),
       cliq.minAge,
       cliq.maxAge
     );

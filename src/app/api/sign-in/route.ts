@@ -16,7 +16,7 @@ export const revalidate = 0;
 
 import { NextResponse, NextRequest } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { compare } from 'bcryptjs';
 import { clearAuthTokens } from '@/lib/auth/enforceAPA';
 import { getIronSession } from 'iron-session';
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         success: true,
         redirectUrl: '/choose-plan',
         user: {
-          id: user.id,
+          id: user._id,
           role: user.account?.role || 'Adult',
         },
       });
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
       const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
       const refreshIntervalMins = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
       const idleCutoffMins = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-      session.userId = user.id;
+      session.userId = user._id;
       session.createdAt = now; // legacy
       session.issuedAt = now;
       session.lastActivityAt = now;
@@ -171,16 +171,16 @@ export async function POST(req: NextRequest) {
       response.headers.set('X-Session-Expires-At', new Date(session.expiresAt).toISOString());
       
       // Log login activity for unapproved user
-      await logLogin(user.id, req);
+      await logLogin(user._id, req);
       
       return response;
     }
 
-    //  Set secure session cookie with user.id (APA-compliant)
+    //  Set secure session cookie with user._id (APA-compliant)
     const response = NextResponse.json({
       success: true,
       user: {
-        id: user.id,
+        id: user._id,
         role: user.account?.role || 'Adult',
       },
     });
@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
     const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
     const refreshIntervalMins = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
     const idleCutoffMins = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-    session.userId = user.id;
+    session.userId = user._id;
     session.createdAt = now; // legacy
     session.issuedAt = now;
     session.lastActivityAt = now;
@@ -234,7 +234,7 @@ export async function POST(req: NextRequest) {
       const timeoutMins2 = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
       const refreshIntervalMins2 = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
       const idleCutoffMins2 = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-      sessionOnRedirect.userId = user.id;
+      sessionOnRedirect.userId = user._id;
       sessionOnRedirect.createdAt = now2; // legacy
       sessionOnRedirect.issuedAt = now2;
       sessionOnRedirect.lastActivityAt = now2;
@@ -248,7 +248,7 @@ export async function POST(req: NextRequest) {
       redirect.headers.append('Set-Cookie', 'pending_invite=; Max-Age=0; Path=/; SameSite=Lax; Secure');
 
       // Log login activity
-      await logLogin(user.id, req);
+      await logLogin(user._id, req);
 
       return redirect;
     } else {
@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Log login activity
-    await logLogin(user.id, req);
+    await logLogin(user._id, req);
 
     return response;
   } catch (err) {

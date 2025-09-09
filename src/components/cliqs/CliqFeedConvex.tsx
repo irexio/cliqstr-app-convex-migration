@@ -21,7 +21,7 @@ interface FormattedPost {
   id: string;
   content?: string;
   image?: string;
-  createdAt: number;
+  createdAt: string;
   author: {
     id?: string;
     myProfile: {
@@ -175,7 +175,7 @@ export default function CliqFeedConvex({ cliqId, posts: initialPosts }: CliqFeed
             id: post.id,
             content: post.content,
             image: post.image,
-            createdAt: post.createdAt,
+            createdAt: new Date(post.createdAt).toISOString(),
             author: {
               id: post.author?.id,
               myProfile: post.author?.profile ? {
@@ -254,12 +254,12 @@ export default function CliqFeedConvex({ cliqId, posts: initialPosts }: CliqFeed
               {/* Existing Replies */}
               {post.replies && post.replies.length > 0 && (
                 <div className="pl-4 border-l border-gray-200 mt-4 space-y-3">
-                  {post.replies.map(reply => {
+                  {post.replies.map((reply: any) => {
                     // Format reply for PostCardBubble
                     const formattedReply: FormattedPost = {
                       id: reply.id,
                       content: reply.content,
-                      createdAt: reply.createdAt,
+                      createdAt: new Date(reply.createdAt).toISOString(),
                       author: {
                         id: reply.author?.id,
                         myProfile: reply.author?.profile ? {

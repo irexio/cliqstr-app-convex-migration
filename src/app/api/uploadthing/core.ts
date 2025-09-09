@@ -36,10 +36,10 @@ export const ourFileRouter = {
       // 🔒 CRITICAL: Check child permissions for image posting
       if (user.account?.role === 'Child') {
         const { convexHttp } = await import('@/lib/convex-server');
-        const { api } = await import('../../../convex/_generated/api');
+        const { api } = await import('convex/_generated/api');
         
         const childSettings = await convexHttp.query(api.users.getChildSettings, {
-          profileId: user.myProfile!._id as any,
+          profileId: user.myProfile!.id as any,
         });
         
         if (!childSettings?.canPostImages) {

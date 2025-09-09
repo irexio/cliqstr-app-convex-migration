@@ -100,7 +100,7 @@ export default function MyCliqsDashboardPage() {
   }
 
   // Transform Convex data to match expected format
-  const formattedCliqs = cliqs ? cliqs.map(cliq => ({
+  const formattedCliqs = cliqs ? cliqs.filter(cliq => cliq !== null).map(cliq => ({
     id: cliq._id,
     name: cliq.name,
     description: cliq.description || '',

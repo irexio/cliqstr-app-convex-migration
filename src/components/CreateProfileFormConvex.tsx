@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation } from 'convex/react';
-import { api } from '../../../convex/_generated/api';
-import { Id } from '../../../convex/_generated/dataModel';
+import { api } from 'convex/_generated/api';
+import { Id } from 'convex/_generated/dataModel';
 import { UploadDropzone } from '@/lib/uploadthing-client';
 import type { OurFileRouter } from '@/app/api/uploadthing/core';
 import { useAuth } from '@/lib/auth/useAuth';

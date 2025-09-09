@@ -8,6 +8,9 @@
     "paths": {
       "@/*": [
         "src/*"
+      ],
+      "convex/_generated/api": [
+        "convex/_generated/api"
       ]
     },
     "strict": true,
@@ -34,9 +37,11 @@
     "**/*.ts",
     "**/*.tsx",
     "next-env.d.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "convex/_generated/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "deprecated/**/*"
   ]
 }

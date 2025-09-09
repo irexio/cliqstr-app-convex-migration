@@ -37,7 +37,7 @@ export default function CreateCliqFormConvex() {
       const cliqId = await createCliq({
         name: name.trim(),
         description: description.trim() || undefined,
-        ownerId: user.id as Id<"users">,
+        creatorId: user.id as Id<"users">,
         privacy,
         coverImage: coverImage || undefined,
         minAge,
@@ -151,8 +151,8 @@ export default function CreateCliqFormConvex() {
             </button>
           </div>
         ) : (
-          <UploadDropzone<OurFileRouter, "imageUploader">
-            endpoint="imageUploader"
+          <UploadDropzone
+            endpoint="cliqBanner"
             onClientUploadComplete={(res) => {
               if (res?.[0]?.url) {
                 setCoverImage(res[0].url);

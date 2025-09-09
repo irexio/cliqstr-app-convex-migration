@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * 🔐 APA-HARDENED — Edit Cliq Page
  * 🔄 CONVEX-OPTIMIZED: Now uses Convex for real-time updates
@@ -21,11 +23,9 @@
  */
 export const dynamic = 'force-dynamic';
 
-'use client';
-
 import { useAuth } from '@/lib/auth/useAuth';
 import { useQuery, useMutation } from 'convex/react';
-import { api } from '../../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import { notFound, redirect } from 'next/navigation';
 import { useState, useEffect } from 'react';

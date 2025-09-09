@@ -5,9 +5,17 @@ import Stripe from 'stripe';
 
 export const dynamic = 'force-dynamic';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil', // ✅ updated to match Stripe SDK
-});
+const getStripe = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not configured');
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2025-08-27.basil', // ✅ updated to match Stripe SDK
+  });
+};
+
+// Fallback for build-time initialization
+const stripe = process.env.STRIPE_SECRET_KEY ? getStripe() : null;
 
 export async function POST() {
   try {
@@ -16,7 +24,8 @@ export async function POST() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const setupIntent = await stripe.setupIntents.create({
+    const stripeInstance = stripe || getStripe();
+    const setupIntent = await stripeInstance.setupIntents.create({
       metadata: {
         userId: user.id,
       },

@@ -1,4 +1,4 @@
-## Clarifying Account vs MyProfile in Cliqstr
+pmail## Clarifying Account vs MyProfile in Cliqstr
 
 We have been struggling to communicate effectively regarding `Account` vs `MyProfile` flows, and we need to address the issue once and for all. Notes, comments, and annotations have not been sufficient — multiple AI assistants have confused the models and overwritten critical session code. As a result, the app is broken and APA security has been compromised more than once.
 

@@ -42,9 +42,9 @@ export const getCurrentUser = query({
       account: account ? {
         role: account.role,
         isApproved: account.isApproved,
-        stripeStatus: account.stripeStatus,
-        plan: account.plan,
-        stripeCustomerId: account.stripeCustomerId,
+        stripeStatus: account.stripeStatus || null,
+        plan: account.plan || null,
+        stripeCustomerId: account.stripeCustomerId || null,
         suspended: account.suspended,
         birthdate: account.birthdate,
       } : null,
@@ -406,18 +406,19 @@ export const createChildSettings = mutation({
   handler: async (ctx, args) => {
     const settingsId = await ctx.db.insert("childSettings", {
       profileId: args.profileId,
-      canSendInvites: args.canSendInvites ?? false,
-      inviteRequiresApproval: args.inviteRequiresApproval ?? true,
       canCreatePublicCliqs: args.canCreatePublicCliqs ?? false,
-      canPostImages: args.canPostImages ?? true,
       canJoinPublicCliqs: args.canJoinPublicCliqs ?? false,
+      canCreateCliqs: false, // 🔒 SECURITY: Children need explicit parent permission to create cliqs
+      canSendInvites: args.canSendInvites ?? false,
       canInviteChildren: args.canInviteChildren ?? false,
       canInviteAdults: args.canInviteAdults ?? false,
       isSilentlyMonitored: args.isSilentlyMonitored ?? false,
       aiModerationLevel: args.aiModerationLevel,
       canAccessGames: args.canAccessGames ?? true,
+      canPostImages: args.canPostImages ?? true,
       canShareYouTube: args.canShareYouTube ?? false,
       visibilityLevel: args.visibilityLevel,
+      inviteRequiresApproval: args.inviteRequiresApproval ?? true,
     });
 
     return settingsId;

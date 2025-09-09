@@ -18,7 +18,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { isValidPlan } from '@/lib/utils/planUtils';
 import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';

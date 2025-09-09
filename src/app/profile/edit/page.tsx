@@ -13,5 +13,15 @@ export default async function EditProfilePage() {
     redirect('/profile/create');
   }
 
-  return <EditProfilePageClient profile={user.myProfile} />;
+  return <EditProfilePageClient profile={{
+    id: user.myProfile.id,
+    username: user.myProfile.username,
+    firstName: user.myProfile.firstName || null,
+    lastName: user.myProfile.lastName || null,
+    about: user.myProfile.about || null,
+    image: user.myProfile.image || null,
+    bannerImage: user.myProfile.bannerImage || null,
+    birthdate: new Date(user.myProfile.birthdate),
+    showYear: user.myProfile.showYear,
+  }} />;
 }

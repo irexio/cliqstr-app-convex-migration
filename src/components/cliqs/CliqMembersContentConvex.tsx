@@ -38,7 +38,7 @@ export default function CliqMembersContentConvex({ cliqId }: CliqMembersContentC
 
   return (
     <div className="space-y-4">
-      {members.map((member) => (
+      {members.filter(member => member !== null).map((member) => (
         <div key={member.id} className="flex items-center gap-4 p-4 border rounded-md">
           <UserAvatar 
             image={member.profile?.image}

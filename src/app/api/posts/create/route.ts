@@ -27,7 +27,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
 import { z } from 'zod';
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
   // 🔒 CRITICAL: Check child permissions for image posting
   if (image && user.account?.role === 'Child') {
     const childSettings = await convexHttp.query(api.users.getChildSettings, {
-      profileId: user.myProfile!._id as any,
+      profileId: user.myProfile!.id as any,
     });
     
     if (!childSettings?.canPostImages) {

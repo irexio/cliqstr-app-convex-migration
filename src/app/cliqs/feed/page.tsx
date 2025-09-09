@@ -37,7 +37,7 @@ export default async function FeedPage() {
         <h1 className="text-3xl font-bold mb-4 text-[#202020] font-poppins">
           Your Cliq Feed
         </h1>
-        <CliqFeedConvex cliqId={defaultCliqId} currentUserProfile={user.myProfile} />
+        <CliqFeedConvex cliqId={defaultCliqId} />
       </div>
     </main>
   );

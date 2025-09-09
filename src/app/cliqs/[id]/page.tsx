@@ -12,6 +12,6 @@ export default async function CliqPage({ params }: { params: Promise<{ id: strin
   if (!user?.id) return <p className="p-4">Unauthorized</p>;
 
   return (
-    <CliqPageConvex cliqId={id} currentUser={user} />
+    <CliqPageConvex cliqId={id} />
   );
 }

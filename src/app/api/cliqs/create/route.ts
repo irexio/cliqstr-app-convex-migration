@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { z } from 'zod';
 import { isValidPlan } from '@/lib/utils/planUtils';
@@ -73,10 +73,10 @@ export async function POST(req: NextRequest) {
     const { name, description, privacy, coverImage, minAge, maxAge } = parsed.data;
 
     // 🔒 CRITICAL: Check child permissions for public cliq creation
-    if (user.account?.role === 'Child' && (privacy === 'public' || privacy === 'semi_private')) {
+    if (user.account?.role === 'Child' && (privacy === 'public' || privacy === 'semi')) {
       // Get child settings to check parental permissions
       const childSettings = await convexHttp.query(api.users.getChildSettings, {
-        profileId: user.myProfile._id as any,
+        profileId: user.myProfile.id as any,
       });
       
       if (!childSettings?.canCreatePublicCliqs) {

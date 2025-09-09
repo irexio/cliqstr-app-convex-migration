@@ -16,7 +16,8 @@
  */
 
 import { customAlphabet } from 'nanoid';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
 
 // APA-safe alphabet: lowercase letters + numbers only
 const alphabet = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -36,9 +37,8 @@ export async function generateInviteCode(): Promise<string> {
     const code = `cliq-${suffix}`;
     
     // Check if this code already exists in the database
-    const existingInvite = await prisma.invite.findUnique({
-      where: { code },
-      select: { id: true }
+    const existingInvite = await convexHttp.query(api.invites.getInviteByCode, {
+      code
     });
     
     if (!existingInvite) {

@@ -3,7 +3,7 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { hash } from 'bcryptjs';
 import { sendParentEmail } from '@/lib/auth/sendParentEmail';
 import { sendVerificationEmail } from '@/lib/auth/sendVerificationEmail';
@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
 
     let invitedRole = null;
     let invitedCliqId = null;
+    let invite: any = null;
 
     // Calculate age and isChild before any invite logic
     const birthDateObj = new Date(birthdate);
@@ -111,7 +112,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (inviteCode) {
-      const invite = await convexHttp.query(api.invites.getInviteByCode, { code: normalizeInviteCode(inviteCode) });
+      invite = await convexHttp.query(api.invites.getInviteByCode, { code: normalizeInviteCode(inviteCode) });
 
       if (!invite) {
         return NextResponse.json({ error: 'Invalid invite code' }, { status: 400 });
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
 
       // Fetch the cliq and check privacy if invitedCliqId is present
       if (invitedCliqId) {
-        const invitedCliq = await convexHttp.query(api.cliqs.getCliq, { cliqId: invitedCliqId, userId: null });
+        const invitedCliq = await convexHttp.query(api.cliqs.getCliqBasic, { cliqId: invitedCliqId });
         if (invitedCliq && invitedCliq.privacy === 'public' && isChild) {
           return NextResponse.json({ error: 'Children under 18 cannot join public cliqs without parent approval.' }, { status: 403 });
         }
@@ -168,7 +169,7 @@ export async function POST(req: NextRequest) {
         plan: context === 'parent_invite' ? 'test' : undefined,
         isVerified: preVerified || false,
         verificationToken,
-        verificationExpires,
+        verificationExpires: verificationExpires || undefined,
       });
 
       // Update invite status if invite code was used

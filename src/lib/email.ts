@@ -1,7 +1,15 @@
 import { Resend } from 'resend';
 
 // Centralized Resend instance
-export const resend = new Resend(process.env.RESEND_API_KEY);
+export const getResend = () => {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+};
+
+// Fallback for build-time initialization - only create if key exists
+export const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Standard from address
 export const FROM_EMAIL = 'Cliqstr <noreply@email.cliqstr.com>';
@@ -45,6 +53,7 @@ export async function sendEmail({
       };
     }
     
+    const resend = getResend();
     const { data, error } = await resend.emails.send({
       from,
       to,

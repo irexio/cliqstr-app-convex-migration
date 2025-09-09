@@ -11,7 +11,7 @@
 
 import { NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 
 export async function GET(req: Request) {
   try {

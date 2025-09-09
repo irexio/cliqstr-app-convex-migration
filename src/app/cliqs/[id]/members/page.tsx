@@ -1,33 +1,34 @@
 // 🔐 APA-HARDENED PAGE: /cliqs/[id]/members
+'use client';
+
 // 🔄 CONVEX-OPTIMIZED: Now uses Convex for real-time updates
 export const dynamic = 'force-dynamic';
 
-'use client';
-
 import { useAuth } from '@/lib/auth/useAuth';
 import { useQuery } from 'convex/react';
-import { api } from '../../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import { notFound } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
-export default function MembersPage({
+export default async function MembersPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const { user, isLoading } = useAuth();
   
   // Get cliq members using Convex
   const members = useQuery(api.cliqs.getCliqMembers, 
-    user?.id ? { cliqId: params.id as Id<"cliqs"> } : "skip"
+    user?.id ? { cliqId: id as Id<"cliqs"> } : "skip"
   );
 
   // Get cliq info to check ownership
   const cliq = useQuery(api.cliqs.getCliq, 
     user?.id ? { 
-      cliqId: params.id as Id<"cliqs">, 
+      cliqId: id as Id<"cliqs">, 
       userId: user.id as Id<"users"> 
     } : "skip"
   );
@@ -78,7 +79,7 @@ export default function MembersPage({
         </div>
       ) : (
         <ul className="space-y-4">
-          {members.map((member) => {
+          {members.filter(member => member !== null).map((member) => {
             const role = member.role || 'Member';
             const name = member.profile ? 
               `${member.profile.firstName || ''} ${member.profile.lastName || ''}`.trim() || 
@@ -110,7 +111,7 @@ export default function MembersPage({
                   <div className="space-x-2">
                     {role === 'Member' && (
                       <form
-                        action={`/api/cliqs/${params.id}/member-actions`}
+                        action={`/api/cliqs/${id}/member-actions`}
                         method="POST"
                       >
                         <input type="hidden" name="targetUserId" value={member.id} />
@@ -122,7 +123,7 @@ export default function MembersPage({
                     )}
                     {role === 'Moderator' && (
                       <form
-                        action={`/api/cliqs/${params.id}/member-actions`}
+                        action={`/api/cliqs/${id}/member-actions`}
                         method="POST"
                       >
                         <input type="hidden" name="targetUserId" value={member.id} />

@@ -12,6 +12,8 @@ const PUBLIC_PATHS = [
   // TEMP: allow mocked plan selection while unauthenticated (remove when Stripe is live)
   '/choose-plan',
   '/email-confirmation',
+  // Admin/Sentinel routes (protected by role check in the route itself)
+  '/admin', '/sentinel',
 ];
 
 function isPublicPath(pathname: string) {

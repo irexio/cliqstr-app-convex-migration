@@ -65,14 +65,14 @@ export default function MemberActionsContentConvex({
 
   return (
     <ul className="space-y-4">
-      {members.map((member) => {
+      {members.filter(member => member !== null).map((member) => {
         const role = member.role || 'Member';
-        const name = member.user.myProfile?.username || member.user.email;
-        const isSelf = member.user._id === currentUserId;
+        const name = member.profile?.username || member.email;
+        const isSelf = member.id === currentUserId;
 
         return (
           <li
-            key={member.user._id}
+            key={member.id}
             className="flex items-center justify-between border p-4 rounded-md"
           >
             <div>
@@ -87,7 +87,7 @@ export default function MemberActionsContentConvex({
                     action={`/api/cliqs/${cliqId}/member-actions`}
                     method="POST"
                   >
-                    <input type="hidden" name="targetUserId" value={member.user._id} />
+                    <input type="hidden" name="targetUserId" value={member.id} />
                     <input type="hidden" name="action" value="promote" />
                     <Button type="submit" variant="outline">
                       Promote
@@ -100,7 +100,7 @@ export default function MemberActionsContentConvex({
                     action={`/api/cliqs/${cliqId}/member-actions`}
                     method="POST"
                   >
-                    <input type="hidden" name="targetUserId" value={member.user._id} />
+                    <input type="hidden" name="targetUserId" value={member.id} />
                     <input type="hidden" name="action" value="demote" />
                     <Button type="submit" variant="secondary">
                       Demote
@@ -112,7 +112,7 @@ export default function MemberActionsContentConvex({
                   action={`/api/cliqs/${cliqId}/member-actions`}
                   method="POST"
                 >
-                  <input type="hidden" name="targetUserId" value={member.user._id} />
+                  <input type="hidden" name="targetUserId" value={member.id} />
                   <input type="hidden" name="action" value="remove" />
                   <Button type="submit" variant="destructive">
                     Remove

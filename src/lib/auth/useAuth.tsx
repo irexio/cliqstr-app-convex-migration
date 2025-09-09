@@ -6,19 +6,19 @@ import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 
 interface User {
-  id: string;
+  id: Id<"users">;
   email: string;
   plan: string | null;
   role: string | null;
   approved: boolean | null;
   myProfile: {
-    id: string;
+    id: Id<"myProfiles">;
     username: string;
-    firstName: string | null;
-    lastName: string | null;
-    image: string | null;
-    bannerImage: string | null;
-    about: string | null;
+    firstName: string | undefined;
+    lastName: string | undefined;
+    image: string | undefined;
+    bannerImage: string | undefined;
+    about: string | undefined;
     birthdate: number;
     showYear: boolean;
   } | null;

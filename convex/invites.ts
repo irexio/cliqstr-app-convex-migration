@@ -119,14 +119,13 @@ export const createInviteRequest = mutation({
     const now = Date.now();
     
     const requestId = await ctx.db.insert("inviteRequests", {
-      childId: args.childId,
-      cliqId: args.cliqId,
-      inviteeEmail: args.inviteeEmail,
-      invitedRole: args.invitedRole,
-      message: args.message || '',
+      email: args.inviteeEmail,
       status: args.status,
       createdAt: now,
-      updatedAt: now,
+      cliqId: args.cliqId,
+      invitedRole: args.invitedRole,
+      inviteeEmail: args.inviteeEmail,
+      inviterId: args.childId,
     });
 
     return requestId;

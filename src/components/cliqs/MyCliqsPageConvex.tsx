@@ -67,7 +67,7 @@ export default function MyCliqsPageConvex() {
   }
 
   // Transform Convex data to match expected format
-  const formattedCliqs = cliqs.map(cliq => ({
+  const formattedCliqs = cliqs.filter(cliq => cliq !== null).map(cliq => ({
     id: cliq._id,
     name: cliq.name,
     description: cliq.description || '',

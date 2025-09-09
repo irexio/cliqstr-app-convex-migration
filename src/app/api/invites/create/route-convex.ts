@@ -10,10 +10,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { nanoid } from 'nanoid';
+import crypto from 'crypto';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
-import { api } from '../../../../../convex/_generated/api';
+import { api } from 'convex/_generated/api';
 import { generateJoinCode } from '@/lib/auth/generateJoinCode';
 
 export async function POST(request: NextRequest) {
@@ -54,25 +54,32 @@ export async function POST(request: NextRequest) {
 
     if (!existingUser) {
       targetState = 'new';
-    } else if (existingUser.account?.suspended) {
-      return NextResponse.json({ 
-        error: 'This account cannot receive invites' 
-      }, { status: 400 });
-    } else if (existingUser.account?.role === 'Child') {
-      return NextResponse.json({ 
-        error: 'This email belongs to a child account and cannot be invited as a parent' 
-      }, { status: 400 });
-    } else if (existingUser.account?.role === 'Parent') {
-      targetState = 'existing_parent';
-      targetUserId = existingUser.id;
     } else {
-      targetState = 'existing_user_non_parent';
-      targetUserId = existingUser.id;
+      // Get the user's account information
+      const account = await convexHttp.query(api.accounts.getAccountByUserId, {
+        userId: existingUser._id as any
+      });
+      
+      if (account?.suspended) {
+        return NextResponse.json({ 
+          error: 'This account cannot receive invites' 
+        }, { status: 400 });
+      } else if (account?.role === 'Child') {
+        return NextResponse.json({ 
+          error: 'This email belongs to a child account and cannot be invited as a parent' 
+        }, { status: 400 });
+      } else if (account?.role === 'Parent') {
+        targetState = 'existing_parent';
+        targetUserId = existingUser._id;
+      } else {
+        targetState = 'existing_user_non_parent';
+        targetUserId = existingUser._id;
+      }
     }
 
     // Step 4: Create invite using Convex
     const inviteId = await convexHttp.mutation(api.invites.createInvite, {
-      token: nanoid(),
+      token: crypto.randomUUID(),
       joinCode: generateJoinCode(),
       targetEmailNormalized: emailNorm,
       targetUserId: targetUserId as any,
