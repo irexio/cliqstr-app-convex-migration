@@ -9,7 +9,8 @@
  */
 
 import { sendEmail, BASE_URL } from '@/lib/email';
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
 import crypto from 'crypto';
 
 interface SendVerificationEmailOptions {
@@ -27,12 +28,12 @@ export async function sendVerificationEmail({ to, userId, name }: SendVerificati
 
     // Hash the code before storing
     const codeHash = crypto.createHash('sha256').update(code).digest('hex');
-    // Store hash and expiry in User model
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
+    // Store hash and expiry in User model using Convex
+    await convexHttp.mutation(api.users.updateUser, {
+      userId: userId as any,
+      updates: {
         verificationToken: codeHash,
-        verificationExpires: expiresAt,
+        verificationExpires: expiresAt.getTime(),
       },
     });
 

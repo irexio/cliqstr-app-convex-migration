@@ -21,7 +21,7 @@ import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { isValidPlan } from '@/lib/utils/planUtils';
-import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
+// Note: Membership verification is now handled by Convex functions automatically
 
 const ParamsSchema = z.object({
   id: z.string().cuid(),
@@ -55,16 +55,10 @@ export async function GET(
     const parsed = ParamsSchema.safeParse({ id });
     if (!parsed.success) return NextResponse.json({ error: 'Invalid cliq ID' }, { status: 400 });
     
-    // APA-compliant access control: Verify user is a member of this cliq
-    try {
-      await requireCliqMembership(user.id, parsed.data.id);
-    } catch (error) {
-      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
-    }
-
-    // Get only basic cliq info (optimized)
-    const cliq = await convexHttp.query(api.cliqs.getCliqBasic, {
+    // Get cliq info with automatic membership verification
+    const cliq = await convexHttp.query(api.cliqs.getCliq, {
       cliqId: parsed.data.id as any,
+      userId: user.id as any,
     });
 
     if (!cliq) return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });

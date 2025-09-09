@@ -1,12 +1,13 @@
 // Notification logic for parent alerts
-import { prisma } from './prisma';
+import { convexHttp } from './convex-server';
+import { api } from 'convex/_generated/api';
 import { sendEmail } from './email';
 
 export async function sendParentAlert({ parentId, cliqId, triggeredById, reason }: { parentId: string, cliqId: string, triggeredById: string, reason?: string }) {
   console.log(`📨 [sendParentAlert] Sending red alert to parent: ${parentId} for cliq: ${cliqId}`);
   
-  // Fetch parent email
-  const parent = await prisma.user.findUnique({ where: { id: parentId }, include: { account: true } });
+  // Fetch parent email using Convex
+  const parent = await convexHttp.query(api.users.getCurrentUser, { userId: parentId as any });
   if (!parent || !parent.email) {
     console.error(`❌ [sendParentAlert] No parent email found for ID: ${parentId}`);
     return;

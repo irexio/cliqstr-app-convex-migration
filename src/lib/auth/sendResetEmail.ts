@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
-import { prisma } from '@/lib/prisma'
+import { convexHttp } from '@/lib/convex-server'
+import { api } from 'convex/_generated/api'
 import crypto from 'crypto'
 
 type SendResetEmailResponse = {
@@ -14,15 +15,18 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
   console.log('📨 [sendResetEmail] Invoked for:', email)
 
   try {
-    const user = await prisma.user.findUnique({ where: { email }, include: { account: true } })
+    const user = await convexHttp.query(api.users.getUserByEmail, { email })
 
     if (!user) {
       console.log('🚫 No user found:', email)
       return { success: true } // hide whether the user exists
     }
 
+    // Get account info
+    const account = await convexHttp.query(api.users.getCurrentUser, { userId: user._id })
+    
     // ✅ Allow password reset even if not approved
-    if (!user.account?.isApproved) {
+    if (!account?.account?.isApproved) {
       console.log(`[🕊️] User not approved — allowing reset so they can complete signup: ${email}`)
     }
 
@@ -30,11 +34,11 @@ export async function sendResetEmail(email: string): Promise<SendResetEmailRespo
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex')
     const tokenExpires = new Date(Date.now() + 60 * 60 * 1000)
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
+    await convexHttp.mutation(api.users.updateUser, {
+      userId: user._id,
+      updates: {
         resetToken: hashedToken,
-        resetTokenExpires: tokenExpires,
+        resetTokenExpires: tokenExpires.getTime(),
       },
     })
 

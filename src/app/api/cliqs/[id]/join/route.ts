@@ -1,5 +1,5 @@
 /**
- * 🔐 APA-HARDENED ROUTE: POST /api/cliqs/[id]/join
+ * 🔐 APA-HARDENED CONVEX ROUTE: POST /api/cliqs/[id]/join
  *
  * Purpose:
  *   - Allows users to join a cliq with age gating validation
@@ -25,9 +25,10 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { validateAgeRequirements } from '@/lib/utils/ageUtils';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
 
 export async function POST(
   req: NextRequest,
@@ -59,29 +60,22 @@ export async function POST(
       }, { status: 403 });
     }
 
-    // Get cliq with age restrictions
-    const cliq = await prisma.cliq.findUnique({
-      where: { id: cliqId },
-      select: {
-        id: true,
-        name: true,
-        privacy: true,
-        minAge: true,
-        maxAge: true,
-        ownerId: true,
-        memberships: {
-          where: { userId: user.id },
-          select: { id: true }
-        }
-      }
+    // Get cliq with age restrictions using Convex
+    const cliq = await convexHttp.query(api.cliqs.getCliqBasic, {
+      cliqId: cliqId as any,
     });
 
     if (!cliq) {
       return NextResponse.json({ error: 'Cliq not found' }, { status: 404 });
     }
 
-    // Check if already a member
-    if (cliq.memberships.length > 0) {
+    // Check if already a member using Convex
+    const isMember = await convexHttp.query(api.cliqs.isCliqMember, {
+      userId: user.id as any,
+      cliqId: cliqId as any,
+    });
+
+    if (isMember) {
       return NextResponse.json({ 
         error: 'You are already a member of this cliq' 
       }, { status: 409 });
@@ -105,10 +99,9 @@ export async function POST(
     if ((cliq.privacy === 'public' || cliq.privacy === 'semi_private') && 
         user.account.role?.toLowerCase() === 'child') {
       
-      // Get child settings to check parental permissions
-      const childSettings = await prisma.childSettings.findUnique({
-        where: { profileId: user.myProfile?.id },
-        select: { canJoinPublicCliqs: true }
+      // Get child settings to check parental permissions using Convex
+      const childSettings = await convexHttp.query(api.users.getChildSettings, {
+        profileId: user.myProfile?.id as any,
       });
 
       if (!childSettings?.canJoinPublicCliqs) {
@@ -119,13 +112,11 @@ export async function POST(
       }
     }
 
-    // Create membership
-    const membership = await prisma.membership.create({
-      data: {
-        userId: user.id,
-        cliqId: cliqId,
-        role: 'Member',
-      }
+    // Create membership using Convex
+    const membershipId = await convexHttp.mutation(api.memberships.joinCliq, {
+      userId: user.id as any,
+      cliqId: cliqId as any,
+      role: 'Member',
     });
 
     console.log(`[JOIN_CLIQ_SUCCESS] User ${user.id} joined cliq ${cliqId} (age: ${ageValidation.userAge})`);
@@ -133,7 +124,7 @@ export async function POST(
     return NextResponse.json({ 
       success: true,
       message: `Successfully joined ${cliq.name}`,
-      membership,
+      membershipId,
       userAge: ageValidation.userAge
     });
 

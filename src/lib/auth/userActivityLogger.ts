@@ -5,7 +5,8 @@
  * Helps track user flows and debug authentication issues
  */
 
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
 import { NextRequest } from 'next/server';
 
 interface LogActivityParams {
@@ -48,19 +49,17 @@ export async function logUserActivity({
       fullDetail = fullDetail ? `${fullDetail} | IP: ${ipAddress}` : `IP: ${ipAddress}`;
     }
 
-    // Log to database
-    const activityLog = await prisma.userActivityLog.create({
-      data: {
-        userId,
-        event,
-        detail: fullDetail || null,
-        debugId: debugId || null,
-      }
+    // Log to database using Convex
+    const logId = await convexHttp.mutation(api.users.logUserActivity, {
+      userId: userId as any,
+      event,
+      detail: fullDetail || undefined,
+      debugId: debugId || undefined,
     });
 
-    console.log(`[USER_ACTIVITY] ${event} logged for user ${userId || 'anonymous'} - ${activityLog.id}`);
+    console.log(`[USER_ACTIVITY] ${event} logged for user ${userId || 'anonymous'} - ${logId}`);
     
-    return { success: true, logId: activityLog.id };
+    return { success: true, logId };
   } catch (error) {
     console.error(`[USER_ACTIVITY] Failed to log ${event} for user ${userId}:`, error);
     return { success: false, error };

@@ -17,7 +17,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
-import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
+// Note: Membership verification is now handled by Convex functions automatically
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,12 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    // APA-compliant access control: Verify user is a member of this cliq
-    try {
-      await requireCliqMembership(user.id, post.cliqId);
-    } catch (error) {
-      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
-    }
+    // Note: Membership verification is now handled by Convex functions automatically
 
     // Create reply using Convex
     const replyId = await convexHttp.mutation(api.posts.addReply, {

@@ -424,3 +424,37 @@ export const createChildSettings = mutation({
     return settingsId;
   },
 });
+
+// Get parent emails for a child (CRITICAL for child safety)
+export const getParentEmailsForChild = query({
+  args: { childId: v.id("users") },
+  handler: async (ctx, args) => {
+    const parentLinks = await ctx.db
+      .query("parentLinks")
+      .withIndex("by_child_id", (q) => q.eq("childId", args.childId))
+      .collect();
+
+    return parentLinks.map(link => link.email).filter((email): email is string => !!email);
+  },
+});
+
+// Log user activity (for debugging and security)
+export const logUserActivity = mutation({
+  args: {
+    userId: v.optional(v.id("users")),
+    event: v.string(),
+    detail: v.optional(v.string()),
+    debugId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const logId = await ctx.db.insert("userActivityLogs", {
+      userId: args.userId,
+      event: args.event,
+      detail: args.detail,
+      debugId: args.debugId,
+      createdAt: Date.now(),
+    });
+
+    return logId;
+  },
+});

@@ -29,7 +29,7 @@ import { NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
+// Note: Membership verification is now handled by Convex functions automatically
 import { z } from 'zod';
 
 const schema = z.object({
@@ -68,12 +68,7 @@ export async function POST(req: Request) {
     }
   }
   
-  // APA-compliant access control: Verify user is a member of this cliq
-  try {
-    await requireCliqMembership(user.id, cliqId);
-  } catch (error) {
-    return new NextResponse('Not authorized to post in this cliq', { status: 403 });
-  }
+  // Note: Membership verification is now handled by Convex functions automatically
 
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 90);

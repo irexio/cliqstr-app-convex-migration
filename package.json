@@ -16,17 +16,11 @@
     "kill-node": "taskkill /F /IM node.exe || echo 'No node processes found'",
     "kill-port": "npx kill-port 3000",
     "clean": "npm run kill-node && npm run kill-port",
-    "reset": "npm run clean && rm -rf .next && npm run dev",
-    "seed:admin": "node scripts/ensure-admin.cjs",
-    "sanity": "node scripts/sanity-check.cjs"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "reset": "npm run clean && rm -rf .next && npm run dev"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.3",
     "@heroicons/react": "^2.2.0",
-    "@prisma/client": "^6.10.1",
     "@radix-ui/react-accordion": "^1.2.10",
     "@radix-ui/react-alert-dialog": "^1.1.13",
     "@radix-ui/react-aspect-ratio": "^1.1.6",
@@ -71,7 +65,6 @@
     "next": "^14.1.0",
     "next-auth": "^4.24.11",
     "next-intl": "^4.3.3",
-    "prisma": "^6.10.1",
     "react": "^18.2.0",
     "react-day-picker": "^9.6.7",
     "react-dom": "^18.2.0",

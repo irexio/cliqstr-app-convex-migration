@@ -42,3 +42,30 @@ export const getAccountByUserId = query({
       .first();
   },
 });
+
+// Update account
+export const updateAccount = mutation({
+  args: {
+    userId: v.id("users"),
+    updates: v.object({
+      isApproved: v.optional(v.boolean()),
+      stripeStatus: v.optional(v.string()),
+      plan: v.optional(v.string()),
+      stripeCustomerId: v.optional(v.string()),
+      suspended: v.optional(v.boolean()),
+    }),
+  },
+  handler: async (ctx, args) => {
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+
+    if (!account) {
+      throw new Error("Account not found");
+    }
+
+    await ctx.db.patch(account._id, args.updates);
+    return account._id;
+  },
+});

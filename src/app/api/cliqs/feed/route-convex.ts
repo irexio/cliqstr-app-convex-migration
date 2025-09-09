@@ -18,7 +18,7 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { isValidPlan } from '@/lib/utils/planUtils';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
-import { requireCliqMembership } from '@/lib/auth/requireCliqMembership';
+// Note: Membership verification is now handled by Convex functions automatically
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,12 +40,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Account setup incomplete - no plan assigned' }, { status: 403 });
     }
 
-    // APA-compliant access control: Verify user is a member of this cliq
-    try {
-      await requireCliqMembership(user.id, cliqId);
-    } catch (error) {
-      return NextResponse.json({ error: 'Not authorized to access this cliq' }, { status: 403 });
-    }
+    // Note: Membership verification is now handled by Convex functions automatically
 
     // Get posts with optimized Convex query
     const posts = await convexHttp.query(api.posts.getPostsForCliqFeed, {

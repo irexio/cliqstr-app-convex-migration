@@ -1,13 +1,12 @@
-import { prisma } from '@/lib/prisma';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
 
 /**
  * Returns an array of parent email addresses linked to a given child profile.
+ * CRITICAL for child safety - used for parent notifications and alerts.
  */
 export async function getParentEmailsForChild(childId: string): Promise<string[]> {
-  const links = await prisma.parentLink.findMany({
-    where: { childId },
-    select: { email: true },
+  return await convexHttp.query(api.users.getParentEmailsForChild, {
+    childId: childId as any,
   });
-
-  return links.map(link => link.email).filter((email): email is string => !!email);
 }
