@@ -6,4 +6,6 @@ if (!convexUrl) {
   throw new Error("Missing NEXT_PUBLIC_CONVEX_URL environment variable");
 }
 
-export const convexHttp = new ConvexHttpClient(convexUrl);
+export const convexHttp = new ConvexHttpClient(convexUrl, {
+  skipConvexDeploymentUrlCheck: true
+});
