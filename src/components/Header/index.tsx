@@ -282,13 +282,23 @@ export function HeaderComponent() {
                       )}
                     </div>
                     
-                    <Link 
-                      href={`/profile/${userData?.myProfile?.username || userData?.email?.split('@')[0] || 'user'}`} 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      Your Profile
-                    </Link>
+                    {userData?.myProfile?.username ? (
+                      <Link 
+                        href={`/profile/${userData.myProfile.username}`} 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Your Profile
+                      </Link>
+                    ) : (
+                      <Link 
+                        href="/profile/create" 
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        Create Profile
+                      </Link>
+                    )}
                     
                     <Link 
                       href="/account" 

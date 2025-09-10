@@ -341,6 +341,14 @@ export const userExists = query({
   },
 });
 
+// Delete user
+export const deleteUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.userId);
+  },
+});
+
 // Create user with account and profile in transaction
 export const createUserWithAccount = mutation({
   args: {

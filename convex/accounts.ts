@@ -43,6 +43,14 @@ export const getAccountByUserId = query({
   },
 });
 
+// Delete account
+export const deleteAccount = mutation({
+  args: { accountId: v.id("accounts") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.accountId);
+  },
+});
+
 // Update account
 export const updateAccount = mutation({
   args: {

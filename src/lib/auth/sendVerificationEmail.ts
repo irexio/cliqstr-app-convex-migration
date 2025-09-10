@@ -21,13 +21,13 @@ interface SendVerificationEmailOptions {
 
 export async function sendVerificationEmail({ to, userId, name }: SendVerificationEmailOptions) {
   try {
+    const displayName = name || to.split('@')[0];
+
     // Generate a secure, random verification code (24 hour expiration)
     const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    const displayName = name || to.split('@')[0];
-
-    // Hash the code before storing
     const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    
     // Store hash and expiry in User model using Convex
     await convexHttp.mutation(api.users.updateUser, {
       userId: userId as any,

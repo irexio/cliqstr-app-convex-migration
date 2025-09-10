@@ -93,6 +93,22 @@ export const updateProfile = mutation({
   },
 });
 
+// Get all profiles (for debugging)
+export const getAllProfiles = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("myProfiles").collect();
+  },
+});
+
+// Delete profile
+export const deleteProfile = mutation({
+  args: { profileId: v.id("myProfiles") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.profileId);
+  },
+});
+
 // Check if users share any cliqs
 export const checkSharedCliqMembership = query({
   args: {
