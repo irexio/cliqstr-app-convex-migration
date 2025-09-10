@@ -31,7 +31,7 @@ export async function POST() {
         await convexHttp.mutation(api.profiles.deleteProfile, { profileId: profile._id });
         results.deletedProfiles.push(profile._id);
       } catch (error) {
-        results.errors.push(`Failed to delete profile ${profile._id}: ${error.message}`);
+        results.errors.push(`Failed to delete profile ${profile._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -41,7 +41,7 @@ export async function POST() {
         await convexHttp.mutation(api.accounts.deleteAccount, { accountId: account._id });
         results.deletedAccounts.push(account._id);
       } catch (error) {
-        results.errors.push(`Failed to delete account ${account._id}: ${error.message}`);
+        results.errors.push(`Failed to delete account ${account._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -51,7 +51,7 @@ export async function POST() {
         await convexHttp.mutation(api.users.deleteUser, { userId: user._id });
         results.deletedUsers.push(user.email);
       } catch (error) {
-        results.errors.push(`Failed to delete user ${user.email}: ${error.message}`);
+        results.errors.push(`Failed to delete user ${user.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     

@@ -40,7 +40,7 @@ export async function POST() {
         
         console.log(`✅ Deleted robynpthomas@gmail.com and associated data`);
       } catch (error) {
-        results.errors.push(`Failed to delete robynpthomas@gmail.com: ${error.message}`);
+        results.errors.push(`Failed to delete robynpthomas@gmail.com: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -52,7 +52,7 @@ export async function POST() {
         results.deletedProfiles.push("@mimi");
         console.log(`✅ Deleted @mimi profile`);
       } catch (error) {
-        results.errors.push(`Failed to delete @mimi profile: ${error.message}`);
+        results.errors.push(`Failed to delete @mimi profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -84,7 +84,7 @@ export async function POST() {
           
           console.log(`✅ Deleted test user: ${user.email}`);
         } catch (error) {
-          results.errors.push(`Failed to delete ${user.email}: ${error.message}`);
+          results.errors.push(`Failed to delete ${user.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       }
     }

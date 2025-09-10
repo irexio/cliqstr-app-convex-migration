@@ -37,7 +37,7 @@ export async function POST() {
         await convexHttp.mutation(api.replies.deleteReply, { replyId: reply._id });
         results.deletedReplies.push(reply._id);
       } catch (error) {
-        results.errors.push(`Failed to delete reply ${reply._id}: ${error.message}`);
+        results.errors.push(`Failed to delete reply ${reply._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -47,7 +47,7 @@ export async function POST() {
         await convexHttp.mutation(api.posts.deletePost, { postId: post._id });
         results.deletedPosts.push(post._id);
       } catch (error) {
-        results.errors.push(`Failed to delete post ${post._id}: ${error.message}`);
+        results.errors.push(`Failed to delete post ${post._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -57,7 +57,7 @@ export async function POST() {
         await convexHttp.mutation(api.cliqNotices.deleteCliqNotice, { noticeId: notice._id });
         results.deletedCliqNotices.push(notice._id);
       } catch (error) {
-        results.errors.push(`Failed to delete cliq notice ${notice._id}: ${error.message}`);
+        results.errors.push(`Failed to delete cliq notice ${notice._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -67,7 +67,7 @@ export async function POST() {
         await convexHttp.mutation(api.memberships.deleteMembership, { membershipId: membership._id });
         results.deletedMemberships.push(membership._id);
       } catch (error) {
-        results.errors.push(`Failed to delete membership ${membership._id}: ${error.message}`);
+        results.errors.push(`Failed to delete membership ${membership._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -77,7 +77,7 @@ export async function POST() {
         await convexHttp.mutation(api.invites.deleteInvite, { inviteId: invite._id });
         results.deletedInvites.push(invite._id);
       } catch (error) {
-        results.errors.push(`Failed to delete invite ${invite._id}: ${error.message}`);
+        results.errors.push(`Failed to delete invite ${invite._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
@@ -87,7 +87,7 @@ export async function POST() {
         await convexHttp.mutation(api.cliqs.deleteCliq, { cliqId: cliq._id });
         results.deletedCliqs.push(cliq._id);
       } catch (error) {
-        results.errors.push(`Failed to delete cliq ${cliq._id}: ${error.message}`);
+        results.errors.push(`Failed to delete cliq ${cliq._id}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
     
