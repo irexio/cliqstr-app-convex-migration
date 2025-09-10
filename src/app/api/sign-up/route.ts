@@ -296,38 +296,7 @@ export async function POST(req: NextRequest) {
     console.error('RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
     console.error('BASE_URL configured:', !!process.env.NEXT_PUBLIC_SITE_URL);
     
-    // For adult sign-ups, still return success with redirect to verification pending
-    // This ensures the user experience isn't broken even if there's a server error
-    // Note: We can't call req.json() again here as it's already been consumed
-    if (body && body.birthdate) {
-      try {
-        const birthDateObj = new Date(body.birthdate);
-        const ageDifMs = Date.now() - birthDateObj.getTime();
-        const ageDate = new Date(ageDifMs);
-        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
-        const isChild = age < 18;
-        
-        if (!isChild && body.email) {
-          // For adult users, return success with redirect to verification pending
-          // even if there was an error, to ensure smooth user experience
-          console.log('Returning graceful error response for adult user');
-          const headers = new Headers();
-          clearAuthTokens(headers);
-          
-          return NextResponse.json(
-            { 
-              success: true, 
-              redirectUrl: '/verification-pending',
-              email: body.email,
-              gracefulError: true
-            },
-            { headers, status: 200 }
-          );
-        }
-      } catch (ageError) {
-        console.error('Error calculating age during error recovery:', ageError);
-      }
-    }
+    // Return standard error response
     
     return NextResponse.json({ 
       error: 'Internal server error', 
