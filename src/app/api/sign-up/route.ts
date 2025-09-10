@@ -298,7 +298,7 @@ export async function POST(req: NextRequest) {
     
     // For adult sign-ups, still return success with redirect to verification pending
     // This ensures the user experience isn't broken even if there's a server error
-    const body = await req.json().catch(() => ({}));
+    // Note: We can't call req.json() again here as it's already been consumed
     if (body && body.birthdate) {
       try {
         const birthDateObj = new Date(body.birthdate);
