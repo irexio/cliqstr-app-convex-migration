@@ -45,15 +45,15 @@ export async function POST() {
     }
     
     // Find and delete @mimi profile (if it exists without robyn user)
-    const mimiProfile = await convexHttp.query(api.profiles.getProfileByUsername, { username: "mimi" });
-    if (mimiProfile) {
-      try {
+    try {
+      const mimiProfile = await convexHttp.query(api.profiles.getProfileByUsername, { username: "mimi" });
+      if (mimiProfile) {
         await convexHttp.mutation(api.profiles.deleteProfile, { profileId: mimiProfile._id });
         results.deletedProfiles.push("@mimi");
         console.log(`✅ Deleted @mimi profile`);
-      } catch (error) {
-        results.errors.push(`Failed to delete @mimi profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
+    } catch (error) {
+      results.errors.push(`Failed to delete @mimi profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
     
     // Clean up any other test data (users with test emails)
