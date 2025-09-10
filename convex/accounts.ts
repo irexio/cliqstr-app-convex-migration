@@ -43,6 +43,14 @@ export const getAccountByUserId = query({
   },
 });
 
+// Get all accounts (for debugging)
+export const getAllAccounts = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("accounts").collect();
+  },
+});
+
 // Delete account
 export const deleteAccount = mutation({
   args: { accountId: v.id("accounts") },
