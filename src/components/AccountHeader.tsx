@@ -72,23 +72,13 @@ export default function AccountHeader({ user }: AccountHeaderProps) {
                     )}
                   </div>
                   
-                  {user.myProfile?.username ? (
-                    <Link 
-                      href={`/profile/${user.myProfile.username}`} 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Your Profile
-                    </Link>
-                  ) : (
-                    <Link 
-                      href="/profile/create" 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Create Profile
-                    </Link>
-                  )}
+                  <Link 
+                    href="/profile/create"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Create Social Profile
+                  </Link>
                   
                   <Link 
                     href="/account" 
