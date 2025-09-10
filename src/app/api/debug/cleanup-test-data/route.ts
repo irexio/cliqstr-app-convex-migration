@@ -8,10 +8,10 @@ export async function POST() {
     console.log("🧹 Cleaning up old test data...");
     
     const results = {
-      deletedUsers: [],
-      deletedProfiles: [],
-      deletedAccounts: [],
-      errors: []
+      deletedUsers: [] as string[],
+      deletedProfiles: [] as string[],
+      deletedAccounts: [] as string[],
+      errors: [] as string[]
     };
     
     // Find and delete robynpthomas@gmail.com user

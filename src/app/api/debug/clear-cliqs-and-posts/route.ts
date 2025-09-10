@@ -8,13 +8,13 @@ export async function POST() {
     console.log("🧹 Clearing all cliqs and posts...");
     
     const results = {
-      deletedCliqs: [],
-      deletedPosts: [],
-      deletedReplies: [],
-      deletedMemberships: [],
-      deletedInvites: [],
-      deletedCliqNotices: [],
-      errors: []
+      deletedCliqs: [] as string[],
+      deletedPosts: [] as string[],
+      deletedReplies: [] as string[],
+      deletedMemberships: [] as string[],
+      deletedInvites: [] as string[],
+      deletedCliqNotices: [] as string[],
+      errors: [] as string[]
     };
     
     // Get all data first

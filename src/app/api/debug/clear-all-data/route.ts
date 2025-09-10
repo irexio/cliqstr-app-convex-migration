@@ -8,10 +8,10 @@ export async function POST() {
     console.log("🧹 Clearing ALL data from Convex database...");
     
     const results = {
-      deletedUsers: [],
-      deletedProfiles: [],
-      deletedAccounts: [],
-      errors: []
+      deletedUsers: [] as string[],
+      deletedProfiles: [] as string[],
+      deletedAccounts: [] as string[],
+      errors: [] as string[]
     };
     
     // Get all data first
