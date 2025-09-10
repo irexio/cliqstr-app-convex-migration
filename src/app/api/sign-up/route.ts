@@ -108,7 +108,9 @@ export async function POST(req: NextRequest) {
       birthDateObj: birthDateObj.toISOString(),
       calculatedAge: adjustedAge,
       isChild,
-      context
+      context,
+      inviteCode,
+      invitedRole
     });
 
     if (inviteCode) {
@@ -150,14 +152,14 @@ export async function POST(req: NextRequest) {
         accountRole = invitedRole ?? (isChild ? 'Child' : 'Adult');
       }
       
-      // Create verification token if needed
-      let verificationToken = null;
-      let verificationExpires = null;
-      if (!preVerified && !isChild) {
-        const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
-        verificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
-        verificationToken = require('crypto').createHash('sha256').update(code).digest('hex');
-      }
+      console.log('[SIGNUP_DEBUG] Role assignment:', {
+        context,
+        isChild,
+        invitedRole,
+        finalRole: accountRole
+      });
+      
+      // Verification tokens will be created when sending verification emails
       
       // Create user with account
       newUserId = await convexHttp.mutation(api.users.createUserWithAccount, {
@@ -168,8 +170,6 @@ export async function POST(req: NextRequest) {
         isApproved: context === 'parent_invite' ? true : !isChild,
         plan: context === 'parent_invite' ? 'test' : undefined,
         isVerified: preVerified || false,
-        verificationToken,
-        verificationExpires: verificationExpires || undefined,
       });
 
       // Update invite status if invite code was used
@@ -213,34 +213,15 @@ export async function POST(req: NextRequest) {
     } else if (!isChild && !preVerified) {
       // For adult accounts, send a verification email (unless pre-verified)
       try {
-        // Create verification token regardless of email success
-        // This ensures the account is marked as needing verification
-        const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-        const codeHash = require('crypto').createHash('sha256').update(code).digest('hex');
-        
-        // Store hash and expiry in User model
-        await convexHttp.mutation(api.users.updateUser, {
+        await sendVerificationEmail({
+          to: email,
           userId: newUserId,
-          updates: {
-            verificationToken: codeHash,
-            verificationExpires: expiresAt.getTime(),
-          },
+          name: firstName,
         });
-        
-        try {
-          await sendVerificationEmail({
-            to: email,
-            userId: newUserId,
-          });
-          console.log(`Verification email sent to ${email}`);
-        } catch (emailError) {
-          // Log but continue - user can request resend later
-          console.error('Failed to send verification email:', emailError);
-        }
-      } catch (error) {
-        // Log token creation error but don't fail the request
-        console.error('Failed to create verification token:', error);
+        console.log(`✅ Verification email sent to ${email}`);
+      } catch (emailError) {
+        // Log but continue - user can request resend later
+        console.error('❌ Failed to send verification email:', emailError);
       }
     }
 
