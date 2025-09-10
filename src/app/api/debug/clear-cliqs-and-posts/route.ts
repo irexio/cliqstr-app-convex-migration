@@ -114,7 +114,7 @@ export async function POST() {
     console.error("❌ Error during cliqs and posts clear:", error);
     return NextResponse.json({ 
       success: false, 
-      error: error.message 
+      error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }
 }
