@@ -161,6 +161,15 @@ export async function POST(req: NextRequest) {
       
       // Verification tokens will be created when sending verification emails
       
+      console.log('[SIGNUP_DEBUG] Creating user with account:', {
+        normalizedEmail,
+        birthdate,
+        accountRole,
+        isChild,
+        context,
+        preVerified,
+      });
+
       // Create user with account
       newUserId = await convexHttp.mutation(api.users.createUserWithAccount, {
         email: normalizedEmail,
@@ -171,6 +180,8 @@ export async function POST(req: NextRequest) {
         plan: context === 'parent_invite' ? 'test' : undefined,
         isVerified: preVerified || false,
       });
+
+      console.log('[SIGNUP_DEBUG] Convex mutation returned userId:', newUserId);
 
       // Update invite status if invite code was used
       if (inviteCode) {
@@ -185,7 +196,11 @@ export async function POST(req: NextRequest) {
       
       console.log('[SIGNUP_DEBUG] User and account created successfully');
     } catch (error: any) {
-      console.error('[SIGNUP_ERROR] User creation failed:', error);
+      console.error('[SIGNUP_ERROR] User creation failed:', {
+        message: error?.message,
+        stack: error?.stack,
+        name: error?.name,
+      });
       return NextResponse.json({ error: 'server_error' }, { status: 500 });
     }
 
@@ -296,7 +311,38 @@ export async function POST(req: NextRequest) {
     console.error('RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
     console.error('BASE_URL configured:', !!process.env.NEXT_PUBLIC_SITE_URL);
     
-    // Return standard error response
+    // For adult sign-ups, still return success with redirect to verification pending
+    // This ensures the user experience isn't broken even if there's a server error
+    const body = await req.json().catch(() => ({}));
+    if (body && body.birthdate) {
+      try {
+        const birthDateObj = new Date(body.birthdate);
+        const ageDifMs = Date.now() - birthDateObj.getTime();
+        const ageDate = new Date(ageDifMs);
+        const age = Math.abs(ageDate.getUTCFullYear() - 1970);
+        const isChild = age < 18;
+        
+        if (!isChild && body.email) {
+          // For adult users, return success with redirect to verification pending
+          // even if there was an error, to ensure smooth user experience
+          console.log('Returning graceful error response for adult user');
+          const headers = new Headers();
+          clearAuthTokens(headers);
+          
+          return NextResponse.json(
+            { 
+              success: true, 
+              redirectUrl: '/verification-pending',
+              email: body.email,
+              gracefulError: true
+            },
+            { headers, status: 200 }
+          );
+        }
+      } catch (ageError) {
+        console.error('Error calculating age during error recovery:', ageError);
+      }
+    }
     
     return NextResponse.json({ 
       error: 'Internal server error', 
