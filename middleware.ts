@@ -67,8 +67,9 @@ export async function middleware(req: NextRequest) {
 
   // Check auth quickly via existing status route
   try {
-    const origin = req.nextUrl.origin;
-    const statusRes = await fetch(`${origin}/api/auth/status`, {
+    // Use absolute URL from environment variable for production reliability
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+    const statusRes = await fetch(`${baseUrl}/api/auth/status`, {
       headers: { cookie: req.headers.get('cookie') || '' },
       cache: 'no-store',
     });
