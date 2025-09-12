@@ -28,15 +28,9 @@ function VerifyEmailContent() {
 
     async function verifyEmail() {
       try {
-        const response = await fetch(`/api/verify-email?code=${encodeURIComponent(code || '')}`, {
-          redirect: 'manual' // Don't follow redirects automatically
-        });
+        const response = await fetch(`/api/verify-email?code=${encodeURIComponent(code || '')}`);
         
-        if (response.status === 0 || response.type === 'opaqueredirect') {
-          // API redirected successfully, go to verification success page
-          router.push('/verification-success');
-        } else if (response.ok) {
-          // Fallback: if API returns JSON instead of redirect
+        if (response.ok) {
           setStatus('success');
           // Start countdown for redirect to sign-in
           let count = 5;
