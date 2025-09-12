@@ -25,6 +25,7 @@ export const getCurrentUser = query({
     return {
       id: user._id,
       email: user.email,
+      isVerified: user.isVerified ?? false,
       plan: account?.plan ?? null,
       role: account?.role ?? null,
       approved: account?.isApproved ?? null,
