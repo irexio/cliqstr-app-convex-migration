@@ -23,6 +23,10 @@ export async function sendVerificationEmail({ to, userId, name }: SendVerificati
   try {
     const displayName = name || to.split('@')[0];
 
+    // Add stack trace logging to debug why this is being called multiple times
+    console.log(`📨 [sendVerificationEmail] Called for user: ${to} (${userId})`);
+    console.log(`📨 [sendVerificationEmail] Stack trace:`, new Error().stack);
+
     // Generate a secure, random verification code (24 hour expiration)
     const code = [...Array(48)].map(() => Math.random().toString(36)[2]).join('');
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
