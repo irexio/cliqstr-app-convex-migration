@@ -29,8 +29,8 @@ export default function VerificationSuccessPage() {
             return 0;
           }
           
-          // Default redirect to main dashboard
-          router.push('/my-cliqs-dashboard');
+          // Default redirect to sign-in with verification flag
+          router.push('/sign-in?verified=true');
           return 0;
         }
         return prev - 1;

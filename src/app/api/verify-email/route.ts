@@ -61,10 +61,7 @@ export async function GET(req: Request) {
     // Check if user is already verified
     if (user.isVerified) {
       console.log('✅ [VERIFY-EMAIL] User already verified:', user.email);
-      return NextResponse.json({ 
-        success: true,
-        message: 'Email already verified' 
-      });
+      return NextResponse.redirect(new URL('/verification-success', req.url));
     }
     
     // Mark user as verified and clear verification token
@@ -79,10 +76,7 @@ export async function GET(req: Request) {
     
     console.log('✅ [VERIFY-EMAIL] Email verified successfully for user:', user.email);
     
-    return NextResponse.json({ 
-      success: true,
-      message: 'Email verified successfully' 
-    });
+    return NextResponse.redirect(new URL('/verification-success', req.url));
     
   } catch (error) {
     console.error('❌ [VERIFY-EMAIL] Error:', error);
