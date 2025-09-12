@@ -21,7 +21,6 @@
  * 3. User makes changes and clicks "Update Cliq"
  * 4. Redirected back to cliq page with updated information
  */
-export const dynamic = 'force-dynamic';
 
 import { useAuth } from '@/lib/auth/useAuth';
 import { useQuery, useMutation } from 'convex/react';

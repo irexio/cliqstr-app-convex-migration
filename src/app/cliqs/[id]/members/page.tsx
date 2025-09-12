@@ -1,8 +1,7 @@
-// 🔐 APA-HARDENED PAGE: /cliqs/[id]/members
 'use client';
 
+// 🔐 APA-HARDENED PAGE: /cliqs/[id]/members
 // 🔄 CONVEX-OPTIMIZED: Now uses Convex for real-time updates
-export const dynamic = 'force-dynamic';
 
 import { useAuth } from '@/lib/auth/useAuth';
 import { useQuery } from 'convex/react';
