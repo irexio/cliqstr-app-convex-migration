@@ -110,6 +110,15 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
 
+    // If user doesn't have a plan selected, redirect to choose-plan
+    // Skip this check if already on choose-plan page to avoid redirect loops
+    if (!user.plan && pathname !== '/choose-plan') {
+      const url = req.nextUrl.clone();
+      url.pathname = '/choose-plan';
+      url.search = '';
+      return NextResponse.redirect(url);
+    }
+
     return NextResponse.next();
   } catch (err) {
     // On failure, fail open for public, otherwise send to sign-in
