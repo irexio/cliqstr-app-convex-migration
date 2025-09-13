@@ -76,21 +76,14 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Create the parent user
-    const parentUser = await convexHttp.mutation(api.users.createUser, {
+    const parentUser = await convexHttp.mutation(api.users.createUserWithAccount, {
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      firstName,
-      lastName,
-      birthdate,
-      isVerified: true, // Skip email verification for parent approval flow
-    });
-
-    // Create the parent account
-    const parentAccount = await convexHttp.mutation(api.accounts.createAccount, {
-      userId: parentUser._id,
+      birthdate: new Date(birthdate).getTime(),
       role: 'Parent',
-      plan: 'test', // Default plan, will be updated during plan selection
       isApproved: true,
+      plan: 'test', // Default plan, will be updated during plan selection
+      isVerified: true, // Skip email verification for parent approval flow
     });
 
     // Create the parent profile
@@ -104,21 +97,14 @@ export async function POST(req: NextRequest) {
     });
 
     // Create the child user
-    const childUser = await convexHttp.mutation(api.users.createUser, {
+    const childUser = await convexHttp.mutation(api.users.createUserWithAccount, {
       email: `${approval.childFirstName.toLowerCase()}.${approval.childLastName.toLowerCase()}@temp.cliqstr.com`,
       password: crypto.randomBytes(12).toString('hex'), // Temporary password
-      firstName: approval.childFirstName,
-      lastName: approval.childLastName,
-      birthdate: approval.childBirthdate,
-      isVerified: true,
-    });
-
-    // Create the child account
-    const childAccount = await convexHttp.mutation(api.accounts.createAccount, {
-      userId: childUser._id,
+      birthdate: new Date(approval.childBirthdate).getTime(),
       role: 'Child',
-      plan: 'test', // Default plan, will be updated during plan selection
       isApproved: false, // Child needs parent approval
+      plan: 'test', // Default plan, will be updated during plan selection
+      isVerified: true,
     });
 
     // Create the child profile
