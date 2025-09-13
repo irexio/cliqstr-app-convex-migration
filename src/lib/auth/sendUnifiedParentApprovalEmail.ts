@@ -28,7 +28,7 @@ export async function sendUnifiedParentApprovalEmail({
   console.log(`📨 [sendUnifiedParentApprovalEmail] Sending ${context} approval email to: ${to} for child: ${childName}`);
   
   // Build approval URL
-  const approvalLink = `${BASE_URL}/parent-approval/accept?token=${encodeURIComponent(approvalToken)}`;
+  const approvalLink = `${BASE_URL}/api/parent-approval/accept?token=${encodeURIComponent(approvalToken)}`;
   
   console.log(`🔗 [sendUnifiedParentApprovalEmail] Generated approval link: ${approvalLink}`);
 
