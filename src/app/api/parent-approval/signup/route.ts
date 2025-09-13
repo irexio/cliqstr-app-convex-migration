@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
       birthdate: new Date(birthdate).getTime(),
       role: 'Parent',
       isApproved: true,
-      plan: null, // No plan set yet - will be selected during plan selection
+      plan: undefined, // No plan set yet - will be selected during plan selection
       isVerified: true, // Skip email verification for parent approval flow
     });
 
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         id: parentUser,
         email: email,
         role: 'Parent',
-        plan: null,
+        plan: undefined,
       },
       child: {
         firstName: approval.childFirstName,
