@@ -28,7 +28,14 @@ const createChildSchema = z.object({
   redAlertAccepted: z.boolean(),
   silentMonitoring: z.boolean(),
   inviteCode: z.string().optional(),
-});
+  approvalToken: z.string().optional(),
+}).refine(
+  (data) => data.inviteCode || data.approvalToken,
+  {
+    message: "Either inviteCode or approvalToken must be provided",
+    path: ["inviteCode", "approvalToken"],
+  }
+);
 
 /**
  * GET /api/parent/children
@@ -109,9 +116,30 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    const { username, password, firstName, lastName, birthdate, permissions, redAlertAccepted, silentMonitoring, inviteCode } = parsed.data;
+    const { username, password, firstName, lastName, birthdate, permissions, redAlertAccepted, silentMonitoring, inviteCode, approvalToken } = parsed.data;
 
     console.log(`[PARENT-CHILDREN] Creating child account: ${username} for parent ${user.email}`);
+
+    // Handle approval token flow (direct child signup)
+    if (approvalToken) {
+      // Get the approval record
+      const approval = await convexHttp.query(api.pendingChildSignups.getParentApprovalByToken, {
+        approvalToken,
+      });
+
+      if (!approval || approval.status !== 'pending') {
+        return NextResponse.json({ 
+          error: 'Invalid or expired approval token' 
+        }, { status: 400 });
+      }
+
+      // Mark the approval as completed
+      await convexHttp.mutation(api.pendingChildSignups.approveParentApproval, {
+        approvalToken,
+      });
+
+      console.log(`[PARENT-CHILDREN] Marked approval as completed for token: ${approvalToken}`);
+    }
 
     // Create child user account
     const childUserId = await convexHttp.mutation(api.users.createUserWithAccount, {

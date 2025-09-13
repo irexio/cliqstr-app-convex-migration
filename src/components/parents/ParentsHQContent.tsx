@@ -4,12 +4,14 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ParentDashboard from './ParentDashboard';
 import ChildInviteApprovalFlow from './ChildInviteApprovalFlow';
+import ChildSignupApprovalFlow from './ChildSignupApprovalFlow';
 
 type InviteStatus = 'valid' | 'used' | 'invalid' | 'loading';
 
 export default function ParentsHQContent() {
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get('inviteCode')?.trim() || '';
+  const approvalToken = searchParams.get('approvalToken')?.trim() || '';
   const router = useRouter();
 
   const [status, setStatus] = useState<InviteStatus>('loading');
@@ -74,52 +76,83 @@ export default function ParentsHQContent() {
     };
   }, [inviteCode, router]);
 
-  // 2) Invite validation (only when inviteCode present)
+  // 2) Validation (inviteCode for invites, approvalToken for direct signups)
   useEffect(() => {
     let cancelled = false;
 
-    async function validateInvite() {
-      if (!inviteCode) {
-        setStatus('valid'); // No invite → show dashboard
+    async function validateRequest() {
+      // If we have an approvalToken (direct child signup), validate it
+      if (approvalToken) {
+        setStatus('loading');
+        try {
+          const res = await fetch(`/api/parent-approval/check?token=${encodeURIComponent(approvalToken)}`, {
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+          });
+          const data = await res.json();
+
+          if (!res.ok || !data.approval) {
+            if (!cancelled) setStatus('invalid');
+            return;
+          }
+
+          if (data.approval.status === 'approved') {
+            if (!cancelled) setStatus('used');
+          } else if (data.approval.status === 'pending') {
+            if (!cancelled) setStatus('valid');
+          } else {
+            if (!cancelled) setStatus('invalid');
+          }
+        } catch (err) {
+          console.error('[PARENTS_HQ] approval token validate failed:', err);
+          if (!cancelled) setStatus('invalid');
+        }
         return;
       }
-      setStatus('loading');
 
-      try {
-        const res = await fetch(`/api/invites/validate?code=${encodeURIComponent(inviteCode)}`, {
-          headers: { 'Content-Type': 'application/json' },
-          cache: 'no-store',
-        });
-        const data = await res.json();
+      // If we have an inviteCode (child invite), validate it
+      if (inviteCode) {
+        setStatus('loading');
+        try {
+          const res = await fetch(`/api/invites/validate?code=${encodeURIComponent(inviteCode)}`, {
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+          });
+          const data = await res.json();
 
-        if (!res.ok) {
-          // Prefer explicit reason if present
-          if (data?.reason === 'used') {
+          if (!res.ok) {
+            // Prefer explicit reason if present
+            if (data?.reason === 'used') {
+              if (!cancelled) setStatus('used');
+            } else {
+              if (!cancelled) setStatus('invalid');
+            }
+            return;
+          }
+
+          if (data?.valid) {
+            if (!cancelled) setStatus('valid');
+          } else if (data?.reason === 'used') {
             if (!cancelled) setStatus('used');
           } else {
             if (!cancelled) setStatus('invalid');
           }
-          return;
-        }
-
-        if (data?.valid) {
-          if (!cancelled) setStatus('valid');
-        } else if (data?.reason === 'used') {
-          if (!cancelled) setStatus('used');
-        } else {
+        } catch (err) {
+          console.error('[PARENTS_HQ] invite validate failed:', err);
           if (!cancelled) setStatus('invalid');
         }
-      } catch (err) {
-        console.error('[PARENTS_HQ] invite validate failed:', err);
-        if (!cancelled) setStatus('invalid');
+        return;
       }
+
+      // No approval token or invite code → show dashboard
+      if (!cancelled) setStatus('valid');
     }
 
-    validateInvite();
+    validateRequest();
     return () => {
       cancelled = true;
     };
-  }, [inviteCode]);
+  }, [inviteCode, approvalToken]);
 
   // 3) Loading states
   if (authLoading || status === 'loading') {
@@ -130,30 +163,57 @@ export default function ParentsHQContent() {
     );
   }
 
-  // 4) Invite error states (only apply when inviteCode present)
-  if (inviteCode && status === 'used') {
+  // 4) Error states (apply when inviteCode or approvalToken present)
+  if ((inviteCode || approvalToken) && status === 'used') {
     return (
       <main className="min-h-screen flex items-center justify-center text-center text-gray-600">
         <div>
-          <h1 className="text-xl font-bold text-red-600">Invite Already Used</h1>
-          <p className="mt-2">This invitation has already been accepted. If you believe this is an error, please contact support.</p>
+          <h1 className="text-xl font-bold text-red-600">
+            {inviteCode ? 'Invite Already Used' : 'Approval Already Completed'}
+          </h1>
+          <p className="mt-2">
+            {inviteCode 
+              ? 'This invitation has already been accepted. If you believe this is an error, please contact support.'
+              : 'This child approval has already been completed. If you believe this is an error, please contact support.'
+            }
+          </p>
         </div>
       </main>
     );
   }
 
-  if (inviteCode && status === 'invalid') {
+  if ((inviteCode || approvalToken) && status === 'invalid') {
     return (
       <main className="min-h-screen flex items-center justify-center text-center text-gray-600">
         <div>
-          <h1 className="text-xl font-bold text-red-600">Invalid or Expired Invitation</h1>
-          <p className="mt-2">This invite link is no longer valid. Please request a new invite from the sender.</p>
+          <h1 className="text-xl font-bold text-red-600">
+            {inviteCode ? 'Invalid or Expired Invitation' : 'Invalid or Expired Approval Request'}
+          </h1>
+          <p className="mt-2">
+            {inviteCode 
+              ? 'This invite link is no longer valid. Please request a new invite from the sender.'
+              : 'This approval request is no longer valid. Please have your child request approval again.'
+            }
+          </p>
         </div>
       </main>
     );
   }
 
   // 5) Happy paths
+  if (approvalToken && status === 'valid') {
+    // Child signup approval flow
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">🛡️ Parents HQ</h1>
+          <p className="text-gray-600">Child Signup Approval</p>
+        </div>
+        <ChildSignupApprovalFlow approvalToken={approvalToken} />
+      </div>
+    );
+  }
+
   if (inviteCode && status === 'valid') {
     // Child invite approval flow
     return (

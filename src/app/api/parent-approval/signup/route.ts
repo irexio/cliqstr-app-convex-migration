@@ -114,7 +114,8 @@ export async function POST(req: NextRequest) {
     
     await session.save();
 
-    return NextResponse.json({
+    // Create response with session cookies
+    const response = NextResponse.json({
       success: true,
       message: 'Parent account created successfully',
       user: {
@@ -130,6 +131,14 @@ export async function POST(req: NextRequest) {
         birthdate: approval.childBirthdate,
       },
     });
+
+    // Ensure session cookies are included in the response
+    const sessionCookie = session.getCookie();
+    if (sessionCookie) {
+      response.headers.set('Set-Cookie', sessionCookie);
+    }
+
+    return response;
 
   } catch (error) {
     console.error('[PARENT-APPROVAL-SIGNUP] Error processing parent signup:', error);
