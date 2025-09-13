@@ -3,6 +3,7 @@ import { sendUnifiedParentApprovalEmail } from '@/lib/auth/sendUnifiedParentAppr
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +57,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Generate secure approval token using Node.js crypto
+    const approvalToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + (3 * 24 * 60 * 60 * 1000); // 3 days
+
     // Create a parent approval record in Convex
     const approval = await convexHttp.mutation(api.pendingChildSignups.createParentApproval, {
       childFirstName,
@@ -65,6 +70,8 @@ export async function POST(req: NextRequest) {
       context: 'direct_signup',
       parentState,
       existingParentId: existingParentId as any,
+      approvalToken,
+      expiresAt,
     });
     
     console.log(`[PARENT-APPROVAL] Created parent approval: ${approval.id} with token: ${approval.approvalToken} for parent state: ${parentState}`);

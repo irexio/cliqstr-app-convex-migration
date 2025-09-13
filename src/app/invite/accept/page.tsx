@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getIronSession } from 'iron-session';
 import { sessionOptions } from '@/lib/auth/session-config';
 
-export default function InviteAcceptPage() {
+function InviteAcceptContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -98,5 +98,22 @@ export default function InviteAcceptPage() {
         <p className="text-gray-600">Redirecting to Parents HQ...</p>
       </div>
     </div>
+  );
+}
+
+export default function InviteAcceptPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Loading approval verification...</h1>
+          <div className="animate-pulse flex justify-center">
+            <div className="w-16 h-16 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    }>
+      <InviteAcceptContent />
+    </Suspense>
   );
 }

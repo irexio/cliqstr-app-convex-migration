@@ -1,6 +1,5 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import crypto from "crypto";
 
 /**
  * Create a parent approval record for any scenario (direct signup or child invite)
@@ -18,18 +17,17 @@ export const createParentApproval = mutation({
     cliqName: v.optional(v.string()),
     parentState: v.union(v.literal("new"), v.literal("existing_parent"), v.literal("existing_adult")),
     existingParentId: v.optional(v.id("users")),
+    approvalToken: v.string(), // Token generated securely in API route
+    expiresAt: v.number(), // Expiration time set in API route
   },
   handler: async (ctx, args) => {
-    // Generate verification token (similar to generateVerificationToken)
-    const approvalToken = crypto.randomBytes(32).toString('hex');
-    const expiresAt = Date.now() + (3 * 24 * 60 * 60 * 1000); // 3 days
     
     const approvalId = await ctx.db.insert("parentApprovals", {
       childFirstName: args.childFirstName,
       childLastName: args.childLastName,
       childBirthdate: args.childBirthdate,
       parentEmail: args.parentEmail,
-      approvalToken,
+      approvalToken: args.approvalToken,
       status: "pending",
       context: args.context,
       inviteId: args.inviteId,
@@ -39,15 +37,15 @@ export const createParentApproval = mutation({
       parentState: args.parentState,
       existingParentId: args.existingParentId,
       createdAt: Date.now(),
-      expiresAt,
+      expiresAt: args.expiresAt,
     });
 
-    console.log(`[PARENT-APPROVAL] Created approval ${approvalId} with token: ${approvalToken} for context: ${args.context}`);
+    console.log(`[PARENT-APPROVAL] Created approval ${approvalId} with token: ${args.approvalToken} for context: ${args.context}`);
 
     return {
       id: approvalId,
-      approvalToken,
-      expiresAt,
+      approvalToken: args.approvalToken,
+      expiresAt: args.expiresAt,
     };
   },
 });
