@@ -2,8 +2,9 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/Button';
+import { Suspense } from 'react';
 
-export default function ParentsHQSuccess() {
+function ParentsHQSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const childName = searchParams.get('childName');
@@ -48,5 +49,23 @@ export default function ParentsHQSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ParentsHQSuccess() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-2xl mx-auto p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Loading...</h2>
+          <p className="text-gray-600">Setting up success page</p>
+        </div>
+      </div>
+    }>
+      <ParentsHQSuccessContent />
+    </Suspense>
   );
 }
