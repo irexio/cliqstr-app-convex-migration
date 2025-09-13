@@ -1,0 +1,185 @@
+import { NextResponse, NextRequest } from 'next/server';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
+import { z } from 'zod';
+
+export const dynamic = 'force-dynamic';
+
+const createChildSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  birthdate: z.number(),
+  permissions: z.object({
+    canPost: z.boolean(),
+    canComment: z.boolean(),
+    canReact: z.boolean(),
+    canViewProfiles: z.boolean(),
+    canReceiveInvites: z.boolean(),
+    canCreatePublicCliqs: z.boolean(),
+    canInviteChildren: z.boolean(),
+    canInviteAdults: z.boolean(),
+    canCreateCliqs: z.boolean(),
+    canUploadVideos: z.boolean(),
+  }),
+  redAlertAccepted: z.boolean(),
+  silentMonitoring: z.boolean(),
+  inviteCode: z.string().optional(),
+});
+
+/**
+ * GET /api/parent/children
+ * 
+ * Returns all children managed by the authenticated parent
+ */
+export async function GET(req: NextRequest) {
+  try {
+    // Get the encrypted session using iron-session
+    const session = await getIronSession<SessionData>(
+      req,
+      NextResponse.next(),
+      sessionOptions
+    );
+
+    if (!session.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get current user to verify they're a parent
+    const user = await convexHttp.query(api.users.getCurrentUser, {
+      userId: session.userId as any,
+    });
+
+    if (!user || (user.role !== 'Parent' && user.role !== 'Admin')) {
+      return NextResponse.json({ error: 'Access denied. Parent role required.' }, { status: 403 });
+    }
+
+    // Get all children managed by this parent
+    // For now, return empty array - in full implementation, this would query parent-child relationships
+    const children = [];
+
+    console.log(`[PARENT-CHILDREN] Retrieved ${children.length} children for parent ${user.email}`);
+
+    return NextResponse.json(children);
+
+  } catch (error) {
+    console.error('[PARENT-CHILDREN] Error retrieving children:', error);
+    return NextResponse.json({ 
+      error: 'Failed to retrieve children' 
+    }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/parent/children
+ * 
+ * Creates a new child account with parent approval
+ */
+export async function POST(req: NextRequest) {
+  try {
+    // Get the encrypted session using iron-session
+    const session = await getIronSession<SessionData>(
+      req,
+      NextResponse.next(),
+      sessionOptions
+    );
+
+    if (!session.userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get current user to verify they're a parent
+    const user = await convexHttp.query(api.users.getCurrentUser, {
+      userId: session.userId as any,
+    });
+
+    if (!user || (user.role !== 'Parent' && user.role !== 'Admin')) {
+      return NextResponse.json({ error: 'Access denied. Parent role required.' }, { status: 403 });
+    }
+
+    const body = await req.json();
+    const parsed = createChildSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json({ 
+        error: parsed.error.errors[0]?.message || 'Invalid child data' 
+      }, { status: 400 });
+    }
+
+    const { username, password, firstName, lastName, birthdate, permissions, redAlertAccepted, silentMonitoring, inviteCode } = parsed.data;
+
+    console.log(`[PARENT-CHILDREN] Creating child account: ${username} for parent ${user.email}`);
+
+    // Create child user account
+    const childUserId = await convexHttp.mutation(api.users.createUserWithAccount, {
+      email: `${username}@temp.cliqstr.local`, // Temporary email - will be updated later
+      password: password,
+      birthdate: birthdate,
+      role: 'Child',
+      isApproved: true, // Parent is approving
+      plan: 'test', // Default to test plan
+      isVerified: true, // Parent approval counts as verification
+    });
+
+    console.log(`[PARENT-CHILDREN] Created child user with ID: ${childUserId}`);
+
+    // Create child profile
+    await convexHttp.mutation(api.profiles.createProfile, {
+      userId: childUserId,
+      username: username,
+      firstName: firstName,
+      lastName: lastName,
+      birthdate: birthdate,
+      showYear: false, // Default to hiding birth year
+    });
+
+    // Create child settings with parent permissions
+    const profile = await convexHttp.query(api.profiles.getProfileByUserId, {
+      userId: childUserId,
+    });
+
+    if (profile) {
+      await convexHttp.mutation(api.users.createChildSettings, {
+        profileId: profile._id,
+        canSendInvites: permissions.canReceiveInvites,
+        inviteRequiresApproval: true,
+        canCreatePublicCliqs: permissions.canCreatePublicCliqs,
+        canPostImages: permissions.canUploadVideos,
+        canJoinPublicCliqs: false, // Default to false for safety
+        canInviteChildren: permissions.canInviteChildren,
+        canInviteAdults: permissions.canInviteAdults,
+        isSilentlyMonitored: silentMonitoring,
+        aiModerationLevel: 'strict', // Default to strict for children
+        canAccessGames: true, // Default to allowing games
+        canShareYouTube: false, // Default to false for safety
+        visibilityLevel: 'private', // Default to private
+      });
+    }
+
+    // If this was from an invite, mark the invite as used
+    if (inviteCode) {
+      // TODO: Update invite status when invite system is fully implemented
+      console.log(`[PARENT-CHILDREN] Child created from invite code: ${inviteCode}`);
+    }
+
+    console.log(`[PARENT-CHILDREN] Successfully created child account: ${username}`);
+
+    return NextResponse.json({
+      success: true,
+      child: {
+        id: childUserId,
+        username: username,
+        name: `${firstName} ${lastName}`,
+      },
+    });
+
+  } catch (error) {
+    console.error('[PARENT-CHILDREN] Error creating child:', error);
+    return NextResponse.json({ 
+      error: 'Failed to create child account' 
+    }, { status: 500 });
+  }
+}
