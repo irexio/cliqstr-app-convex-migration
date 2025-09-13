@@ -248,4 +248,39 @@ export default defineSchema({
     .index("by_user_id", ["userId"])
     .index("by_event", ["event"])
     .index("by_created_at", ["createdAt"]),
+
+  parentApprovals: defineTable({
+    // Core child data
+    childFirstName: v.string(),
+    childLastName: v.string(),
+    childBirthdate: v.string(),
+    parentEmail: v.string(),
+    
+    // Approval tracking
+    approvalToken: v.string(),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("declined"), v.literal("expired")),
+    
+    // Context (what triggered this approval)
+    context: v.union(v.literal("direct_signup"), v.literal("child_invite")),
+    inviteId: v.optional(v.id("invites")), // If from invite
+    cliqId: v.optional(v.id("cliqs")), // If joining specific cliq
+    inviterName: v.optional(v.string()), // Name of person who invited child
+    cliqName: v.optional(v.string()), // Name of cliq child is being invited to
+    
+    // Parent state detection
+    parentState: v.union(v.literal("new"), v.literal("existing_parent"), v.literal("existing_adult")),
+    existingParentId: v.optional(v.id("users")),
+    
+    // Timestamps
+    createdAt: v.number(),
+    expiresAt: v.number(),
+    approvedAt: v.optional(v.number()),
+    declinedAt: v.optional(v.number()),
+  })
+    .index("by_approval_token", ["approvalToken"])
+    .index("by_parent_email", ["parentEmail"])
+    .index("by_status", ["status"])
+    .index("by_expires_at", ["expiresAt"])
+    .index("by_context", ["context"])
+    .index("by_invite_id", ["inviteId"]),
 });

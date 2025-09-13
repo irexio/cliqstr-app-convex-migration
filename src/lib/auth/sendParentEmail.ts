@@ -1,6 +1,6 @@
 'use server';
 
-import { sendEmail } from '@/lib/email';
+import { sendEmail, BASE_URL } from '@/lib/email';
 
 type SendParentEmailParams = {
   to: string;
@@ -27,13 +27,16 @@ export async function sendParentEmail({
 
   // Build canonical invite URL pointing to elegant Parents HQ wizard
   function buildParentInviteUrl(code?: string) {
-    const base = process.env.BASE_URL!;
     return code
-      ? `${base}/invite/accept?code=${encodeURIComponent(code)}`
-      : `${base}/parents/hq/dashboard`;
+      ? `${BASE_URL}/invite/accept?code=${encodeURIComponent(code)}`
+      : `${BASE_URL}/parents/hq/dashboard`;
   }
 
   const approvalLink = buildParentInviteUrl(inviteCode);
+  
+  console.log(`🔗 [sendParentEmail] Generated approval link: ${approvalLink}`);
+  console.log(`🔗 [sendParentEmail] BASE_URL: ${BASE_URL}`);
+  console.log(`🔗 [sendParentEmail] inviteCode: ${inviteCode}`);
 
   const defaultHtml = `
     <div style="font-family: sans-serif; line-height: 1.6; max-width: 600px; margin: 0 auto;">

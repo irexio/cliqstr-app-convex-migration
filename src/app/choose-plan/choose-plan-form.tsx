@@ -4,8 +4,8 @@
 // This form renders the current subscription plan options for Cliqstr users.
 // Updated with new plan structure for simplified testing and deployment.
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import BaseCard from '@/components/cliqs/BaseCard';
 
@@ -36,7 +36,18 @@ export default function ChoosePlanForm() {
   const [selectedPlan, setSelectedPlan] = useState('test');
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
+  const [approvalToken, setApprovalToken] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for approval token in URL
+  useEffect(() => {
+    const token = searchParams.get('approvalToken');
+    if (token) {
+      setApprovalToken(token);
+      console.log('[PARENT-APPROVAL] Found approval token in URL:', token);
+    }
+  }, [searchParams]);
 
   const savePlanToProfile = async (planKey: string) => {
     try {
@@ -110,17 +121,30 @@ export default function ChoosePlanForm() {
 
       // Show success message for any plan
       setStatus('success');
-      setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to your dashboard...`);
       
-      // Refresh Next.js router cache before redirect
-      router.refresh();
-      
-      // For all plans, redirect directly to dashboard after a short delay
-      // This gives time for the success message to be shown
-      setTimeout(() => {
-        console.log('[APA] Redirecting to dashboard');
-        router.push('/my-cliqs-dashboard');
-      }, 2000);
+      // Determine redirect based on whether this is a parent approval flow
+      if (approvalToken) {
+        setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to Parents HQ...`);
+        // Refresh Next.js router cache before redirect
+        router.refresh();
+        
+        // Redirect to Parents HQ for parent approval flow
+        setTimeout(() => {
+          console.log('[PARENT-APPROVAL] Redirecting to Parents HQ with approval token');
+          router.push(`/parents/hq/dashboard?approvalToken=${encodeURIComponent(approvalToken)}`);
+        }, 2000);
+      } else {
+        setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to your dashboard...`);
+        // Refresh Next.js router cache before redirect
+        router.refresh();
+        
+        // For all plans, redirect directly to dashboard after a short delay
+        // This gives time for the success message to be shown
+        setTimeout(() => {
+          console.log('[APA] Redirecting to dashboard');
+          router.push('/my-cliqs-dashboard');
+        }, 2000);
+      }
     } catch (err) {
       console.error('Plan selection error:', err);
       setStatus('error');

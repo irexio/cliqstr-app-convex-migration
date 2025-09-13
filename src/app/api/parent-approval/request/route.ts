@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { sendParentEmail } from '@/lib/auth/sendParentEmail';
+import { sendUnifiedParentApprovalEmail } from '@/lib/auth/sendUnifiedParentApprovalEmail';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
@@ -17,7 +17,7 @@ const parentApprovalRequestSchema = z.object({
  * POST /api/parent-approval/request
  * 
  * Handles parent approval requests for child signups
- * Creates a pending child signup record and sends parent email
+ * Creates a parent approval record and sends unified parent email
  */
 export async function POST(req: NextRequest) {
   try {
@@ -34,19 +34,47 @@ export async function POST(req: NextRequest) {
 
     console.log(`[PARENT-APPROVAL] Processing approval request for child: ${childFirstName} ${childLastName}`);
 
-    // For now, we'll create a temporary ID and store the child data
-    // In a full implementation, this would be stored in a pending signups table
-    const tempChildId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    
-    console.log(`[PARENT-APPROVAL] Created temporary child signup ID: ${tempChildId}`);
+    // Check if parent email already exists to determine parent state
+    const existingUser = await convexHttp.query(api.users.getUserByEmail, {
+      email: parentEmail.toLowerCase().trim(),
+    });
 
-    // Send parent approval email using the existing sendParentEmail function
-    // This will link to /parents/hq where parent can complete the setup
-    const result = await sendParentEmail({
+    let parentState: 'new' | 'existing_parent' | 'existing_adult' = 'new';
+    let existingParentId: string | undefined = undefined;
+
+    if (existingUser) {
+      const account = await convexHttp.query(api.accounts.getAccountByUserId, {
+        userId: existingUser._id as any,
+      });
+
+      if (account?.role === 'Parent') {
+        parentState = 'existing_parent';
+        existingParentId = existingUser._id;
+      } else if (account?.role === 'Adult') {
+        parentState = 'existing_adult';
+        existingParentId = existingUser._id;
+      }
+    }
+
+    // Create a parent approval record in Convex
+    const approval = await convexHttp.mutation(api.pendingChildSignups.createParentApproval, {
+      childFirstName,
+      childLastName,
+      childBirthdate,
+      parentEmail,
+      context: 'direct_signup',
+      parentState,
+      existingParentId: existingParentId as any,
+    });
+    
+    console.log(`[PARENT-APPROVAL] Created parent approval: ${approval.id} with token: ${approval.approvalToken} for parent state: ${parentState}`);
+
+    // Send unified parent approval email
+    const result = await sendUnifiedParentApprovalEmail({
       to: parentEmail,
       childName: childFirstName,
-      childId: tempChildId,
-      // No inviteCode for direct child signups
+      context: 'direct_signup',
+      approvalToken: approval.approvalToken,
     });
 
     if (!result.success) {
@@ -61,7 +89,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Parent approval request sent successfully',
-      pendingChildId: tempChildId,
+      approvalId: approval.id,
+      approvalToken: approval.approvalToken,
+      parentState,
     });
 
   } catch (error) {
