@@ -46,11 +46,11 @@ function InviteAcceptContent() {
           // Existing parent - go directly to Parents HQ
           router.push(`/parents/hq/dashboard?approvalToken=${encodeURIComponent(token)}`);
         } else {
-          // New parent or existing adult - create a temporary session and go to plan selection
-          // Store the approval token in localStorage so the plan page can access it
+          // New parent or existing adult - redirect to sign-up with email pre-filled
+          // Store the approval token in localStorage so sign-up can access it
           localStorage.setItem('parentApprovalToken', token);
           localStorage.setItem('parentApprovalData', JSON.stringify(data.approval));
-          router.push(`/choose-plan?approvalToken=${encodeURIComponent(token)}`);
+          router.push(`/sign-up?email=${encodeURIComponent(data.approval.parentEmail)}&approvalToken=${encodeURIComponent(token)}`);
         }
       } else {
         // This might be a regular invite - handle accordingly

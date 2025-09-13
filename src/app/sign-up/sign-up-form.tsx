@@ -6,7 +6,7 @@
 // - Adults: Full account creation
 // Maintains APA compliance with proper child protection
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/Button';
@@ -20,20 +20,38 @@ export default function SignUpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const inviteCode = searchParams.get('invite') || null;
+  const preFilledEmail = searchParams.get('email') || null;
+  const approvalToken = searchParams.get('approvalToken') || null;
 
   // Form state
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthdate, setBirthdate] = useState('');
   const [parentEmail, setParentEmail] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(preFilledEmail || '');
   const [password, setPassword] = useState('');
   
   // Flow state
-  const [currentStep, setCurrentStep] = useState<FlowStep>('initial');
+  const [currentStep, setCurrentStep] = useState<FlowStep>(preFilledEmail && approvalToken ? 'adult-credentials' : 'initial');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isChild, setIsChild] = useState(false);
+  const [childName, setChildName] = useState('');
+
+  // Load child name from localStorage if this is a parent approval flow
+  useEffect(() => {
+    if (approvalToken && typeof window !== 'undefined') {
+      const approvalData = localStorage.getItem('parentApprovalData');
+      if (approvalData) {
+        try {
+          const approval = JSON.parse(approvalData);
+          setChildName(`${approval.childFirstName} ${approval.childLastName}`);
+        } catch (error) {
+          console.error('Error parsing approval data:', error);
+        }
+      }
+    }
+  }, [approvalToken]);
 
   const calculateAge = (dob: string) => {
     const birth = new Date(dob);
@@ -111,6 +129,49 @@ export default function SignUpForm() {
     }
 
     try {
+      // Check if this is a parent approval flow
+      if (approvalToken) {
+        console.log('[PARENT-APPROVAL] Processing parent sign-up with approval token');
+        
+        // Get approval data from localStorage
+        const approvalData = localStorage.getItem('parentApprovalData');
+        if (!approvalData) {
+          setError('Approval data not found. Please try the approval link again.');
+          setLoading(false);
+          return;
+        }
+
+        const approval = JSON.parse(approvalData);
+        
+        // Create parent account with approval token
+        const body = {
+          firstName,
+          lastName,
+          email,
+          password,
+          birthdate,
+          approvalToken,
+        };
+        
+        const res = await fetchJson('/api/parent-approval/signup', {
+          method: 'POST',
+          body: JSON.stringify(body),
+        });
+
+        if (res.success) {
+          // Parent account created successfully, redirect to plan selection
+          setCurrentStep('adult-processing');
+          setTimeout(() => {
+            router.push(`/choose-plan?approvalToken=${encodeURIComponent(approvalToken)}`);
+          }, 1500);
+        } else {
+          setError(res.error || 'Failed to create parent account');
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Regular adult sign-up flow
       const body: Record<string, string> = {
         firstName,
         lastName,
@@ -328,9 +389,18 @@ export default function SignUpForm() {
     return (
       <div className="space-y-4">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-          <h3 className="font-semibold text-green-900 mb-2">Great, {firstName}!</h3>
+          <h3 className="font-semibold text-green-900 mb-2">
+            {approvalToken ? `Parent Account Setup` : `Great, ${firstName}!`}
+          </h3>
           <p className="text-green-800 text-sm">
-            Let's finish creating your account.
+            {approvalToken ? (
+              <>
+                Your child <strong>{childName}</strong> wants to join Cliqstr. 
+                Let's create your parent account to approve their request.
+              </>
+            ) : (
+              `Let's finish creating your account.`
+            )}
           </p>
         </div>
         
