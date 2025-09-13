@@ -43,9 +43,13 @@ export default function ChoosePlanForm() {
   // Check for approval token in URL
   useEffect(() => {
     const token = searchParams.get('approvalToken');
+    console.log('[PARENT-APPROVAL] Checking for approval token in URL params:', searchParams.toString());
+    console.log('[PARENT-APPROVAL] Found approval token:', token);
     if (token) {
       setApprovalToken(token);
-      console.log('[PARENT-APPROVAL] Found approval token in URL:', token);
+      console.log('[PARENT-APPROVAL] Set approval token state:', token);
+    } else {
+      console.log('[PARENT-APPROVAL] No approval token found in URL');
     }
   }, [searchParams]);
 
@@ -146,26 +150,32 @@ export default function ChoosePlanForm() {
       // Show success message for any plan
       setStatus('success');
       
-      // Determine redirect based on whether this is a parent approval flow
-      if (approvalToken) {
+      // Determine redirect based on user role, not approval token
+      // Check if this is a parent (either from approval flow or regular parent signup)
+      const isParent = result.user?.role === 'Parent' || approvalToken;
+      
+      if (isParent) {
         setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to Parents HQ...`);
         // Refresh Next.js router cache before redirect
         router.refresh();
         
-        // Redirect to Parents HQ for parent approval flow
+        // Redirect to Parents HQ for parents
         setTimeout(() => {
-          console.log('[PARENT-APPROVAL] Redirecting to Parents HQ with approval token');
-          router.push(`/parents/hq/dashboard?approvalToken=${encodeURIComponent(approvalToken)}`);
+          console.log('[PARENT] Redirecting to Parents HQ');
+          if (approvalToken) {
+            router.push(`/parents/hq/dashboard?approvalToken=${encodeURIComponent(approvalToken)}`);
+          } else {
+            router.push('/parents/hq/dashboard');
+          }
         }, 2000);
       } else {
         setMessage(`${selectedPlan.charAt(0).toUpperCase() + selectedPlan.slice(1)} plan activated! Redirecting to your dashboard...`);
         // Refresh Next.js router cache before redirect
         router.refresh();
         
-        // For all plans, redirect directly to dashboard after a short delay
-        // This gives time for the success message to be shown
+        // For adults, redirect to My Cliqs dashboard
         setTimeout(() => {
-          console.log('[APA] Redirecting to dashboard');
+          console.log('[ADULT] Redirecting to My Cliqs dashboard');
           router.push('/my-cliqs-dashboard');
         }, 2000);
       }
