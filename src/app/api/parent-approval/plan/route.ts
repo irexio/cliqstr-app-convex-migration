@@ -49,17 +49,6 @@ export async function POST(req: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if parent already exists
-    const existingUser = await convexHttp.query(api.users.getUserByEmail, {
-      email: approval.parentEmail.toLowerCase().trim(),
-    });
-
-    if (existingUser) {
-      return NextResponse.json({ 
-        error: 'Parent account already exists. Please sign in instead.' 
-      }, { status: 400 });
-    }
-
     // Find the parent user (should already exist from signup)
     const parentUser = await convexHttp.query(api.users.getUserByEmail, {
       email: approval.parentEmail.toLowerCase().trim(),
