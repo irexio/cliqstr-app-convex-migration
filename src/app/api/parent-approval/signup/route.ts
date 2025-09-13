@@ -86,15 +86,7 @@ export async function POST(req: NextRequest) {
       isVerified: true, // Skip email verification for parent approval flow
     });
 
-    // Create the parent profile
-    await convexHttp.mutation(api.profiles.createProfile, {
-      userId: parentUser,
-      firstName,
-      lastName,
-      displayName: `${firstName} ${lastName}`,
-      bio: '',
-      avatarUrl: '',
-    });
+    // Note: Parent will create their own social media profile later
 
     // Mark the approval as completed
     await convexHttp.mutation(api.pendingChildSignups.approveParentApproval, {
