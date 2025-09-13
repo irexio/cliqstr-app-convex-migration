@@ -161,23 +161,8 @@ export default function SignInForm() {
         return;
       }
 
-      // 👤 Require profile (skip for parent approval flow)
+      // 👤 Require profile
       if (!profile) {
-        // Check if this is a parent approval flow - skip profile requirement
-        const parentApprovalToken = localStorage.getItem('parentApprovalToken');
-        const parentApprovalData = localStorage.getItem('parentApprovalData');
-        
-        if (parentApprovalToken && parentApprovalData) {
-          console.log('Parent approval flow detected - skipping profile requirement');
-          // Clear the approval data since we're handling it
-          localStorage.removeItem('parentApprovalToken');
-          localStorage.removeItem('parentApprovalData');
-          
-          // Redirect to Parents HQ for parent approval flow
-          router.push(`/parents/hq/dashboard?approvalToken=${encodeURIComponent(parentApprovalToken)}`);
-          return;
-        }
-        
         console.log('No profile — redirecting to /profile/create');
         router.push('/profile/create');
         return;

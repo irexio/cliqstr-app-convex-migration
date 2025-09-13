@@ -161,6 +161,11 @@ export default function SignUpForm() {
         if (res.success) {
           // Parent account created successfully, redirect to plan selection
           setCurrentStep('adult-processing');
+          
+          // Store the approval token in localStorage for the plan selection flow
+          localStorage.setItem('parentApprovalToken', approvalToken);
+          localStorage.setItem('parentApprovalData', JSON.stringify(res.child));
+          
           setTimeout(() => {
             router.push(`/choose-plan?approvalToken=${encodeURIComponent(approvalToken)}`);
           }, 1500);
