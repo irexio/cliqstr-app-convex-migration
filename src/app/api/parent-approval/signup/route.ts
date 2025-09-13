@@ -98,21 +98,10 @@ export async function POST(req: NextRequest) {
     console.log(`[PARENT-APPROVAL-SIGNUP] Successfully created parent and child accounts`);
 
     // Create a session for the parent
-    
-    const session = await getIronSession<SessionData>(req, NextResponse.next(), sessionOptions);
     const now = Date.now();
     const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
     
-    session.userId = parentUser;
-    session.createdAt = now; // legacy
-    session.issuedAt = now;
-    session.lastActivityAt = now;
-    session.lastAuthAt = now;
-    session.expiresAt = now + timeoutMins * 60 * 1000;
-    session.idleCutoffMinutes = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-    session.refreshIntervalMinutes = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
-    
-    // Create response with session cookies
+    // Create response first
     const response = NextResponse.json({
       success: true,
       message: 'Parent account created successfully',
@@ -130,6 +119,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Create session with the response object
+    const session = await getIronSession<SessionData>(req, response, sessionOptions);
+    
+    session.userId = parentUser;
+    session.createdAt = now; // legacy
+    session.issuedAt = now;
+    session.lastActivityAt = now;
+    session.lastAuthAt = now;
+    session.expiresAt = now + timeoutMins * 60 * 1000;
+    session.idleCutoffMinutes = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
+    session.refreshIntervalMinutes = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
+    
     // Save session and attach cookies to response
     await session.save();
 
