@@ -3,6 +3,8 @@ import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 
 export const dynamic = 'force-dynamic';
 
@@ -96,8 +98,6 @@ export async function POST(req: NextRequest) {
     console.log(`[PARENT-APPROVAL-SIGNUP] Successfully created parent and child accounts`);
 
     // Create a session for the parent
-    const { getIronSession } = await import('iron-session');
-    const { sessionOptions, SessionData } = await import('@/lib/auth/session-config');
     
     const session = await getIronSession<SessionData>(req, NextResponse.next(), sessionOptions);
     const now = Date.now();
