@@ -84,8 +84,10 @@ export async function POST(req: NextRequest) {
 
     // Update the parent's plan
     await convexHttp.mutation(api.accounts.updateAccount, {
-      accountId: parentAccount._id,
-      plan: plan,
+      userId: parentUser._id,
+      updates: {
+        plan: plan,
+      },
     });
 
     // Mark the approval as completed
