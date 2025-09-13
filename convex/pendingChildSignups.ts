@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { generateVerificationToken } from "../src/lib/auth/generateVerificationToken";
+import crypto from "crypto";
 
 /**
  * Create a parent approval record for any scenario (direct signup or child invite)
@@ -20,7 +20,9 @@ export const createParentApproval = mutation({
     existingParentId: v.optional(v.id("users")),
   },
   handler: async (ctx, args) => {
-    const { token: approvalToken, expires: expiresAt } = generateVerificationToken();
+    // Generate verification token (similar to generateVerificationToken)
+    const approvalToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = Date.now() + (3 * 24 * 60 * 60 * 1000); // 3 days
     
     const approvalId = await ctx.db.insert("parentApprovals", {
       childFirstName: args.childFirstName,
@@ -67,14 +69,24 @@ export const getParentApprovalByToken = query({
       return null;
     }
 
-    // Check if expired
+    // Check if expired (but don't mark as expired in query - that's a mutation)
     if (Date.now() > approval.expiresAt) {
-      // Mark as expired
-      await ctx.db.patch(approval._id, { status: "expired" });
       return null;
     }
 
     return approval;
+  },
+});
+
+/**
+ * Mark parent approval as expired (mutation)
+ */
+export const markParentApprovalExpired = mutation({
+  args: {
+    approvalId: v.id("parentApprovals"),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.approvalId, { status: "expired" });
   },
 });
 
@@ -164,17 +176,25 @@ export const getParentApprovalsByParentEmail = query({
       .filter((q) => q.eq(q.field("status"), "pending"))
       .collect();
 
-    // Filter out expired ones
+    // Filter out expired ones (but don't mark as expired in query)
     const now = Date.now();
     const validApprovals = approvals.filter(approval => approval.expiresAt > now);
-    
-    // Mark expired ones as expired
-    const expiredApprovals = approvals.filter(approval => approval.expiresAt <= now);
-    for (const approval of expiredApprovals) {
-      await ctx.db.patch(approval._id, { status: "expired" });
-    }
 
     return validApprovals;
+  },
+});
+
+/**
+ * Mark multiple parent approvals as expired (mutation)
+ */
+export const markParentApprovalsExpired = mutation({
+  args: {
+    approvalIds: v.array(v.id("parentApprovals")),
+  },
+  handler: async (ctx, args) => {
+    for (const approvalId of args.approvalIds) {
+      await ctx.db.patch(approvalId, { status: "expired" });
+    }
   },
 });
 
