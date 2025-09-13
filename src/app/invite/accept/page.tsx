@@ -46,7 +46,10 @@ function InviteAcceptContent() {
           // Existing parent - go directly to Parents HQ
           router.push(`/parents/hq/dashboard?approvalToken=${encodeURIComponent(token)}`);
         } else {
-          // New parent or existing adult - go to plan selection
+          // New parent or existing adult - create a temporary session and go to plan selection
+          // Store the approval token in localStorage so the plan page can access it
+          localStorage.setItem('parentApprovalToken', token);
+          localStorage.setItem('parentApprovalData', JSON.stringify(data.approval));
           router.push(`/choose-plan?approvalToken=${encodeURIComponent(token)}`);
         }
       } else {

@@ -52,20 +52,44 @@ export default function ChoosePlanForm() {
   const savePlanToProfile = async (planKey: string) => {
     try {
       console.log(`Saving plan selection: ${planKey}`);
-      const response = await fetch('/api/user/plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ plan: planKey }),
-      });
+      
+      // If this is a parent approval flow, use the special endpoint
+      if (approvalToken) {
+        console.log('[PARENT-APPROVAL] Using parent approval plan endpoint');
+        const response = await fetch('/api/parent-approval/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ 
+            approvalToken: approvalToken,
+            plan: planKey 
+          }),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save plan');
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to save plan');
+        }
+
+        const result = await response.json();
+        return { success: true, ...result };
+      } else {
+        // Regular plan selection for existing users
+        const response = await fetch('/api/user/plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ plan: planKey }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to save plan');
+        }
+
+        const result = await response.json();
+        return { success: true, ...result };
       }
-
-      const result = await response.json();
-      return { success: true, ...result };
     } catch (error) {
       console.error('Error saving plan:', error);
       return { success: false, error };
