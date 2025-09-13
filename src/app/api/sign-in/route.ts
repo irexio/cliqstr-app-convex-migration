@@ -106,9 +106,8 @@ export async function POST(req: NextRequest) {
     }
     
     // Check if adult user has verified their email
-    // We determine this by checking if verificationToken exists
-    // If token exists, they haven't verified their email yet
-    if (user.account?.role?.toLowerCase() !== 'child' && user.verificationToken) {
+    // We determine this by checking the isVerified field
+    if (user.account?.role?.toLowerCase() !== 'child' && !user.isVerified) {
       console.log('🚫 Sign-in denied - email not verified:', user.email);
       
       // Create response with headers to clear any legacy tokens
