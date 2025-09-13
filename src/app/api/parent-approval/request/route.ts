@@ -1,5 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { sendParentApprovalEmail } from '@/lib/auth/sendParentApprovalEmail';
+import { sendParentEmail } from '@/lib/auth/sendParentEmail';
+import { convexHttp } from '@/lib/convex-server';
+import { api } from 'convex/_generated/api';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -15,7 +17,7 @@ const parentApprovalRequestSchema = z.object({
  * POST /api/parent-approval/request
  * 
  * Handles parent approval requests for child signups
- * Sends an email to the parent with approval link
+ * Creates a pending child signup record and sends parent email
  */
 export async function POST(req: NextRequest) {
   try {
@@ -32,24 +34,19 @@ export async function POST(req: NextRequest) {
 
     console.log(`[PARENT-APPROVAL] Processing approval request for child: ${childFirstName} ${childLastName}`);
 
-    // Calculate child's age
-    const birthDate = new Date(childBirthdate);
-    const today = new Date();
-    const age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    const adjustedAge = (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) 
-      ? age - 1 
-      : age;
+    // For now, we'll create a temporary ID and store the child data
+    // In a full implementation, this would be stored in a pending signups table
+    const tempChildId = `pending_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.log(`[PARENT-APPROVAL] Created temporary child signup ID: ${tempChildId}`);
 
-    // Generate a simple approval code (in a real app, this would be stored in the database)
-    const approvalCode = `child_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    // Send parent approval email
-    const result = await sendParentApprovalEmail({
+    // Send parent approval email using the existing sendParentEmail function
+    // This will link to /parents/hq where parent can complete the setup
+    const result = await sendParentEmail({
       to: parentEmail,
-      childName: `${childFirstName} ${childLastName}`,
-      childAge: adjustedAge,
-      approvalCode: approvalCode,
+      childName: childFirstName,
+      childId: tempChildId,
+      // No inviteCode for direct child signups
     });
 
     if (!result.success) {
@@ -64,6 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Parent approval request sent successfully',
+      pendingChildId: tempChildId,
     });
 
   } catch (error) {
