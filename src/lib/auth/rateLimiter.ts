@@ -13,11 +13,23 @@ interface RateLimitEntry {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute in milliseconds
-const MAX_ATTEMPTS = 10; // 10 attempts per minute
+// More permissive limits for testing - increase significantly for development
+const MAX_ATTEMPTS = process.env.NODE_ENV === 'production' ? 10 : 100; // 100 attempts per minute in dev, 10 in prod
 
 export function checkRateLimit(ip: string): { allowed: boolean; resetTime?: number } {
   const now = Date.now();
   const key = `auth:${ip}`;
+  
+  // Bypass rate limiting for localhost and development IPs during testing
+  if (process.env.NODE_ENV !== 'production') {
+    const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip === 'unknown';
+    const isPrivateIP = ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.');
+    
+    if (isLocalhost || isPrivateIP) {
+      console.log(`🔓 [RATE-LIMIT] Bypassing rate limit for development IP: ${ip}`);
+      return { allowed: true };
+    }
+  }
   
   // Clean up expired entries periodically
   if (Math.random() < 0.01) { // 1% chance to clean up
@@ -75,4 +87,41 @@ export function getClientIP(request: Request): string {
   
   // Fallback - this won't work in production behind a proxy
   return 'unknown';
+}
+
+/**
+ * Reset rate limit for a specific IP (useful for testing)
+ * Only works in non-production environments
+ */
+export function resetRateLimit(ip: string): boolean {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('Rate limit reset is disabled in production');
+    return false;
+  }
+  
+  const key = `auth:${ip}`;
+  const deleted = rateLimitStore.delete(key);
+  console.log(`🔄 [RATE-LIMIT] Reset rate limit for IP: ${ip} (${deleted ? 'success' : 'not found'})`);
+  return deleted;
+}
+
+/**
+ * Get current rate limit status for an IP (useful for debugging)
+ */
+export function getRateLimitStatus(ip: string): { count: number; resetTime: number; allowed: boolean } | null {
+  const key = `auth:${ip}`;
+  const entry = rateLimitStore.get(key);
+  
+  if (!entry) {
+    return null;
+  }
+  
+  const now = Date.now();
+  const allowed = now > entry.resetTime || entry.count < MAX_ATTEMPTS;
+  
+  return {
+    count: entry.count,
+    resetTime: entry.resetTime,
+    allowed
+  };
 }
