@@ -54,6 +54,11 @@ export async function POST(req: NextRequest) {
       email: approval.parentEmail.toLowerCase().trim(),
     });
 
+    console.log(`[PARENT-APPROVAL-PLAN] Found parent user:`, parentUser ? 'YES' : 'NO');
+    if (parentUser) {
+      console.log(`[PARENT-APPROVAL-PLAN] Parent user ID:`, parentUser._id);
+    }
+
     if (!parentUser) {
       return NextResponse.json({ 
         error: 'Parent account not found. Please complete signup first.' 
@@ -64,6 +69,12 @@ export async function POST(req: NextRequest) {
     const parentAccount = await convexHttp.query(api.accounts.getAccountByUserId, {
       userId: parentUser._id,
     });
+
+    console.log(`[PARENT-APPROVAL-PLAN] Found parent account:`, parentAccount ? 'YES' : 'NO');
+    if (parentAccount) {
+      console.log(`[PARENT-APPROVAL-PLAN] Parent account ID:`, parentAccount._id);
+      console.log(`[PARENT-APPROVAL-PLAN] Current plan:`, parentAccount.plan);
+    }
 
     if (!parentAccount) {
       return NextResponse.json({ 
