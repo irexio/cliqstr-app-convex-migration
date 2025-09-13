@@ -20,6 +20,9 @@ export function checkRateLimit(ip: string): { allowed: boolean; resetTime?: numb
   const now = Date.now();
   const key = `auth:${ip}`;
   
+  // Get the entry first so it's available throughout the function
+  const entry = rateLimitStore.get(key);
+  
   // Bypass rate limiting for development and testing environments
   if (process.env.NODE_ENV !== 'production') {
     const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip === 'unknown';
@@ -64,14 +67,12 @@ export function checkRateLimit(ip: string): { allowed: boolean; resetTime?: numb
   
   // Clean up expired entries periodically
   if (Math.random() < 0.01) { // 1% chance to clean up
-    for (const [k, entry] of rateLimitStore.entries()) {
-      if (now > entry.resetTime) {
+    for (const [k, cleanupEntry] of rateLimitStore.entries()) {
+      if (now > cleanupEntry.resetTime) {
         rateLimitStore.delete(k);
       }
     }
   }
-  
-  const entry = rateLimitStore.get(key);
   
   if (!entry || now > entry.resetTime) {
     // First attempt or window expired - reset
