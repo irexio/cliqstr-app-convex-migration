@@ -148,7 +148,7 @@ export default function ChoosePlanForm() {
   return (
     <div className="w-full mx-auto px-2 sm:px-0">
       {/* Testing Configuration Note */}
-      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+      <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
         <p className="text-sm text-yellow-800">{TESTING_NOTE}</p>
       </div>
       
