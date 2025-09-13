@@ -88,47 +88,12 @@ export async function POST(req: NextRequest) {
 
     // Create the parent profile
     await convexHttp.mutation(api.profiles.createProfile, {
-      userId: parentUser._id,
+      userId: parentUser,
       firstName,
       lastName,
       displayName: `${firstName} ${lastName}`,
       bio: '',
       avatarUrl: '',
-    });
-
-    // Create the child user
-    const childUser = await convexHttp.mutation(api.users.createUserWithAccount, {
-      email: `${approval.childFirstName.toLowerCase()}.${approval.childLastName.toLowerCase()}@temp.cliqstr.com`,
-      password: crypto.randomBytes(12).toString('hex'), // Temporary password
-      birthdate: new Date(approval.childBirthdate).getTime(),
-      role: 'Child',
-      isApproved: false, // Child needs parent approval
-      plan: 'test', // Default plan, will be updated during plan selection
-      isVerified: true,
-    });
-
-    // Create the child profile
-    await convexHttp.mutation(api.profiles.createProfile, {
-      userId: childUser._id,
-      firstName: approval.childFirstName,
-      lastName: approval.childLastName,
-      displayName: `${approval.childFirstName} ${approval.childLastName}`,
-      bio: '',
-      avatarUrl: '',
-    });
-
-    // Link the child to the parent
-    await convexHttp.mutation(api.memberships.createMembership, {
-      userId: childUser._id,
-      parentId: parentUser._id,
-      role: 'child',
-      permissions: {
-        canPost: true,
-        canComment: true,
-        canInvite: false,
-        canCreateCliqs: false,
-        canModerate: false,
-      },
     });
 
     // Mark the approval as completed
@@ -144,8 +109,8 @@ export async function POST(req: NextRequest) {
     
     const session = await getIronSession(req, NextResponse.next(), sessionOptions);
     session.user = {
-      id: parentUser._id,
-      email: parentUser.email,
+      id: parentUser,
+      email: email,
       role: 'Parent',
       isVerified: true,
       plan: 'test',
@@ -156,13 +121,12 @@ export async function POST(req: NextRequest) {
       success: true,
       message: 'Parent account created successfully',
       user: {
-        id: parentUser._id,
-        email: parentUser.email,
+        id: parentUser,
+        email: email,
         role: 'Parent',
         plan: 'test',
       },
       child: {
-        id: childUser._id,
         firstName: approval.childFirstName,
         lastName: approval.childLastName,
         name: `${approval.childFirstName} ${approval.childLastName}`,
