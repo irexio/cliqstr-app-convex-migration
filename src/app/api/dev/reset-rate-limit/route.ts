@@ -9,8 +9,8 @@ import { resetRateLimit, getRateLimitStatus, getClientIP } from '@/lib/auth/rate
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
-  // Only allow in development
-  if (process.env.NODE_ENV === 'production') {
+  // Only allow in development or when TESTING_MODE is enabled
+  if (process.env.NODE_ENV === 'production' && process.env.TESTING_MODE !== 'true') {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
   }
 
@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  // Only allow in development
-  if (process.env.NODE_ENV === 'production') {
+  // Only allow in development or when TESTING_MODE is enabled
+  if (process.env.NODE_ENV === 'production' && process.env.TESTING_MODE !== 'true') {
     return NextResponse.json({ error: 'Not available in production' }, { status: 403 });
   }
 

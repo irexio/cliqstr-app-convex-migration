@@ -20,7 +20,7 @@ export function checkRateLimit(ip: string): { allowed: boolean; resetTime?: numb
   const now = Date.now();
   const key = `auth:${ip}`;
   
-  // Bypass rate limiting for localhost and development IPs during testing
+  // Bypass rate limiting for development and testing environments
   if (process.env.NODE_ENV !== 'production') {
     const isLocalhost = ip === '127.0.0.1' || ip === '::1' || ip === 'localhost' || ip === 'unknown';
     const isPrivateIP = ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.');
@@ -29,6 +29,37 @@ export function checkRateLimit(ip: string): { allowed: boolean; resetTime?: numb
       console.log(`🔓 [RATE-LIMIT] Bypassing rate limit for development IP: ${ip}`);
       return { allowed: true };
     }
+  }
+  
+  // For Vercel testing - be more permissive if we detect testing environment
+  // Check for testing indicators in environment or URL
+  const isTestingEnvironment = process.env.VERCEL_ENV === 'preview' || 
+                              process.env.NODE_ENV === 'development' ||
+                              process.env.TESTING_MODE === 'true';
+  
+  if (isTestingEnvironment) {
+    console.log(`🔓 [RATE-LIMIT] Testing environment detected - using permissive limits for IP: ${ip}`);
+    // Still apply some limits but much higher (500 attempts per minute for testing)
+    const TESTING_MAX_ATTEMPTS = 500;
+    
+    if (!entry || now > entry.resetTime) {
+      rateLimitStore.set(key, {
+        count: 1,
+        resetTime: now + RATE_LIMIT_WINDOW
+      });
+      return { allowed: true };
+    }
+    
+    if (entry.count >= TESTING_MAX_ATTEMPTS) {
+      return { 
+        allowed: false, 
+        resetTime: entry.resetTime 
+      };
+    }
+    
+    entry.count++;
+    rateLimitStore.set(key, entry);
+    return { allowed: true };
   }
   
   // Clean up expired entries periodically
