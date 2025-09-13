@@ -30,7 +30,7 @@ export async function sendParentEmail({
     const base = process.env.BASE_URL!;
     return code
       ? `${base}/invite/accept?code=${encodeURIComponent(code)}`
-      : `${base}/parents/hq`;
+      : `${base}/parents/hq/dashboard`;
   }
 
   const approvalLink = buildParentInviteUrl(inviteCode);
