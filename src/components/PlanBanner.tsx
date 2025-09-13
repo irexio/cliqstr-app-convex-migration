@@ -72,8 +72,12 @@ export default function PlanBanner() {
     window.location.pathname.includes('/choose-plan')
   );
   
-  // Don't show banner on dashboard, verification pages, or if user doesn't need a plan
-  if (!needsPlan || isOnDashboard || isOnVerificationPage || isOnSignupFlow) return null;
+  // Check if this is a parent approval flow (has approvalToken in localStorage)
+  const isParentApprovalFlow = typeof window !== 'undefined' && 
+    (localStorage.getItem('parentApprovalToken') || window.location.search.includes('approvalToken'));
+  
+  // Don't show banner on dashboard, verification pages, signup flow, or parent approval flow
+  if (!needsPlan || isOnDashboard || isOnVerificationPage || isOnSignupFlow || isParentApprovalFlow) return null;
 
   return (
     <div className="w-full bg-red-50 text-center py-3 px-4 text-red-700">
