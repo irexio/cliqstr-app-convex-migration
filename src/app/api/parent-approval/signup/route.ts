@@ -112,8 +112,6 @@ export async function POST(req: NextRequest) {
     session.idleCutoffMinutes = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
     session.refreshIntervalMinutes = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
     
-    await session.save();
-
     // Create response with session cookies
     const response = NextResponse.json({
       success: true,
@@ -132,11 +130,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Ensure session cookies are included in the response
-    const sessionCookie = session.getCookie();
-    if (sessionCookie) {
-      response.headers.set('Set-Cookie', sessionCookie);
-    }
+    // Save session and attach cookies to response
+    await session.save();
 
     return response;
 
