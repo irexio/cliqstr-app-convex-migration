@@ -405,6 +405,45 @@ export default function SignUpForm() {
         </div>
         
         <form onSubmit={handleAdultSubmit} className="space-y-4">
+          {approvalToken && (
+            <>
+              <div>
+                <Label htmlFor="firstName">First Name</Label>
+                <Input
+                  id="firstName"
+                  type="text"
+                  required
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="lastName">Last Name</Label>
+                <Input
+                  id="lastName"
+                  type="text"
+                  required
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="birthdate">Birthdate</Label>
+                <Input
+                  id="birthdate"
+                  type="date"
+                  required
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
+                />
+              </div>
+            </>
+          )}
+
           <div>
             <Label htmlFor="email">Email</Label>
             <Input
