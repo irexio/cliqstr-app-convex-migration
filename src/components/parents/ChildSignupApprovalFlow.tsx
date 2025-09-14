@@ -357,9 +357,9 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="canJoinAgeAppropriatePublicCliqs"
-                    checked={permissions.canJoinAgeAppropriatePublicCliqs}
+                    checked={permissions.canReceiveInvites}
                     onCheckedChange={(checked) => 
-                      setPermissions(prev => ({ ...prev, canJoinAgeAppropriatePublicCliqs: checked as boolean }))
+                      setPermissions(prev => ({ ...prev, canReceiveInvites: checked as boolean }))
                     }
                   />
                   <Label htmlFor="canJoinAgeAppropriatePublicCliqs" className="text-sm">
