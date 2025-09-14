@@ -39,6 +39,21 @@ export default function MyCliqsDashboardPage() {
     user?.id ? { userId: user.id as Id<"users"> } : "skip"
   );
 
+  // Debug logging for adult sign-in issue
+  console.log('MyCliqsDashboard Debug:', {
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      hasAccount: !!user.account,
+      hasProfile: !!user.myProfile,
+      account: user.account
+    } : null,
+    cliqs: cliqs,
+    isLoading,
+    cliqsLoading: cliqs === undefined
+  });
+
 
   if (isLoading) {
     return (
