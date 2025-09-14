@@ -28,23 +28,38 @@ function ParentsHQSuccessContent() {
           )}
         </p>
         
-        <p className="text-green-600 mb-6">
-          They can now sign in to Cliqstr and start connecting with their friends and family.
-        </p>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+          <h3 className="font-semibold text-blue-900 mb-3">📋 Next Steps - Please Help Your Child:</h3>
+          <ol className="text-blue-800 text-sm space-y-2 list-decimal list-inside">
+            <li><strong>Sign In:</strong> Help your child sign in to Cliqstr using their new username and password</li>
+            <li><strong>Create Profile:</strong> Help your child set up their profile if needed</li>
+            <li><strong>Create a Cliq:</strong> Help your child create their first cliq</li>
+            <li><strong>Send Invites:</strong> Show your child how to send invites to friends</li>
+          </ol>
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-2">
+            <input type="checkbox" id="safetyPartnership" className="mt-1" />
+            <label htmlFor="safetyPartnership" className="text-yellow-800 text-sm">
+              <strong>I understand that Cliqstr will do all they can to protect my child, but I am an equal partner in ensuring my child's safety.</strong>
+            </label>
+          </div>
+        </div>
         
         <div className="flex gap-4 justify-center">
           <Button 
             onClick={() => router.push('/my-cliqs-dashboard')}
             className="bg-green-600 hover:bg-green-700"
           >
-            Go to Dashboard
+            Go to My Dashboard
           </Button>
           
           <Button 
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/parents/hq')}
             variant="outline"
           >
-            Return to Home
+            Return to Parents HQ
           </Button>
         </div>
       </div>

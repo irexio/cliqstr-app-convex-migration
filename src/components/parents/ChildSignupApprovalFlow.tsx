@@ -49,16 +49,11 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
   const [redAlertAccepted, setRedAlertAccepted] = useState(false);
   const [silentMonitoring, setSilentMonitoring] = useState(true);
   const [permissions, setPermissions] = useState({
-    canPost: true,
-    canComment: true,
-    canReact: true,
-    canViewProfiles: false,
-    canReceiveInvites: false,
-    canCreatePublicCliqs: false,
+    canCreateCliqs: false,
     canInviteChildren: false,
     canInviteAdults: false,
-    canCreateCliqs: false,
-    canUploadVideos: true
+    canCreatePublicCliqs: false,
+    canJoinAgeAppropriatePublicCliqs: false
   });
 
   // Fetch approval details
@@ -145,9 +140,9 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
         return;
       }
 
-      // Success - redirect to parent dashboard
+      // Success - redirect to success page
       console.log('[PARENTS_HQ][signup-approval] success');
-      router.replace('/parents/hq?success=child-approved');
+      router.replace(`/parents/hq/success?childName=${encodeURIComponent(approvalDetails?.childFirstName || '')}`);
       
     } catch (err: any) {
       console.error('[PARENTS_HQ][signup-approval] error', err);
@@ -210,13 +205,17 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
       {/* Red Alert Agreement */}
       <Card className="border-red-200 bg-red-50">
         <CardHeader>
-          <CardTitle className="text-red-900">🚨 Red Alert Monitoring Agreement</CardTitle>
+          <CardTitle className="text-red-900">🚨 Red Alert System - Critical Safety Feature</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
             <p className="text-red-800 text-sm">
-              By approving this signup, you agree that all of {approvalDetails?.childFirstName}'s activity 
-              will be monitored and logged for safety. You will receive alerts for any concerning behavior.
+              <strong>Red Alert System:</strong> When a Red Alert is pressed, the post is immediately suspended, 
+              AI moderation and parents are both instantly notified. This is a critical safety feature.
+            </p>
+            <p className="text-red-800 text-sm">
+              By approving this signup, you understand that {approvalDetails?.childFirstName}'s activity 
+              will be monitored for safety and you will receive instant alerts for any concerning behavior.
             </p>
             <div className="flex items-center space-x-2">
               <Checkbox 
@@ -225,7 +224,7 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
                 onCheckedChange={(checked) => setRedAlertAccepted(checked as boolean)}
               />
               <Label htmlFor="redAlert" className="text-red-800 font-medium">
-                I accept full responsibility for monitoring {approvalDetails?.childFirstName}'s activity
+                I understand the Red Alert system is critical for {approvalDetails?.childFirstName}'s safety
               </Label>
             </div>
           </div>
@@ -295,31 +294,72 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
             {/* Parent HQ: Child Permissions */}
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium mb-3">🛡️ Parent HQ: Set Permissions for {approvalDetails?.childFirstName}</h4>
-              <p className="text-gray-600 text-xs mb-3">These permissions are required for every child account</p>
-              <div className="space-y-2">
-                {Object.entries(permissions).map(([key, value]) => (
-                  <div key={key} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={key}
-                      checked={value}
-                      onCheckedChange={(checked) => 
-                        setPermissions(prev => ({ ...prev, [key]: checked as boolean }))
-                      }
-                    />
-                    <Label htmlFor={key} className="text-sm">
-                      {key === 'canPost' && 'Can create posts'}
-                      {key === 'canComment' && 'Can comment on posts'}
-                      {key === 'canReact' && 'Can react to posts'}
-                      {key === 'canViewProfiles' && 'Can view other profiles'}
-                      {key === 'canReceiveInvites' && 'Can receive invites to other cliqs'}
-                      {key === 'canCreatePublicCliqs' && 'Can create public cliqs'}
-                      {key === 'canInviteChildren' && 'Can invite other children'}
-                      {key === 'canInviteAdults' && 'Can invite adults'}
-                      {key === 'canCreateCliqs' && 'Can create private cliqs'}
-                      {key === 'canUploadVideos' && 'Can upload videos'}
-                    </Label>
-                  </div>
-                ))}
+              <p className="text-gray-600 text-xs mb-3">Select which features you want activated on your child's account</p>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canCreateCliqs"
+                    checked={permissions.canCreateCliqs}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canCreateCliqs: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canCreateCliqs" className="text-sm">
+                    Can create cliqs
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canInviteChildren"
+                    checked={permissions.canInviteChildren}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canInviteChildren: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canInviteChildren" className="text-sm">
+                    Can invite children
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canInviteAdults"
+                    checked={permissions.canInviteAdults}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canInviteAdults: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canInviteAdults" className="text-sm">
+                    Can invite adults
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canCreatePublicCliqs"
+                    checked={permissions.canCreatePublicCliqs}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canCreatePublicCliqs: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canCreatePublicCliqs" className="text-sm">
+                    Can create public cliqs
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canJoinAgeAppropriatePublicCliqs"
+                    checked={permissions.canJoinAgeAppropriatePublicCliqs}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canJoinAgeAppropriatePublicCliqs: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canJoinAgeAppropriatePublicCliqs" className="text-sm">
+                    Can join age appropriate public cliqs
+                  </Label>
+                </div>
               </div>
             </div>
 
