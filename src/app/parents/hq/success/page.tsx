@@ -49,10 +49,10 @@ function ParentsHQSuccessContent() {
         
         <div className="flex gap-4 justify-center">
           <Button 
-            onClick={() => router.push('/my-cliqs-dashboard')}
+            onClick={() => router.push('/parents/hq')}
             className="bg-green-600 hover:bg-green-700"
           >
-            Go to My Dashboard
+            Go to Parents HQ
           </Button>
           
           <Button 

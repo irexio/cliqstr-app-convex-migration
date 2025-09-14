@@ -454,6 +454,17 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
                     Can upload videos
                   </Label>
                 </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="invitesRequireParentApproval"
+                    checked={true}
+                    disabled={true}
+                  />
+                  <Label htmlFor="invitesRequireParentApproval" className="text-sm text-gray-600">
+                    All invites must be parent approved (Required for safety)
+                  </Label>
+                </div>
               </div>
             </div>
 
