@@ -27,6 +27,9 @@ function InviteAcceptContent() {
 
   const checkParentApprovalToken = async (token: string) => {
     try {
+      // First, clear any existing session to ensure the parent starts fresh
+      await fetch('/api/auth/clear-session', { method: 'POST' });
+      
       const response = await fetch(`/api/parent-approval/accept?token=${encodeURIComponent(token)}`);
       
       if (!response.ok) {
