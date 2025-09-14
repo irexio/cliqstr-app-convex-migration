@@ -125,6 +125,7 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
           birthdate: approvalDetails?.childBirthdate ? new Date(approvalDetails.childBirthdate).getTime() : 0,
           username: username.trim(),
           password,
+          redAlertAccepted,
           silentMonitoring,
           permissions,
         }),
