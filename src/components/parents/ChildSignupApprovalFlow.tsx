@@ -122,7 +122,7 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
           approvalToken: approvalToken,
           firstName: approvalDetails?.childFirstName,
           lastName: approvalDetails?.childLastName,
-          birthdate: approvalDetails?.childBirthdate,
+          birthdate: approvalDetails?.childBirthdate ? new Date(approvalDetails.childBirthdate).getTime() : 0,
           username: username.trim(),
           password,
           silentMonitoring,
