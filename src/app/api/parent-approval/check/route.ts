@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      pendingSignup: {
+      approval: {
         id: pendingSignup._id,
         childFirstName: pendingSignup.childFirstName,
         childLastName: pendingSignup.childLastName,
