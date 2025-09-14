@@ -1,0 +1,5 @@
+[33m50b2e16[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Improve parent approval error handling with helpful support page
+[33mc73d079[m Fix critical bug: API response structure mismatch in parent approval check
+[33me64b30f[m Fix duplicate packageManager entry in package.json
+[33mb740a83[m Improve UX for expired/invalid tokens in Parents HQ
+[33m1719af2[m Create Parents HQ dashboard page and update child signup approval flow

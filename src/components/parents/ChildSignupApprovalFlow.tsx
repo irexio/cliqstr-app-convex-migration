@@ -59,6 +59,7 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
     canInviteAdults: false,
     canCreateCliqs: false,
     canUploadVideos: false,
+    invitesRequireParentApproval: true, // Default to true for safety, but parent can change
   });
 
   // Fetch approval details
@@ -458,11 +459,13 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
                 <div className="flex items-center space-x-2">
                   <Checkbox 
                     id="invitesRequireParentApproval"
-                    checked={true}
-                    disabled={true}
+                    checked={permissions.invitesRequireParentApproval}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, invitesRequireParentApproval: checked as boolean }))
+                    }
                   />
-                  <Label htmlFor="invitesRequireParentApproval" className="text-sm text-gray-600">
-                    All invites must be parent approved (Required for safety)
+                  <Label htmlFor="invitesRequireParentApproval" className="text-sm">
+                    All invites must be parent approved (Recommended for safety)
                   </Label>
                 </div>
               </div>

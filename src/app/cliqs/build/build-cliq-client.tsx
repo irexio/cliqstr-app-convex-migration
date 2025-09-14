@@ -128,6 +128,7 @@ export default function BuildCliqClient() {
                   onChange={(e) => setMinAge(e.target.value === '' ? '' : parseInt(e.target.value))}
                   placeholder={privacy === 'private' ? 'e.g., 5' : 'e.g., 13'}
                   className="mt-1 bg-white text-black border-gray-300 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
+                  style={{ color: 'black' }}
                 />
               </div>
               
@@ -142,6 +143,7 @@ export default function BuildCliqClient() {
                   onChange={(e) => setMaxAge(e.target.value === '' ? '' : parseInt(e.target.value))}
                   placeholder={privacy === 'private' ? 'e.g., 17' : 'e.g., 65'}
                   className="mt-1 bg-white text-black border-gray-300 focus:ring-blue-500 focus:border-blue-500 placeholder:text-gray-500"
+                  style={{ color: 'black' }}
                 />
               </div>
             </div>
