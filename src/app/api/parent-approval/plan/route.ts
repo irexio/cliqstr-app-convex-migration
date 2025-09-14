@@ -90,10 +90,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Mark the approval as completed
-    await convexHttp.mutation(api.pendingChildSignups.approveParentApproval, {
-      approvalToken,
-    });
+    // Don't mark approval as completed yet - that happens after child account creation in Parents HQ
+    // The approval remains 'pending' until the parent creates the child account
 
     console.log(`[PARENT-APPROVAL-PLAN] Successfully updated parent plan`);
 
