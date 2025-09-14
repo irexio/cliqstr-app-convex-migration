@@ -49,11 +49,16 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
   const [redAlertAccepted, setRedAlertAccepted] = useState(false);
   const [silentMonitoring, setSilentMonitoring] = useState(true);
   const [permissions, setPermissions] = useState({
-    canCreateCliqs: false,
+    canPost: true,
+    canComment: true,
+    canReact: true,
+    canViewProfiles: true,
+    canReceiveInvites: true,
+    canCreatePublicCliqs: false,
     canInviteChildren: false,
     canInviteAdults: false,
-    canCreatePublicCliqs: false,
-    canJoinAgeAppropriatePublicCliqs: false
+    canCreateCliqs: false,
+    canUploadVideos: false,
   });
 
   // Fetch approval details
@@ -359,6 +364,85 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
                   />
                   <Label htmlFor="canJoinAgeAppropriatePublicCliqs" className="text-sm">
                     Can join age appropriate public cliqs
+                  </Label>
+                </div>
+
+                {/* Additional required permissions */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canPost"
+                    checked={permissions.canPost}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canPost: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canPost" className="text-sm">
+                    Can create posts
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canComment"
+                    checked={permissions.canComment}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canComment: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canComment" className="text-sm">
+                    Can comment on posts
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canReact"
+                    checked={permissions.canReact}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canReact: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canReact" className="text-sm">
+                    Can react to posts
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canViewProfiles"
+                    checked={permissions.canViewProfiles}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canViewProfiles: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canViewProfiles" className="text-sm">
+                    Can view other profiles
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canReceiveInvites"
+                    checked={permissions.canReceiveInvites}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canReceiveInvites: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canReceiveInvites" className="text-sm">
+                    Can receive invites
+                  </Label>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="canUploadVideos"
+                    checked={permissions.canUploadVideos}
+                    onCheckedChange={(checked) => 
+                      setPermissions(prev => ({ ...prev, canUploadVideos: checked as boolean }))
+                    }
+                  />
+                  <Label htmlFor="canUploadVideos" className="text-sm">
+                    Can upload videos
                   </Label>
                 </div>
               </div>
