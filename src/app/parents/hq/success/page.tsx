@@ -31,7 +31,8 @@ function ParentsHQSuccessContent() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
           <h3 className="font-semibold text-blue-900 mb-3">📋 Next Steps - Please Help Your Child:</h3>
           <ol className="text-blue-800 text-sm space-y-2 list-decimal list-inside">
-            <li><strong>Sign In:</strong> Help your child sign in to Cliqstr using their new username and password</li>
+            <li><strong>Sign Out:</strong> You can sign out and let your child sign in with their new username and password</li>
+            <li><strong>Child Sign In:</strong> Help your child sign in to Cliqstr using their new username and password</li>
             <li><strong>Create Profile:</strong> Help your child set up their profile if needed</li>
             <li><strong>Create a Cliq:</strong> Help your child create their first cliq</li>
             <li><strong>Send Invites:</strong> Show your child how to send invites to friends</li>
@@ -56,10 +57,10 @@ function ParentsHQSuccessContent() {
           </Button>
           
           <Button 
-            onClick={() => router.push('/my-cliqs-dashboard')}
+            onClick={() => router.push('/')}
             variant="outline"
           >
-            Go to {childName}'s Dashboard
+            Go to Home Page
           </Button>
         </div>
       </div>
