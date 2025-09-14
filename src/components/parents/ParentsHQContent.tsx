@@ -168,15 +168,29 @@ export default function ParentsHQContent() {
     return (
       <main className="min-h-screen flex items-center justify-center text-center text-gray-600">
         <div>
-          <h1 className="text-xl font-bold text-red-600">
+          <h1 className="text-xl font-bold text-green-600">
             {inviteCode ? 'Invite Already Used' : 'Approval Already Completed'}
           </h1>
           <p className="mt-2">
             {inviteCode 
-              ? 'This invitation has already been accepted. If you believe this is an error, please contact support.'
-              : 'This child approval has already been completed. If you believe this is an error, please contact support.'
+              ? 'This invitation has already been accepted. You can manage your child\'s account from Parents HQ.'
+              : 'This child approval has already been completed. You can manage your child\'s account from Parents HQ.'
             }
           </p>
+          <div className="mt-4 flex justify-center space-x-4">
+            <button
+              onClick={() => router.push('/parents/hq')}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            >
+              Go to Parents HQ
+            </button>
+            <button
+              onClick={() => router.push('/my-cliqs-dashboard')}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -191,10 +205,27 @@ export default function ParentsHQContent() {
           </h1>
           <p className="mt-2">
             {inviteCode 
-              ? 'This invite link is no longer valid. Please request a new invite from the sender.'
-              : 'This approval request is no longer valid. Please have your child request approval again.'
+              ? 'This invite link is no longer valid. You can request a new invite from the sender.'
+              : 'This approval request has expired. Please have your child resend the approval request.'
             }
           </p>
+          <div className="mt-4 flex justify-center space-x-4">
+            <button
+              onClick={() => router.push('/parents/hq')}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
+            >
+              Return to Parents HQ
+            </button>
+            {/* Placeholder for future resend logic */}
+            {approvalToken && (
+              <button
+                onClick={() => router.push('/child/resend-approval')}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                Request New Approval
+              </button>
+            )}
+          </div>
         </div>
       </main>
     );
