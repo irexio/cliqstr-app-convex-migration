@@ -216,15 +216,12 @@ export default function ParentsHQContent() {
             >
               Return to Parents HQ
             </button>
-            {/* Placeholder for future resend logic */}
-            {approvalToken && (
-              <button
-                onClick={() => router.push('/child/resend-approval')}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-              >
-                Request New Approval
-              </button>
-            )}
+            <button
+              onClick={() => router.push('/parents/hq/help')}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+            >
+              Something went wrong?
+            </button>
           </div>
         </div>
       </main>
