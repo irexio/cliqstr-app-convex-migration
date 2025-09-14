@@ -141,6 +141,13 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
       if (!response.ok) {
         const reason = data?.error || 'server_error';
         console.warn('[PARENTS_HQ][signup-approval] failure', { reason });
+        
+        // For critical errors, redirect to help page
+        if (reason.includes('Invalid or expired') || reason.includes('Failed to create') || reason.includes('server_error')) {
+          router.push('/parents/hq/help');
+          return;
+        }
+        
         setError(reason);
         setSubmitting(false);
         return;
@@ -152,7 +159,9 @@ export default function ChildSignupApprovalFlow({ approvalToken }: ChildSignupAp
       
     } catch (err: any) {
       console.error('[PARENTS_HQ][signup-approval] error', err);
-      setError(err.message || 'Failed to complete approval');
+      
+      // For critical errors, redirect to help page
+      router.push('/parents/hq/help');
     } finally {
       setSubmitting(false);
     }

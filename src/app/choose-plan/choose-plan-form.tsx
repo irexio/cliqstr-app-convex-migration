@@ -181,8 +181,14 @@ export default function ChoosePlanForm() {
       }
     } catch (err) {
       console.error('Plan selection error:', err);
-      setStatus('error');
-      setMessage('Something went wrong while saving your plan. Please try again.');
+      
+      // For critical errors, redirect to help page
+      if (approvalToken) {
+        router.push('/parents/hq/help');
+      } else {
+        setStatus('error');
+        setMessage('Something went wrong while saving your plan. Please try again.');
+      }
     }
   };
 
