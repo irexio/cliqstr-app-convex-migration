@@ -53,27 +53,19 @@ export const getOwnedCliqs = query({
 export const getUserCliqs = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    console.log('getUserCliqs called for userId:', args.userId);
-    
     const memberships = await ctx.db
       .query("memberships")
       .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
       .collect();
 
-    console.log('Found memberships:', memberships.length, memberships);
-
     const cliqs = await Promise.all(
       memberships.map(async (membership) => {
         const cliq = await ctx.db.get(membership.cliqId);
-        console.log('Membership cliq:', membership.cliqId, 'found:', !!cliq, cliq?.name);
         return cliq ? { ...cliq, membership } : null;
       })
     );
 
-    const filteredCliqs = cliqs.filter((cliq) => cliq && !cliq.deleted);
-    console.log('Final cliqs returned:', filteredCliqs.length, filteredCliqs.map(c => c?.name));
-    
-    return filteredCliqs;
+    return cliqs.filter((cliq) => cliq && !cliq.deleted);
   },
 });
 

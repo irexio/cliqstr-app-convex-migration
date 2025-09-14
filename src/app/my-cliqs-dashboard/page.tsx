@@ -39,18 +39,6 @@ export default function MyCliqsDashboardPage() {
     user?.id ? { userId: user.id as Id<"users"> } : "skip"
   );
 
-  // Debug logging
-  console.log('MyCliqsDashboard Debug:', {
-    user: user ? {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      hasAccount: !!user.account,
-      hasProfile: !!user.myProfile
-    } : null,
-    cliqs: cliqs,
-    isLoading
-  });
 
   if (isLoading) {
     return (
