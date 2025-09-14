@@ -56,10 +56,10 @@ function ParentsHQSuccessContent() {
           </Button>
           
           <Button 
-            onClick={() => router.push('/parents/hq')}
+            onClick={() => router.push('/my-cliqs-dashboard')}
             variant="outline"
           >
-            Return to Parents HQ
+            Go to {childName}'s Dashboard
           </Button>
         </div>
       </div>
