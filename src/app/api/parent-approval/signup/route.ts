@@ -89,13 +89,9 @@ export async function POST(req: NextRequest) {
     });
 
     // Note: Parent will create their own social media profile later
+    // Note: Approval will be marked as completed after plan selection
 
-    // Mark the approval as completed
-    await convexHttp.mutation(api.pendingChildSignups.approveParentApproval, {
-      approvalToken,
-    });
-
-    console.log(`[PARENT-APPROVAL-SIGNUP] Successfully created parent and child accounts`);
+    console.log(`[PARENT-APPROVAL-SIGNUP] Successfully created parent account`);
 
     // Create a session for the parent
     const now = Date.now();

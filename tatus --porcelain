@@ -1,0 +1,5 @@
+[33mdd63793[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Fix plan selection redirect logic
+[33m86adb23[m Add debugging to parent approval plan API
+[33m8665ced[m Fix PlanBanner showing during parent approval flow
+[33ma17e85d[m Fix contradictory logic in parent approval plan API
+[33me5352e0[m Fix TypeScript error: use undefined instead of null for plan
