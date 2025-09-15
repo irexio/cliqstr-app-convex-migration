@@ -161,11 +161,10 @@ export default function SignInForm() {
         return;
       }
 
-      // 👤 Require profile
+      // 👤 Profile check - be more lenient, let session-ping handle final routing
       if (!profile) {
-        console.log('No profile — redirecting to /profile/create');
-        router.push('/profile/create');
-        return;
+        console.log('No profile detected in sign-in form, but proceeding to session-ping for final routing');
+        // Don't redirect here - let session-ping handle it
       }
 
       console.log(`✅ User signed in: ${account?.role}, account.isApproved: ${account?.isApproved}, plan: ${account?.plan || 'none'}`);

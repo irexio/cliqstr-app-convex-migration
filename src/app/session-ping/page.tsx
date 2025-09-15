@@ -36,6 +36,12 @@ export default async function SessionPingPage({ searchParams }: { searchParams: 
   // If user is approved (check both user.approved and account.isApproved), send them directly to dashboard
   // BUT preserve invite codes for parent approval flows
   if (user.approved === true || user.account?.isApproved === true) {
+    // Check if user has a profile - if not, redirect to profile creation
+    if (!user.myProfile) {
+      console.log('[APA] User is approved but has no profile. Redirecting to profile creation.');
+      redirect('/profile/create');
+    }
+    
     if (inviteCode) {
       console.log('[APA] User is approved but has invite code. Redirecting to invite flow.');
       redirect(`/invite/accept?code=${inviteCode}`);
