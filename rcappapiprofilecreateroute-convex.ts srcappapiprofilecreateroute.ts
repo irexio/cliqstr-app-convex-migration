@@ -1,0 +1,5 @@
+[33mb40325b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Implement proper profile requirement flow - no forced profile creation
+[33mcf6f938[m Remove forced profile creation requirement
+[33m8b0368b[m Fix adult sign-in flow - prevent premature profile redirect
+[33m5caa0a1[m Add debugging to My Cliqs Dashboard for adult sign-in skeleton page issue
+[33mb349176[m Fix age restriction input text color - force black text for entered values

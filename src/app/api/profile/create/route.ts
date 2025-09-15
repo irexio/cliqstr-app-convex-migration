@@ -1,12 +1,10 @@
 /**
- * 🔄 OPTIMIZED CONVEX ROUTE: POST /api/profile/create
+ * 🔄 CONVEX ROUTE: POST /api/profile/create
  * 
- * This is the rewritten version using Convex patterns:
+ * This is the Convex version for profile creation:
  * - Creates profiles using optimized Convex mutations
  * - More efficient than the original Prisma version
  * - Enables real-time updates for profile changes
- * 
- * @deprecated The original route.ts is deprecated in favor of this Convex version
  */
 
 import { NextRequest, NextResponse } from 'next/server';

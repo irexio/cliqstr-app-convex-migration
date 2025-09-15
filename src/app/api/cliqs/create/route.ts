@@ -45,11 +45,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check if user has a profile
-    if (!user.myProfile) {
-      console.log('[APA] User missing profile in /api/cliqs/create');
-      return NextResponse.json({ error: 'Profile required. Please create your profile first.' }, { status: 403 });
-    }
+    // Profile is optional for cliq creation - users can create cliqs without profiles
+    // They'll use default avatars and can complete their profile later
     
     // Simplified plan validation - only check if plan exists
     if (!user.plan) {
@@ -74,6 +71,14 @@ export async function POST(req: NextRequest) {
 
     // 🔒 CRITICAL: Check child permissions for public cliq creation
     if (user.account?.role === 'Child' && (privacy === 'public' || privacy === 'semi')) {
+      // Children without profiles cannot create public cliqs
+      if (!user.myProfile) {
+        console.log(`[APA] Child without profile blocked from creating ${privacy} cliq:`, user.email);
+        return NextResponse.json({
+          error: 'You need to create a profile first to create public or semi-private cliqs'
+        }, { status: 403 });
+      }
+      
       // Get child settings to check parental permissions
       const childSettings = await convexHttp.query(api.users.getChildSettings, {
         profileId: user.myProfile.id as any,
