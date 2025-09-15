@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { fetchJson } from '@/lib/fetchJson';
 import PasswordInput from '@/components/ui/PasswordInput';
 
-type FlowStep = 'initial' | 'child-parent-email' | 'adult-credentials' | 'child-success' | 'adult-processing';
+type FlowStep = 'initial' | 'role-selection' | 'child-parent-email' | 'adult-credentials' | 'child-success' | 'adult-processing';
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -27,6 +27,7 @@ export default function SignUpForm() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [birthdate, setBirthdate] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'Adult' | 'Child' | 'Parent' | null>(null);
   const [parentEmail, setParentEmail] = useState('');
   const [email, setEmail] = useState(preFilledEmail || '');
   const [password, setPassword] = useState('');
@@ -74,15 +75,20 @@ export default function SignUpForm() {
       return;
     }
     
-    const age = calculateAge(birthdate);
-    const childStatus = age < 18;
-    setIsChild(childStatus);
+    // Move to role selection step
+    setCurrentStep('role-selection');
+  };
+
+  // Handle role selection
+  const handleRoleSelection = (role: 'Adult' | 'Child' | 'Parent') => {
+    setSelectedRole(role);
+    setError('');
     
-    if (childStatus) {
-      // Child flow - show parent email step
+    if (role === 'Child') {
+      setIsChild(true);
       setCurrentStep('child-parent-email');
     } else {
-      // Adult flow - show credentials step
+      setIsChild(false);
       setCurrentStep('adult-credentials');
     }
   };
@@ -183,6 +189,7 @@ export default function SignUpForm() {
         email,
         password,
         birthdate,
+        role: selectedRole || 'Adult', // Include selected role
       };
 
       if (inviteCode) {

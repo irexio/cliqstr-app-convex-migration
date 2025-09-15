@@ -37,8 +37,10 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
   // New simplified state for redesigned invite form
   const [friendFirstName, setFriendFirstName] = useState('');
   const [friendLastName, setFriendLastName] = useState('');
-  const [trustedAdultContact, setTrustedAdultContact] = useState('');
-  const [inviteType, setInviteType] = useState<'child' | 'adult' | ''>(''); // Must be explicitly selected
+  const [childEmail, setChildEmail] = useState(''); // Child's email for invites
+  const [parentEmail, setParentEmail] = useState(''); // Parent's email for approval
+  const [trustedAdultContact, setTrustedAdultContact] = useState(''); // For adult invites
+  const [inviteType, setInviteType] = useState<'child' | 'adult' | 'parent' | ''>(''); // Must be explicitly selected
   const [inviteNote, setInviteNote] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -76,17 +78,32 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
         if (!friendLastName.trim()) {
           throw new Error("Child's last name is required");
         }
-        if (!trustedAdultContact.trim()) {
+        if (!childEmail.trim()) {
+          throw new Error("Child's email is required");
+        }
+        if (!parentEmail.trim()) {
           throw new Error('Parent/guardian email is required');
+        }
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(childEmail)) {
+          throw new Error('Please enter a valid child email address');
+        }
+        if (!emailRegex.test(parentEmail)) {
+          throw new Error('Please enter a valid parent email address');
+        }
+      } else if (inviteType === 'adult') {
+        if (!trustedAdultContact.trim()) {
+          throw new Error('Adult email is required');
         }
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(trustedAdultContact)) {
           throw new Error('Please enter a valid email address');
         }
-      } else if (inviteType === 'adult') {
+      } else if (inviteType === 'parent') {
         if (!trustedAdultContact.trim()) {
-          throw new Error('Adult email is required');
+          throw new Error('Parent email is required');
         }
         // Basic email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -103,12 +120,13 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       };
 
       if (inviteType === 'child') {
-        // Child invites need friendFirstName, friendLastName and trustedAdultContact
+        // Child invites need friendFirstName, friendLastName, childEmail, and parentEmail
         payload.friendFirstName = friendFirstName.trim();
         payload.friendLastName = friendLastName.trim();
-        payload.trustedAdultContact = trustedAdultContact.trim();
+        payload.inviteeEmail = childEmail.trim(); // Send invite to child's email
+        payload.parentEmail = parentEmail.trim(); // Parent email for approval process
       } else {
-        // Adult invites need inviteeEmail
+        // Adult and Parent invites need inviteeEmail
         payload.inviteeEmail = trustedAdultContact.trim();
       }
 
@@ -139,6 +157,8 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       // Reset form
       setFriendFirstName('');
       setFriendLastName('');
+      setChildEmail('');
+      setParentEmail('');
       setTrustedAdultContact('');
       setInviteType('');
       setInviteNote('');
@@ -207,8 +227,8 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
       {inviteType === 'child' && (
         <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
           <p className="text-sm text-blue-800">
-            💡 <strong>Note:</strong> Please enter the parent/guardian's email address. 
-            They will receive the invitation and can approve their child's participation.
+            💡 <strong>Note:</strong> The invite will be sent to the child's email. 
+            They will go through the signup process and their parent will be contacted for approval.
           </p>
         </div>
       )}
@@ -242,29 +262,59 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
               />
             </div>
           </div>
+          
+          <div>
+            <Label htmlFor="childEmail">Child's Email *</Label>
+            <Input
+              id="childEmail"
+              type="email"
+              value={childEmail}
+              onChange={(e) => setChildEmail(e.target.value)}
+              placeholder="child@example.com"
+              required
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              The invite will be sent to this email address
+            </p>
+          </div>
+          
+          <div>
+            <Label htmlFor="parentEmail">Parent/Guardian Email *</Label>
+            <Input
+              id="parentEmail"
+              type="email"
+              value={parentEmail}
+              onChange={(e) => setParentEmail(e.target.value)}
+              placeholder="parent@example.com"
+              required
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Parent will be contacted for approval during signup
+            </p>
+          </div>
         </>
       )}
 
-      {/* Email Field - Label Changes Based on Invite Type */}
-      <div>
-        <Label htmlFor="trustedAdultContact">
-          {inviteType === 'child' ? 'Parent/Guardian Email *' : 'Adult Email *'}
-        </Label>
-        <Input
-          id="trustedAdultContact"
-          type="email"
-          value={trustedAdultContact}
-          onChange={(e) => setTrustedAdultContact(e.target.value)}
-          placeholder={inviteType === 'child' ? 'parent@example.com' : 'email@example.com'}
-          required
-          className="mt-1"
-        />
-        {inviteType === 'adult' && (
+      {/* Email Field - Only for Adult Invites */}
+      {inviteType === 'adult' && (
+        <div>
+          <Label htmlFor="trustedAdultContact">Adult Email *</Label>
+          <Input
+            id="trustedAdultContact"
+            type="email"
+            value={trustedAdultContact}
+            onChange={(e) => setTrustedAdultContact(e.target.value)}
+            placeholder="email@example.com"
+            required
+            className="mt-1"
+          />
           <p className="text-xs text-gray-500 mt-1">
             Adults will need to verify their age during account creation
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Optional Message */}
       <div>
