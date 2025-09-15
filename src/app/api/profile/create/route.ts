@@ -19,8 +19,17 @@ const schema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   birthdate: z.string().transform((val) => {
-    // Parse the date string as local date to avoid timezone issues
-    const [year, month, day] = val.split('-').map(Number);
+    // Handle both MM/DD/YYYY and YYYY-MM-DD formats
+    let dateStr = val.trim();
+    
+    // If it contains slashes, assume MM/DD/YYYY format
+    if (dateStr.includes('/')) {
+      const [month, day, year] = dateStr.split('/').map(Number);
+      return new Date(year, month - 1, day);
+    }
+    
+    // Otherwise assume YYYY-MM-DD format
+    const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(year, month - 1, day);
   }),
   about: z.string().optional(),

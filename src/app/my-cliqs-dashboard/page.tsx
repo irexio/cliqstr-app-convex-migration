@@ -208,7 +208,11 @@ export default function MyCliqsDashboardPage() {
       )}
 
       {/* Profile Nudge - Below cliq cards for better UX flow */}
-      {hasCliqs && <DashboardProfileNudge profile={user.myProfile} />}
+      {hasCliqs && (
+        <div className="mt-8">
+          <DashboardProfileNudge profile={user.myProfile} />
+        </div>
+      )}
       </div>
     </div>
   );

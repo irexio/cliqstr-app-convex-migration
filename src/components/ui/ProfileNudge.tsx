@@ -128,14 +128,10 @@ export function ProfileNudge({
 
           {/* Benefits preview */}
           {completion.percentage < 60 && (
-            <div className="grid grid-cols-2 gap-2 mb-3 text-xs text-gray-600 dark:text-gray-400">
+            <div className="grid grid-cols-1 gap-2 mb-3 text-xs text-gray-600 dark:text-gray-400">
               <div className="flex items-center gap-1">
                 <span>•</span>
                 <span>Birthday celebrations</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span>•</span>
-                <span>3x more engagement</span>
               </div>
             </div>
           )}
