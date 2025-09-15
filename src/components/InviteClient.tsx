@@ -112,7 +112,7 @@ export default function InviteClient({ cliqId }: InviteClientProps) {
         payload.inviteeEmail = trustedAdultContact.trim();
       }
 
-      const response = await fetch('/api/invite/create', {
+      const response = await fetch('/api/invites/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

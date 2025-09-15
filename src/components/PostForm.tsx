@@ -81,21 +81,85 @@ export default function PostForm({ cliqId, onPostCreated }: PostFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 mb-6">
-      <Textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Write your post... 🐧💬✨"
-        rows={4}
-        disabled={loading}
-        className="resize-none"
-      />
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      <div className="text-right">
-        <Button type="submit" disabled={loading || !content.trim()}>
-          {loading ? 'Posting...' : 'Post'}
-        </Button>
-      </div>
-    </form>
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex gap-4">
+          {/* Profile Picture */}
+          <div className="flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-gray-300 flex items-center justify-center overflow-hidden">
+              {user?.myProfile?.image ? (
+                <img 
+                  src={user.myProfile.image} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-gray-500 text-sm font-medium">
+                  {user?.myProfile?.username?.charAt(0).toUpperCase() || 'U'}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          {/* Post Input */}
+          <div className="flex-1">
+            <Textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="What would you like to post to your cliq?"
+              rows={3}
+              disabled={loading}
+              className="resize-none border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+        </div>
+        
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-sm">Photo</span>
+            </button>
+            
+            <button
+              type="button"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              <span className="text-sm">Video</span>
+            </button>
+            
+            <button
+              type="button"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              <span className="text-sm">Poll</span>
+            </button>
+          </div>
+          
+          <Button 
+            type="submit" 
+            disabled={loading || !content.trim()}
+            className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-2"
+          >
+            {loading ? 'Posting...' : 'Post'}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }

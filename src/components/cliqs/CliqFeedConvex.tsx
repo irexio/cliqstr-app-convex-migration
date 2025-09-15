@@ -53,6 +53,21 @@ export default function CliqFeedConvex({ cliqId, posts: initialPosts }: CliqFeed
     } : "skip"
   ) || initialPosts || [];
 
+  // Debug logging for feed issues
+  console.log('CliqFeedConvex Debug:', {
+    cliqId,
+    userId: user?.id,
+    posts: posts,
+    postsLength: posts?.length,
+    initialPosts: initialPosts,
+    postsQueryResult: useQuery(api.posts.getCliqPosts,
+      user?.id ? {
+        cliqId: cliqId as Id<"cliqs">,
+        userId: user.id as Id<"users">
+      } : "skip"
+    )
+  });
+
   // Mutations
   const createPost = useMutation(api.posts.createPost);
   const addReply = useMutation(api.posts.addReply);

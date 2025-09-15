@@ -6,7 +6,9 @@ import { Id } from "../../../convex/_generated/dataModel";
 import CliqProfileContent from '@/components/cliqs/CliqProfileContent';
 import PostForm from '@/components/PostForm';
 import CliqFeedConvex from '@/components/cliqs/CliqFeedConvex';
-import { useAuth } from '@/lib/auth/useAuth'; // We'll need to create this hook
+import CliqTools from '@/components/cliqs/CliqTools';
+import CliqNoticeBar from '@/components/cliqs/CliqNoticeBar';
+import { useAuth } from '@/lib/auth/useAuth';
 import { notFound } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -32,6 +34,26 @@ export default function CliqPageConvex({ cliqId }: CliqPageConvexProps) {
       userId: user.id as Id<"users">
     } : "skip"
   );
+
+  // Get cliq members for member count
+  const members = useQuery(api.cliqs.getCliqMembers,
+    user?.id ? { cliqId: cliqId as Id<"cliqs"> } : "skip"
+  );
+
+  // Debug logging for cliq page issues
+  console.log('CliqPageConvex Debug:', {
+    cliqId,
+    userId: user?.id,
+    cliq: cliq,
+    posts: posts,
+    postsLength: posts?.length,
+    authLoading,
+    user: user ? {
+      id: user.id,
+      email: user.email,
+      role: user.role
+    } : null
+  });
 
   // Loading state
   if (authLoading) {
@@ -72,14 +94,31 @@ export default function CliqPageConvex({ cliqId }: CliqPageConvexProps) {
     name: cliq.name,
     description: cliq.description || undefined,
     bannerImage: cliq.coverImage || undefined,
+    privacy: cliq.privacy,
+    memberCount: members?.length || 0,
   };
 
   return (
-    <div className="space-y-6">
-      <CliqProfileContent cliq={cliqProfile} />
-      <PostForm cliqId={cliqId} />
-      <CliqFeedConvex cliqId={cliqId} posts={posts} />
-    </div>
+    <main className="min-h-screen bg-gray-50">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        {/* Cliq Notice Bar */}
+        <CliqNoticeBar cliqId={cliqId} />
+        
+        {/* Cliq Profile Content */}
+        <CliqProfileContent cliq={cliqProfile} />
+        
+        {/* Post Form */}
+        <PostForm cliqId={cliqId} />
+        
+        {/* Cliq Feed */}
+        <CliqFeedConvex cliqId={cliqId} posts={posts} />
+        
+        {/* Cliq Tools */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <CliqTools cliqId={cliqId} />
+        </div>
+      </div>
+    </main>
   );
 }
 
