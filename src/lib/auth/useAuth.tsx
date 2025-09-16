@@ -49,22 +49,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sessionUserId, setSessionUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Get session from server-side
+  // Get session from server-side with retry logic
   useEffect(() => {
-    async function getSession() {
+    async function getSession(retryCount = 0) {
       try {
-        const response = await fetch('/api/auth/status');
+        const response = await fetch('/api/auth/status', {
+          cache: 'no-store',
+          credentials: 'include'
+        });
         if (response.ok) {
           const data = await response.json();
+          console.log('[useAuth] Session response:', { user: data.user ? 'found' : 'null', retryCount });
           if (data.user?.id) {
             setSessionUserId(data.user.id);
+            setIsLoading(false);
+            return;
           }
+        } else {
+          console.log('[useAuth] Session check failed:', response.status);
+        }
+        
+        // If no user found and we haven't retried too many times, retry after a short delay
+        if (retryCount < 2) {
+          console.log('[useAuth] Retrying session check in 500ms...');
+          setTimeout(() => getSession(retryCount + 1), 500);
+          return;
         }
       } catch (error) {
-        console.error('Failed to get session:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('[useAuth] Failed to get session:', error);
       }
+      
+      setIsLoading(false);
     }
 
     getSession();
