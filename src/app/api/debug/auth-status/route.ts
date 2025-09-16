@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
       sessionOptions
     );
 
-    const debugInfo = {
+    const debugInfo: any = {
       hasSession: !!session,
       sessionData: session ? {
         userId: session.userId,
