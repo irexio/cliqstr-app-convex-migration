@@ -63,7 +63,7 @@ export async function POST() {
     for (const user of allUsers) {
       if (testEmails.includes(user.email.toLowerCase())) {
         try {
-          const userData = await convexHttp.query(api.users.getCurrentUser, { userId: user._id });
+          const userData = await convexHttp.query(api.users.getCurrentUser, { userId: user.id });
           
           // Delete profile if exists
           if (userData?.myProfile) {
@@ -72,14 +72,14 @@ export async function POST() {
           }
           
           // Delete account if exists
-          const account = await convexHttp.query(api.accounts.getAccountByUserId, { userId: user._id });
+          const account = await convexHttp.query(api.accounts.getAccountByUserId, { userId: user.id });
           if (account) {
             await convexHttp.mutation(api.accounts.deleteAccount, { accountId: account._id });
             results.deletedAccounts.push(user.email);
           }
           
           // Delete user
-          await convexHttp.mutation(api.users.deleteUser, { userId: user._id });
+          await convexHttp.mutation(api.users.deleteUser, { userId: user.id });
           results.deletedUsers.push(user.email);
           
           console.log(`✅ Deleted test user: ${user.email}`);

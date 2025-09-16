@@ -48,7 +48,7 @@ export async function POST() {
     // 3. Delete users (last)
     for (const user of users) {
       try {
-        await convexHttp.mutation(api.users.deleteUser, { userId: user._id });
+        await convexHttp.mutation(api.users.deleteUser, { userId: user.id });
         results.deletedUsers.push(user.email);
       } catch (error) {
         results.errors.push(`Failed to delete user ${user.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
