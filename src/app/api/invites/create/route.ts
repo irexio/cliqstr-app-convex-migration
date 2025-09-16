@@ -18,30 +18,34 @@ import { generateJoinCode } from '@/lib/auth/generateJoinCode';
 
 export async function POST(request: NextRequest) {
   try {
-    // Auth: inviter must be Parent
+    // Auth: inviter must be authenticated
     const user = await getCurrentUser();
     if (!user?.id) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    // Check if user is a parent using Convex
+    // Check user account using Convex
     const account = await convexHttp.query(api.accounts.getAccountByUserId, {
       userId: user.id as any,
     });
 
-    if (account?.role !== 'Parent') {
-      return NextResponse.json({ error: 'Parent role required' }, { status: 403 });
+    // Allow both adults and parents to send invites
+    if (!account || (account.role !== 'Adult' && account.role !== 'Parent')) {
+      return NextResponse.json({ error: 'Adult or Parent role required' }, { status: 403 });
     }
 
     const body = await request.json();
-    const { email, childId } = body;
+    const { email, inviteeEmail, inviteType, cliqId, inviteNote } = body;
 
-    if (!email || typeof email !== 'string') {
+    // Handle both old and new payload formats
+    const targetEmail = inviteeEmail || email;
+    
+    if (!targetEmail || typeof targetEmail !== 'string') {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
     // Step 1: Normalize email
-    const emailNorm = email.trim().toLowerCase();
+    const emailNorm = targetEmail.trim().toLowerCase();
 
     // Step 2: Look up existing user using Convex
     const existingUser = await convexHttp.query(api.users.getUserByEmail, {
@@ -87,8 +91,8 @@ export async function POST(request: NextRequest) {
       status: 'pending',
       used: false,
       inviterId: user.id as any,
-      inviteeEmail: email, // Keep original casing
-      cliqId: undefined, // Not tied to specific cliq for parent invites
+      inviteeEmail: targetEmail, // Keep original casing
+      cliqId: cliqId ? cliqId as any : undefined, // Use cliqId if provided
       isApproved: false,
     });
 
