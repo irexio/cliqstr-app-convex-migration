@@ -179,6 +179,57 @@ export const isCliqMember = query({
 });
 
 // Get cliq members
+// Admin functions for cliq management
+export const getAllCliqs = query({
+  args: {},
+  handler: async (ctx) => {
+    const cliqs = await ctx.db.query("cliqs").collect();
+    const users = await ctx.db.query("users").collect();
+    const memberships = await ctx.db.query("memberships").collect();
+    
+    // Join cliqs with creator info and member counts
+    const cliqsWithData = cliqs.map(cliq => {
+      const creator = users.find(user => user._id === cliq.ownerId);
+      const memberCount = memberships.filter(mem => mem.cliqId === cliq._id).length;
+      
+      return {
+        id: cliq._id,
+        name: cliq.name,
+        description: cliq.description,
+        creatorId: cliq.ownerId,
+        creatorName: creator?.email || 'Unknown',
+        createdAt: new Date(cliq.createdAt).toISOString(),
+        memberCount,
+        isPrivate: cliq.privacy === 'private',
+        privacy: cliq.privacy,
+      };
+    });
+    
+    return cliqsWithData;
+  },
+});
+
+export const deleteCliq = mutation({
+  args: { cliqId: v.id("cliqs") },
+  handler: async (ctx, args) => {
+    // Soft delete the cliq
+    await ctx.db.patch(args.cliqId, { 
+      deleted: true, 
+      deletedAt: Date.now() 
+    });
+    
+    // Also delete all memberships for this cliq
+    const memberships = await ctx.db
+      .query("memberships")
+      .withIndex("by_cliq_id", (q) => q.eq("cliqId", args.cliqId))
+      .collect();
+    
+    for (const membership of memberships) {
+      await ctx.db.delete(membership._id);
+    }
+  },
+});
+
 export const getCliqMembers = query({
   args: { cliqId: v.id("cliqs") },
   handler: async (ctx, args) => {

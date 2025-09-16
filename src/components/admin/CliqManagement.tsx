@@ -30,57 +30,19 @@ export default function CliqManagement() {
   const [membersLoading, setMembersLoading] = useState(false);
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [success, setSuccess] = useState('');
   
   // Fetch cliqs
   useEffect(() => {
     async function fetchCliqs() {
       try {
-        // This would be a real API call in production
-        // Mocked data for development
-        const mockCliqs: Cliq[] = [
-          {
-            id: '1001',
-            name: 'Book Club',
-            creatorId: '101',
-            creatorName: 'AdminUser',
-            description: 'A community of book lovers',
-            createdAt: '2023-03-15T10:00:00Z',
-            memberCount: 12,
-            isPrivate: false
-          },
-          {
-            id: '1002',
-            name: 'Gaming Group',
-            creatorId: '102',
-            creatorName: 'ParentUser',
-            description: 'For gamers of all ages',
-            createdAt: '2023-04-01T10:00:00Z',
-            memberCount: 25,
-            isPrivate: false
-          },
-          {
-            id: '1003',
-            name: 'Science Club',
-            creatorId: '104',
-            creatorName: 'AdultUser',
-            description: 'For science enthusiasts',
-            createdAt: '2023-04-15T10:00:00Z',
-            memberCount: 8,
-            isPrivate: true
-          },
-          {
-            id: '1004',
-            name: 'Art & Crafts',
-            creatorId: '103',
-            creatorName: 'ChildUser',
-            description: 'Share your creative works',
-            createdAt: '2023-05-01T10:00:00Z',
-            memberCount: 15,
-            isPrivate: false
-          }
-        ];
-
-        setCliqs(mockCliqs);
+        const res = await fetch('/api/admin/cliqs', { cache: 'no-store' });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.reason || 'Failed to load cliqs');
+        }
+        const data = await res.json();
+        setCliqs((data.items || []) as Cliq[]);
       } catch (err) {
         console.error('Error fetching cliqs:', err);
         setError('Failed to load cliqs. Please try again.');
@@ -158,6 +120,41 @@ export default function CliqManagement() {
 
     fetchCliqMembers();
   }, [selectedCliq]);
+
+  // Handle cliq deletion
+  const handleDeleteCliq = async (cliqId: string, cliqName: string) => {
+    if (!confirm(`Are you sure you want to delete "${cliqName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setActionLoading(cliqId);
+    setError('');
+    setSuccess('');
+    
+    try {
+      const res = await fetch(`/api/admin/cliqs/${cliqId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to delete cliq');
+      }
+      
+      // Remove from current view
+      setCliqs(prev => prev.filter(c => c.id !== cliqId));
+      if (selectedCliq === cliqId) {
+        setSelectedCliq(null);
+        setMembers([]);
+      }
+      setSuccess(`Cliq "${cliqName}" deleted successfully`);
+    } catch (err) {
+      console.error('Error deleting cliq:', err);
+      setError(err instanceof Error ? err.message : 'Failed to delete cliq');
+    } finally {
+      setActionLoading(null);
+    }
+  };
   
   // Handle remove member action
   const handleRemoveMember = async (memberId: string) => {
@@ -208,6 +205,12 @@ export default function CliqManagement() {
         </div>
       )}
       
+      {success && (
+        <div className="bg-green-50 border border-green-200 text-green-700 p-3 rounded mb-4">
+          {success}
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Cliq List */}
         <div className="lg:col-span-1 border border-gray-200 rounded overflow-hidden">
@@ -223,23 +226,36 @@ export default function CliqManagement() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {cliqs.map(cliq => (
-                  <button
+                  <div
                     key={cliq.id}
-                    onClick={() => setSelectedCliq(cliq.id)}
-                    className={`p-3 text-left w-full hover:bg-gray-50 flex justify-between items-center ${
+                    className={`p-3 border-b border-gray-100 last:border-b-0 ${
                       selectedCliq === cliq.id ? 'bg-gray-50' : ''
                     }`}
                   >
-                    <div>
-                      <div className="font-medium">{cliq.name}</div>
-                      <div className="text-sm text-gray-500">
-                        {cliq.memberCount} members
+                    <div className="flex justify-between items-start mb-2">
+                      <button
+                        onClick={() => setSelectedCliq(cliq.id)}
+                        className="flex-1 text-left hover:bg-gray-50 p-1 rounded"
+                      >
+                        <div className="font-medium">{cliq.name}</div>
+                        <div className="text-sm text-gray-500">
+                          {cliq.memberCount} members
+                        </div>
+                      </button>
+                      <div className="flex gap-2 ml-2">
+                        <div className="text-xs px-2 py-1 rounded bg-gray-200">
+                          {cliq.isPrivate ? 'Private' : 'Public'}
+                        </div>
+                        <button
+                          onClick={() => handleDeleteCliq(cliq.id, cliq.name)}
+                          disabled={actionLoading === cliq.id}
+                          className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded border border-red-200 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          {actionLoading === cliq.id ? 'Deleting...' : 'Delete'}
+                        </button>
                       </div>
                     </div>
-                    <div className="text-xs px-2 py-1 rounded bg-gray-200">
-                      {cliq.isPrivate ? 'Private' : 'Public'}
-                    </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}

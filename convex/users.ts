@@ -477,6 +477,137 @@ export const createAdminAccount = mutation({
   },
 });
 
+// Admin functions for user management
+export const getAllUsers = query({
+  args: {
+    role: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const users = await ctx.db.query("users").collect();
+    const accounts = await ctx.db.query("accounts").collect();
+    const profiles = await ctx.db.query("myProfiles").collect();
+    
+    // Join users with their accounts and profiles
+    const usersWithData = users.map(user => {
+      const account = accounts.find(acc => acc.userId === user._id);
+      const profile = profiles.find(prof => prof.userId === user._id);
+      
+      return {
+        id: user._id,
+        email: user.email,
+        createdAt: new Date(user.createdAt).toISOString(),
+        account: account ? {
+          id: account._id,
+          role: account.role,
+          plan: account.plan,
+          isApproved: account.isApproved,
+          suspended: account.suspended,
+        } : null,
+        myProfile: profile ? {
+          id: profile._id,
+          username: profile.username,
+        } : null,
+      };
+    });
+    
+    // Filter by role if specified
+    if (args.role) {
+      return usersWithData.filter(user => user.account?.role === args.role);
+    }
+    
+    return usersWithData;
+  },
+});
+
+export const approveUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (account) {
+      await ctx.db.patch(account._id, { isApproved: true });
+    }
+  },
+});
+
+export const deactivateUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (account) {
+      await ctx.db.patch(account._id, { isApproved: false });
+    }
+  },
+});
+
+export const suspendUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (account) {
+      await ctx.db.patch(account._id, { suspended: true });
+    }
+  },
+});
+
+export const unsuspendUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (account) {
+      await ctx.db.patch(account._id, { suspended: false });
+    }
+  },
+});
+
+export const softDeleteUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, { deletedAt: Date.now() });
+  },
+});
+
+export const hardDeleteUser = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    // Delete user and all related data
+    await ctx.db.delete(args.userId);
+    
+    // Delete account
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    if (account) {
+      await ctx.db.delete(account._id);
+    }
+    
+    // Delete profile
+    const profile = await ctx.db
+      .query("myProfiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    if (profile) {
+      await ctx.db.delete(profile._id);
+    }
+  },
+});
+
 // Create child settings for a profile
 export const createChildSettings = mutation({
   args: {
