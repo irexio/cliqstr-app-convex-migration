@@ -395,6 +395,88 @@ export const createUserWithAccount = mutation({
   },
 });
 
+// Admin function to promote a user to admin role
+export const promoteToAdmin = mutation({
+  args: {
+    email: v.string(),
+  },
+  handler: async (ctx, args) => {
+    // Find user by email
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Find their account
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", user._id))
+      .first();
+
+    if (!account) {
+      throw new Error("Account not found");
+    }
+
+    // Update account role to Admin
+    await ctx.db.patch(account._id, {
+      role: "Admin",
+      isApproved: true,
+    });
+
+    return { success: true, userId: user._id, email: user.email };
+  },
+});
+
+// Admin function to create a new admin account
+export const createAdminAccount = mutation({
+  args: {
+    email: v.string(),
+    password: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    
+    // Check if user already exists
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email.toLowerCase()))
+      .first();
+
+    if (existingUser) {
+      throw new Error("User already exists");
+    }
+
+    // Create user
+    const userId = await ctx.db.insert("users", {
+      email: args.email.toLowerCase(),
+      password: args.password, // Note: This should be hashed in production
+      createdAt: now,
+      updatedAt: now,
+      isVerified: true,
+      isParent: false,
+    });
+
+    // Create admin account
+    await ctx.db.insert("accounts", {
+      userId,
+      birthdate: new Date("1990-01-01").getTime(), // Default birthdate for admin
+      role: "Admin",
+      isApproved: true,
+      plan: "admin",
+      stripeStatus: undefined,
+      stripeCustomerId: undefined,
+      suspended: false,
+      createdAt: now,
+    });
+
+    return { success: true, userId, email: args.email };
+  },
+});
+
 // Create child settings for a profile
 export const createChildSettings = mutation({
   args: {
