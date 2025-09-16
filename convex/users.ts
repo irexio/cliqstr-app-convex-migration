@@ -585,10 +585,134 @@ export const softDeleteUser = mutation({
 export const hardDeleteUser = mutation({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    // Delete user and all related data
-    await ctx.db.delete(args.userId);
+    console.log(`[COMPLIANCE_DELETE] Starting complete data deletion for user ${args.userId}`);
     
-    // Delete account
+    // 1. Delete all posts by this user
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_author_id", (q) => q.eq("authorId", args.userId))
+      .collect();
+    for (const post of posts) {
+      await ctx.db.delete(post._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${posts.length} posts`);
+    
+    // 2. Delete all replies by this user
+    const replies = await ctx.db
+      .query("replies")
+      .withIndex("by_author_id", (q) => q.eq("authorId", args.userId))
+      .collect();
+    for (const reply of replies) {
+      await ctx.db.delete(reply._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${replies.length} replies`);
+    
+    // 3. Delete all invites created by this user
+    const invites = await ctx.db
+      .query("invites")
+      .withIndex("by_inviter_id", (q) => q.eq("inviterId", args.userId))
+      .collect();
+    for (const invite of invites) {
+      await ctx.db.delete(invite._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${invites.length} invites`);
+    
+    // 4. Delete all invite requests by this user
+    const inviteRequests = await ctx.db
+      .query("inviteRequests")
+      .withIndex("by_inviter_id", (q) => q.eq("inviterId", args.userId))
+      .collect();
+    for (const request of inviteRequests) {
+      await ctx.db.delete(request._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${inviteRequests.length} invite requests`);
+    
+    // 5. Delete all parent links (both as parent and child)
+    const parentLinksAsParent = await ctx.db
+      .query("parentLinks")
+      .withIndex("by_parent_id", (q) => q.eq("parentId", args.userId))
+      .collect();
+    for (const link of parentLinksAsParent) {
+      await ctx.db.delete(link._id);
+    }
+    
+    const parentLinksAsChild = await ctx.db
+      .query("parentLinks")
+      .withIndex("by_child_id", (q) => q.eq("childId", args.userId))
+      .collect();
+    for (const link of parentLinksAsChild) {
+      await ctx.db.delete(link._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${parentLinksAsParent.length + parentLinksAsChild.length} parent links`);
+    
+    // 6. Delete all parent audit logs
+    const auditLogsAsParent = await ctx.db
+      .query("parentAuditLogs")
+      .withIndex("by_parent_id", (q) => q.eq("parentId", args.userId))
+      .collect();
+    for (const log of auditLogsAsParent) {
+      await ctx.db.delete(log._id);
+    }
+    
+    const auditLogsAsChild = await ctx.db
+      .query("parentAuditLogs")
+      .withIndex("by_child_id", (q) => q.eq("childId", args.userId))
+      .collect();
+    for (const log of auditLogsAsChild) {
+      await ctx.db.delete(log._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${auditLogsAsParent.length + auditLogsAsChild.length} audit logs`);
+    
+    // 7. Delete all memberships
+    const memberships = await ctx.db
+      .query("memberships")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .collect();
+    for (const membership of memberships) {
+      await ctx.db.delete(membership._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${memberships.length} memberships`);
+    
+    // 8. Delete all user activity logs
+    const activityLogs = await ctx.db
+      .query("userActivityLogs")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .collect();
+    for (const log of activityLogs) {
+      await ctx.db.delete(log._id);
+    }
+    console.log(`[COMPLIANCE_DELETE] Deleted ${activityLogs.length} activity logs`);
+    
+    // 9. Delete profile and related data
+    const profile = await ctx.db
+      .query("myProfiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (profile) {
+      // Delete child settings
+      const childSettings = await ctx.db
+        .query("childSettings")
+        .withIndex("by_profile_id", (q) => q.eq("profileId", profile._id))
+        .collect();
+      for (const settings of childSettings) {
+        await ctx.db.delete(settings._id);
+      }
+      
+      // Delete scrapbook items
+      const scrapbookItems = await ctx.db
+        .query("scrapbookItems")
+        .withIndex("by_profile_id", (q) => q.eq("profileId", profile._id))
+        .collect();
+      for (const item of scrapbookItems) {
+        await ctx.db.delete(item._id);
+      }
+      
+      await ctx.db.delete(profile._id);
+      console.log(`[COMPLIANCE_DELETE] Deleted profile and ${childSettings.length} child settings, ${scrapbookItems.length} scrapbook items`);
+    }
+    
+    // 10. Delete account
     const account = await ctx.db
       .query("accounts")
       .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
@@ -597,14 +721,109 @@ export const hardDeleteUser = mutation({
       await ctx.db.delete(account._id);
     }
     
-    // Delete profile
+    // 11. Finally, delete the user record
+    await ctx.db.delete(args.userId);
+    
+    console.log(`[COMPLIANCE_DELETE] Complete data deletion finished for user ${args.userId}`);
+  },
+});
+
+// Get data deletion summary for compliance transparency
+export const getDataDeletionSummary = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const posts = await ctx.db
+      .query("posts")
+      .withIndex("by_author_id", (q) => q.eq("authorId", args.userId))
+      .collect();
+    
+    const replies = await ctx.db
+      .query("replies")
+      .withIndex("by_author_id", (q) => q.eq("authorId", args.userId))
+      .collect();
+    
+    const invites = await ctx.db
+      .query("invites")
+      .withIndex("by_inviter_id", (q) => q.eq("inviterId", args.userId))
+      .collect();
+    
+    const inviteRequests = await ctx.db
+      .query("inviteRequests")
+      .withIndex("by_inviter_id", (q) => q.eq("inviterId", args.userId))
+      .collect();
+    
+    const parentLinksAsParent = await ctx.db
+      .query("parentLinks")
+      .withIndex("by_parent_id", (q) => q.eq("parentId", args.userId))
+      .collect();
+    
+    const parentLinksAsChild = await ctx.db
+      .query("parentLinks")
+      .withIndex("by_child_id", (q) => q.eq("childId", args.userId))
+      .collect();
+    
+    const auditLogsAsParent = await ctx.db
+      .query("parentAuditLogs")
+      .withIndex("by_parent_id", (q) => q.eq("parentId", args.userId))
+      .collect();
+    
+    const auditLogsAsChild = await ctx.db
+      .query("parentAuditLogs")
+      .withIndex("by_child_id", (q) => q.eq("childId", args.userId))
+      .collect();
+    
+    const memberships = await ctx.db
+      .query("memberships")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .collect();
+    
+    const activityLogs = await ctx.db
+      .query("userActivityLogs")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .collect();
+    
     const profile = await ctx.db
       .query("myProfiles")
       .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
       .first();
+    
+    let childSettings = 0;
+    let scrapbookItems = 0;
+    
     if (profile) {
-      await ctx.db.delete(profile._id);
+      const childSettingsList = await ctx.db
+        .query("childSettings")
+        .withIndex("by_profile_id", (q) => q.eq("profileId", profile._id))
+        .collect();
+      childSettings = childSettingsList.length;
+      
+      const scrapbookItemsList = await ctx.db
+        .query("scrapbookItems")
+        .withIndex("by_profile_id", (q) => q.eq("profileId", profile._id))
+        .collect();
+      scrapbookItems = scrapbookItemsList.length;
     }
+    
+    return {
+      user: 1,
+      account: 1,
+      profile: profile ? 1 : 0,
+      posts: posts.length,
+      replies: replies.length,
+      invites: invites.length,
+      inviteRequests: inviteRequests.length,
+      parentLinks: parentLinksAsParent.length + parentLinksAsChild.length,
+      auditLogs: auditLogsAsParent.length + auditLogsAsChild.length,
+      memberships: memberships.length,
+      activityLogs: activityLogs.length,
+      childSettings,
+      scrapbookItems,
+      totalRecords: 1 + 1 + (profile ? 1 : 0) + posts.length + replies.length + 
+                   invites.length + inviteRequests.length + 
+                   (parentLinksAsParent.length + parentLinksAsChild.length) +
+                   (auditLogsAsParent.length + auditLogsAsChild.length) +
+                   memberships.length + activityLogs.length + childSettings + scrapbookItems
+    };
   },
 });
 
