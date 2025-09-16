@@ -16,7 +16,7 @@ export async function POST() {
     
     // Get all data first
     const [users, profiles, accounts] = await Promise.all([
-      convexHttp.query(api.users.getAllUsers),
+      convexHttp.query(api.users.getAllUsers, {}),
       convexHttp.query(api.profiles.getAllProfiles),
       convexHttp.query(api.accounts.getAllAccounts)
     ]);

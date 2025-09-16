@@ -57,7 +57,7 @@ export async function POST() {
     }
     
     // Clean up any other test data (users with test emails)
-    const allUsers = await convexHttp.query(api.users.getAllUsers);
+    const allUsers = await convexHttp.query(api.users.getAllUsers, {});
     const testEmails = ['test@example.com', 'admin@test.com', 'parent@test.com'];
     
     for (const user of allUsers) {

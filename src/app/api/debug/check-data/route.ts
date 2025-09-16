@@ -8,7 +8,7 @@ export async function GET() {
     console.log("🔍 Checking Convex database for existing data...");
     
     // Check users
-    const users = await convexHttp.query(api.users.getAllUsers);
+    const users = await convexHttp.query(api.users.getAllUsers, {});
     console.log(`👥 Users (${users.length}):`);
     users.forEach(user => {
       console.log(`  - ${user.email} (ID: ${user._id})`);
