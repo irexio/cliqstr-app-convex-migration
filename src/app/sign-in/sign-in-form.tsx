@@ -262,6 +262,9 @@ export default function SignInForm() {
         return;
       }
       
+      // Add a small delay to ensure session cookie is processed
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
       // Fetch fresh user status to determine correct destination
       const statusResponse = await fetch('/api/auth/status', {
         method: 'GET',
@@ -272,6 +275,8 @@ export default function SignInForm() {
       if (statusResponse.ok) {
         const statusData = await statusResponse.json();
         const user = statusData.user;
+        
+        console.log('[SIGNIN] Auth status response:', { user: user ? 'found' : 'null', account: user?.account });
         
         if (user?.account) {
           // Direct navigation based on user state
