@@ -322,13 +322,6 @@ export const getUserByVerificationToken = query({
   },
 });
 
-// Get all users (for validation)
-export const getAllUsers = query({
-  args: {},
-  handler: async (ctx) => {
-    return await ctx.db.query("users").collect();
-  },
-});
 
 // Check if user exists by email
 export const userExists = query({
