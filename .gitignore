@@ -46,6 +46,9 @@ next-env.d.ts
 .out
 .turbo
 
+# admin documentation (contains sensitive info)
+admin-docs.md
+
 
 
 .nx/cache

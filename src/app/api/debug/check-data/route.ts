@@ -8,7 +8,8 @@ export async function GET(req: NextRequest) {
   try {
     // ADMIN AUTHENTICATION CHECK
     const adminSecret = req.headers.get('x-admin-secret');
-    if (adminSecret !== 'cliqstr-admin-2025') {
+    const expectedSecret = process.env.ADMIN_SECRET || 'cliqstr-admin-2025';
+    if (adminSecret !== expectedSecret) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 401 });
     }
 
