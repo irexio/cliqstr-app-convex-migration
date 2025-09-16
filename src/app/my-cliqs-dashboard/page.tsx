@@ -84,16 +84,40 @@ export default function MyCliqsDashboardPage() {
     );
   }
   
-  // Check if account exists first
+  // Security check: Ensure user has an account
   if (!user.account) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Account Setup Incomplete</h1>
-          <p className="text-gray-600 mb-4">You need to choose a plan to continue.</p>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Account Setup Required</h1>
+          <p className="text-gray-600 mb-4">You need to complete your account setup to continue.</p>
           <Link href="/choose-plan" className="text-blue-600 underline">
-            Choose a plan
+            Complete Setup
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Security check: Ensure user is approved
+  if (!user.account.isApproved) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-yellow-600 mb-4">Account Pending Approval</h1>
+          <p className="text-gray-600 mb-4">Your account is pending approval. Please wait for an administrator to approve your account.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Security check: Ensure user is not suspended
+  if (user.account.suspended) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Account Suspended</h1>
+          <p className="text-gray-600 mb-4">Your account has been suspended. Please contact support for assistance.</p>
         </div>
       </div>
     );
