@@ -263,41 +263,9 @@ export default function SignInForm() {
       }
       
       // Add a small delay to ensure session cookie is processed
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      
-      // Fetch fresh user status to determine correct destination
-      const statusResponse = await fetch('/api/auth/status', {
-        method: 'GET',
-        cache: 'no-store',
-        credentials: 'include'
-      });
-      
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        const user = statusData.user;
-        
-        console.log('[SIGNIN] Auth status response:', { user: user ? 'found' : 'null', account: user?.account });
-        
-        if (user?.account) {
-          // Direct navigation based on user state
-          if (user.account.role === 'Child' && !user.account.isApproved) {
-            console.log('[SIGNIN] Child not approved, redirecting to awaiting-approval');
-            router.push('/awaiting-approval');
-          } else if (!user.account.plan) {
-            console.log('[SIGNIN] No plan selected, redirecting to choose-plan');
-            router.push('/choose-plan');
-          } else {
-            console.log('[SIGNIN] User ready, redirecting to dashboard');
-            router.push('/my-cliqs-dashboard');
-          }
-        } else {
-          console.log('[SIGNIN] No account found, redirecting to choose-plan');
-          router.push('/choose-plan');
-        }
-      } else {
-        console.error('[SIGNIN] Failed to fetch user status, redirecting to dashboard');
-        router.push('/my-cliqs-dashboard');
-      }
+      // Simple redirect for adults - go directly to My Cliqs dashboard
+      console.log('[SIGNIN] Sign-in successful, redirecting to dashboard');
+      router.push('/my-cliqs-dashboard');
 
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
