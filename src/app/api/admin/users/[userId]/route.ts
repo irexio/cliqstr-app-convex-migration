@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
+import { Id } from 'convex/_generated/dataModel';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,24 +20,26 @@ export async function PATCH(
     
     console.log(`[ADMIN_USER_ACTION] ${action} for user ${userId}`);
     
+    const userIdTyped = userId as Id<"users">;
+    
     switch (action) {
       case 'approve':
-        await convexHttp.mutation(api.users.approveUser, { userId });
+        await convexHttp.mutation(api.users.approveUser, { userId: userIdTyped });
         break;
       case 'deactivate':
-        await convexHttp.mutation(api.users.deactivateUser, { userId });
+        await convexHttp.mutation(api.users.deactivateUser, { userId: userIdTyped });
         break;
       case 'suspend':
-        await convexHttp.mutation(api.users.suspendUser, { userId });
+        await convexHttp.mutation(api.users.suspendUser, { userId: userIdTyped });
         break;
       case 'unsuspend':
-        await convexHttp.mutation(api.users.unsuspendUser, { userId });
+        await convexHttp.mutation(api.users.unsuspendUser, { userId: userIdTyped });
         break;
       case 'soft_delete':
-        await convexHttp.mutation(api.users.softDeleteUser, { userId });
+        await convexHttp.mutation(api.users.softDeleteUser, { userId: userIdTyped });
         break;
       case 'hard_delete':
-        await convexHttp.mutation(api.users.hardDeleteUser, { userId });
+        await convexHttp.mutation(api.users.hardDeleteUser, { userId: userIdTyped });
         break;
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

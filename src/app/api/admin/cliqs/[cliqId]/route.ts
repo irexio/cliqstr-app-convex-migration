@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
+import { Id } from 'convex/_generated/dataModel';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ export async function DELETE(
     
     console.log(`[ADMIN_CLIQ_DELETE] Deleting cliq ${cliqId}`);
     
-    await convexHttp.mutation(api.cliqs.deleteCliq, { cliqId });
+    await convexHttp.mutation(api.cliqs.deleteCliq, { cliqId: cliqId as Id<"cliqs"> });
     
     return NextResponse.json({ success: true });
   } catch (error) {
