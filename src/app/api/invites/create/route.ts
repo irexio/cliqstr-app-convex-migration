@@ -75,7 +75,11 @@ export async function POST(request: NextRequest) {
       } else if (account?.role === 'Parent') {
         targetState = 'existing_parent';
         targetUserId = existingUser._id;
+      } else if (account?.role === 'Adult') {
+        targetState = 'existing_user_non_parent';
+        targetUserId = existingUser._id;
       } else {
+        // Handle any other role or missing role
         targetState = 'existing_user_non_parent';
         targetUserId = existingUser._id;
       }

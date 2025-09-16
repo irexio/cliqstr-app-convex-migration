@@ -268,8 +268,8 @@ export default function SignInForm() {
       // Add a short delay to ensure session cookie is processed
       await new Promise((resolve) => setTimeout(resolve, 1000));
       
-      // Use hard navigation through session-ping to ensure fresh session
-      window.location.replace('/session-ping?t=' + Date.now());
+      // Use router.push instead of window.location.replace to avoid flash
+      router.push('/session-ping?t=' + Date.now());
 
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
