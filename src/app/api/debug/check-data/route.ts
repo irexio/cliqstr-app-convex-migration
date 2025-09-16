@@ -1,17 +1,24 @@
 // Debug route to check what data exists in Convex database
-import { NextResponse } from 'next/server';
+// ADMIN ONLY - requires admin authentication
+import { NextRequest, NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    console.log("🔍 Checking Convex database for existing data...");
+    // ADMIN AUTHENTICATION CHECK
+    const adminSecret = req.headers.get('x-admin-secret');
+    if (adminSecret !== 'cliqstr-admin-2025') {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 401 });
+    }
+
+    console.log("🔍 [ADMIN] Checking Convex database for existing data...");
     
     // Check users
     const users = await convexHttp.query(api.users.getAllUsers, {});
     console.log(`👥 Users (${users.length}):`);
     users.forEach(user => {
-      console.log(`  - ${user.email} (ID: ${user._id})`);
+      console.log(`  - ${user.email} (ID: ${user.id})`);
     });
     
     // Check if robynpthomas@gmail.com exists
@@ -73,7 +80,7 @@ export async function GET() {
         totalProfiles: profiles.length,
         robynUser: robynData,
         mimiProfile: mimiData,
-        allUsers: users.map(u => ({ id: u._id, email: u.email })),
+        allUsers: users.map(u => ({ id: u.id, email: u.email })),
         allProfiles: profiles.map(p => ({ id: p._id, username: p.username, userId: p.userId }))
       }
     });
