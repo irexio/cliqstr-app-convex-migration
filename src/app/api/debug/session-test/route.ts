@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
       sessionOptions
     );
 
-    const debugInfo = {
+    const debugInfo: any = {
       timestamp: new Date().toISOString(),
       cookies: {
         total: cookieArray.length,
