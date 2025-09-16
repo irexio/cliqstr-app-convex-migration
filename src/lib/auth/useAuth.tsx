@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         user: user || null,
-        isLoading: isLoading || (sessionUserId && user === undefined),
+        isLoading: isLoading || (!!sessionUserId && user === undefined),
         error: null,
       }}
     >
