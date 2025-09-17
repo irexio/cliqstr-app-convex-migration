@@ -39,7 +39,6 @@ export const createProfile = mutation({
   args: {
     userId: v.id("users"),
     username: v.string(),
-    birthdate: v.number(),
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     about: v.optional(v.string()),
@@ -48,13 +47,28 @@ export const createProfile = mutation({
     showYear: v.optional(v.boolean()),
     ageGroup: v.optional(v.string()),
     aiModerationLevel: v.optional(v.union(v.literal("strict"), v.literal("moderate"), v.literal("relaxed"))),
+    showMonthDay: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
     
+    // Get account to compute birthday cache
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    // Compute birthday cache from accounts.birthdate
+    let birthdayMonthDay: string | undefined;
+    if (account?.birthdate) {
+      const birthDate = new Date(account.birthdate);
+      const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+      const day = String(birthDate.getDate()).padStart(2, '0');
+      birthdayMonthDay = `${month}-${day}`;
+    }
+    
     const profileId = await ctx.db.insert("myProfiles", {
       username: args.username,
-      birthdate: args.birthdate,
       createdAt: now,
       updatedAt: now,
       userId: args.userId,
@@ -66,6 +80,8 @@ export const createProfile = mutation({
       showYear: args.showYear ?? false,
       ageGroup: args.ageGroup,
       aiModerationLevel: args.aiModerationLevel ?? "strict",
+      showMonthDay: args.showMonthDay ?? true, // Default: show birthday to cliq members
+      birthdayMonthDay,
     });
 
     return profileId;
@@ -100,6 +116,65 @@ export const getAllProfiles = query({
   args: {},
   handler: async (ctx) => {
     return await ctx.db.query("myProfiles").collect();
+  },
+});
+
+// Get profile with birthday information computed from accounts
+export const getProfileWithBirthday = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db
+      .query("myProfiles")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (!profile) return null;
+    
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    if (!account) return profile;
+    
+    // Compute birthday information from accounts.birthdate
+    const birthDate = new Date(account.birthdate);
+    const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+    const day = String(birthDate.getDate()).padStart(2, '0');
+    const year = birthDate.getFullYear();
+    
+    return {
+      ...profile,
+      // Birthday information computed from accounts.birthdate
+      birthdate: account.birthdate,
+      birthdayMonthDay: `${month}-${day}`,
+      birthdayYear: year,
+      // Age computed from accounts.birthdate
+      age: new Date().getFullYear() - year,
+    };
+  },
+});
+
+// Get profiles with birthdays today (for birthday notifications)
+export const getTodaysBirthdays = query({
+  args: {},
+  handler: async (ctx) => {
+    const today = new Date();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${month}-${day}`;
+    
+    const profiles = await ctx.db
+      .query("myProfiles")
+      .filter((q) => 
+        q.and(
+          q.eq(q.field("showMonthDay"), true),
+          q.eq(q.field("birthdayMonthDay"), todayStr)
+        )
+      )
+      .collect();
+    
+    return profiles;
   },
 });
 

@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { fetchJson } from '@/lib/fetchJson';
 import PasswordInput from '@/components/ui/PasswordInput';
 
-type FlowStep = 'initial' | 'role-selection' | 'child-parent-email' | 'adult-credentials' | 'child-success' | 'adult-processing';
+type FlowStep = 'initial' | 'child-parent-email' | 'adult-credentials' | 'child-success' | 'adult-processing';
 
 export default function SignUpForm() {
   const router = useRouter();
@@ -75,8 +75,17 @@ export default function SignUpForm() {
       return;
     }
     
-    // Move to role selection step
-    setCurrentStep('role-selection');
+    // Calculate age and automatically determine role
+    const age = calculateAge(birthdate);
+    const isChild = age < 18;
+    setIsChild(isChild);
+    
+    // Automatically route based on age
+    if (isChild) {
+      setCurrentStep('child-parent-email');
+    } else {
+      setCurrentStep('adult-credentials');
+    }
   };
 
   // Handle role selection
@@ -350,68 +359,8 @@ export default function SignUpForm() {
     );
   }
   
-  // Step 2: Role selection
-  if (currentStep === 'role-selection') {
-    return (
-      <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <h3 className="font-semibold text-blue-900 mb-2">Hi {firstName}!</h3>
-          <p className="text-blue-800 text-sm">
-            Please select your account type to continue.
-          </p>
-        </div>
-        
-        <div className="space-y-3">
-          <Button 
-            type="button"
-            onClick={() => handleRoleSelection('Adult')}
-            className="w-full text-left justify-start"
-            variant="outline"
-          >
-            <div className="flex flex-col items-start">
-              <span className="font-semibold">Adult Account</span>
-              <span className="text-sm text-gray-600">For users 18 and older</span>
-            </div>
-          </Button>
-          
-          <Button 
-            type="button"
-            onClick={() => handleRoleSelection('Child')}
-            className="w-full text-left justify-start"
-            variant="outline"
-          >
-            <div className="flex flex-col items-start">
-              <span className="font-semibold">Child Account</span>
-              <span className="text-sm text-gray-600">For users under 18 (requires parent approval)</span>
-            </div>
-          </Button>
-          
-          <Button 
-            type="button"
-            onClick={() => handleRoleSelection('Parent')}
-            className="w-full text-left justify-start"
-            variant="outline"
-          >
-            <div className="flex flex-col items-start">
-              <span className="font-semibold">Parent Account</span>
-              <span className="text-sm text-gray-600">For parents managing child accounts</span>
-            </div>
-          </Button>
-        </div>
-        
-        <Button 
-          type="button" 
-          variant="outline" 
-          onClick={() => setCurrentStep('initial')}
-          className="w-full"
-        >
-          Back
-        </Button>
-      </div>
-    );
-  }
   
-  // Step 3: Child parent email
+  // Step 2: Child parent email
   if (currentStep === 'child-parent-email') {
     return (
       <div className="space-y-4">

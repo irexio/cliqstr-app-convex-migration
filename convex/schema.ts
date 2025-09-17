@@ -21,7 +21,6 @@ export default defineSchema({
 
   myProfiles: defineTable({
     username: v.string(),
-    birthdate: v.number(),
     createdAt: v.number(),
     userId: v.id("users"),
     ageGroup: v.optional(v.string()),
@@ -33,6 +32,9 @@ export default defineSchema({
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     showYear: v.boolean(),
+    // Birthday visibility controls (computed from accounts.birthdate)
+    showMonthDay: v.boolean(), // Show birthday month/day to cliq members
+    birthdayMonthDay: v.optional(v.string()), // Cache: "MM-DD" for performance
   })
     .index("by_username", ["username"])
     .index("by_user_id", ["userId"]),
