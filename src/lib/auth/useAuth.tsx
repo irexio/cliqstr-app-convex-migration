@@ -59,7 +59,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         if (response.ok) {
           const data = await response.json();
-          console.log('[useAuth] Session response:', { user: data.user ? 'found' : 'null', retryCount });
+          console.log('[useAuth] Session response:', { 
+            user: data.user ? 'found' : 'null', 
+            userId: data.user?.id,
+            userEmail: data.user?.email,
+            retryCount 
+          });
           if (data.user?.id) {
             setSessionUserId(data.user.id);
             setIsLoading(false);
@@ -90,6 +95,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     api.users.getCurrentUser,
     sessionUserId ? { userId: sessionUserId as Id<"users"> } : "skip"
   );
+
+  // Debug logging
+  console.log('[useAuth] Convex query state:', {
+    sessionUserId,
+    user: user ? 'found' : 'null',
+    userEmail: user?.email,
+    isLoading,
+    queryLoading: user === undefined
+  });
 
   return (
     <AuthContext.Provider

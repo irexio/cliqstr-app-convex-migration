@@ -155,7 +155,7 @@ export async function POST(req: NextRequest) {
       const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
       const refreshIntervalMins = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
       const idleCutoffMins = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-      session.userId = user._id;
+      session.userId = user._id.toString();
       session.createdAt = now; // legacy
       session.issuedAt = now;
       session.lastActivityAt = now;
@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
     const timeoutMins = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
     const refreshIntervalMins = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
     const idleCutoffMins = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-    session.userId = user._id;
+    session.userId = user._id.toString();
     session.createdAt = now; // legacy
     session.issuedAt = now;
     session.lastActivityAt = now;
@@ -233,7 +233,7 @@ export async function POST(req: NextRequest) {
       const timeoutMins2 = Number(process.env.SESSION_TIMEOUT_MINUTES || 180);
       const refreshIntervalMins2 = Number(process.env.SESSION_REFRESH_INTERVAL_MINUTES || 20);
       const idleCutoffMins2 = Number(process.env.SESSION_IDLE_CUTOFF_MINUTES || 60);
-      sessionOnRedirect.userId = user._id;
+      sessionOnRedirect.userId = user._id.toString();
       sessionOnRedirect.createdAt = now2; // legacy
       sessionOnRedirect.issuedAt = now2;
       sessionOnRedirect.lastActivityAt = now2;

@@ -111,10 +111,10 @@ The magic link must:
 - ✅ Child accounts are blocked from logging in directly.  
 - ✅ No JWTs or persistent tokens used anywhere in implementation.  
 - ✅ Sessions created only via iron-session.  
+## 8. SMS magic links to be added
 
 ---
 
 ## 8. Non-Goals
-- No SMS magic links (future roadmap).  
 - No fallback password auth.  
-- No social logins.  
+- No social logins. RESTRICTED

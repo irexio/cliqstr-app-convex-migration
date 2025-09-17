@@ -119,3 +119,5 @@ This document must be treated as the single source of truth for maintaining sepa
 All future flows — including Pip, onboarding, account dashboard, and public profile display — must adhere to this model separation.
 
 Make sure any Prisma schema or related database query uses the renamed `MyProfile` model explicitly, and updates all relational mappings accordingly.
+
+//UPDATED CODE DUE TO MIGRATION FROM PRISMA TO CONVEX. FUNDEMENTAL GOALS REMAIN THE SAME. 09-17-25

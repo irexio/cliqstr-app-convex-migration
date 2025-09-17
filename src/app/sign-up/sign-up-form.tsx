@@ -350,7 +350,68 @@ export default function SignUpForm() {
     );
   }
   
-  // Step 2: Child parent email
+  // Step 2: Role selection
+  if (currentStep === 'role-selection') {
+    return (
+      <div className="space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <h3 className="font-semibold text-blue-900 mb-2">Hi {firstName}!</h3>
+          <p className="text-blue-800 text-sm">
+            Please select your account type to continue.
+          </p>
+        </div>
+        
+        <div className="space-y-3">
+          <Button 
+            type="button"
+            onClick={() => handleRoleSelection('Adult')}
+            className="w-full text-left justify-start"
+            variant="outline"
+          >
+            <div className="flex flex-col items-start">
+              <span className="font-semibold">Adult Account</span>
+              <span className="text-sm text-gray-600">For users 18 and older</span>
+            </div>
+          </Button>
+          
+          <Button 
+            type="button"
+            onClick={() => handleRoleSelection('Child')}
+            className="w-full text-left justify-start"
+            variant="outline"
+          >
+            <div className="flex flex-col items-start">
+              <span className="font-semibold">Child Account</span>
+              <span className="text-sm text-gray-600">For users under 18 (requires parent approval)</span>
+            </div>
+          </Button>
+          
+          <Button 
+            type="button"
+            onClick={() => handleRoleSelection('Parent')}
+            className="w-full text-left justify-start"
+            variant="outline"
+          >
+            <div className="flex flex-col items-start">
+              <span className="font-semibold">Parent Account</span>
+              <span className="text-sm text-gray-600">For parents managing child accounts</span>
+            </div>
+          </Button>
+        </div>
+        
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={() => setCurrentStep('initial')}
+          className="w-full"
+        >
+          Back
+        </Button>
+      </div>
+    );
+  }
+  
+  // Step 3: Child parent email
   if (currentStep === 'child-parent-email') {
     return (
       <div className="space-y-4">
@@ -396,7 +457,7 @@ export default function SignUpForm() {
     );
   }
   
-  // Step 3: Adult credentials
+  // Step 4: Adult credentials
   if (currentStep === 'adult-credentials') {
     return (
       <div className="space-y-4">
@@ -501,7 +562,7 @@ export default function SignUpForm() {
     );
   }
   
-  // Step 4: Adult processing (verification pending)
+  // Step 5: Adult processing (verification pending)
   if (currentStep === 'adult-processing') {
     return (
       <div className="space-y-4 text-center">

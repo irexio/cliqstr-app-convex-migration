@@ -234,3 +234,5 @@ type WizardStep = 'upgrade' | 'create-child' | 'permissions' | 'success' | 'dash
 The Parents HQ Wizard transforms the complex parent account setup and child management process into a beautiful, intuitive experience. By breaking down the workflow into clear steps with safety-first defaults, we ensure both parent satisfaction and child protection while maintaining full APA compliance.
 
 The system is designed to scale with families of any size while providing the comprehensive controls parents need to keep their children safe on social media.
+
+// Modified flows due to migration from Prisma/Neon to Convex - 09-17-25
