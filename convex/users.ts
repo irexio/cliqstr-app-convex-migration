@@ -37,7 +37,7 @@ export const getCurrentUser = query({
         image: profile.image,
         bannerImage: profile.bannerImage,
         about: profile.about,
-        birthdate: profile.birthdate,
+        birthdate: account?.birthdate, // Get birthdate from account (single source of truth)
         showYear: profile.showYear,
       } : null,
       account: account ? {
