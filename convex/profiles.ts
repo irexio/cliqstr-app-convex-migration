@@ -46,6 +46,7 @@ export const createProfile = mutation({
     image: v.optional(v.string()),
     bannerImage: v.optional(v.string()),
     showYear: v.optional(v.boolean()),
+    ageGroup: v.optional(v.string()),
     aiModerationLevel: v.optional(v.union(v.literal("strict"), v.literal("moderate"), v.literal("relaxed"))),
   },
   handler: async (ctx, args) => {
@@ -63,6 +64,7 @@ export const createProfile = mutation({
       image: args.image,
       bannerImage: args.bannerImage,
       showYear: args.showYear ?? false,
+      ageGroup: args.ageGroup,
       aiModerationLevel: args.aiModerationLevel ?? "strict",
     });
 
