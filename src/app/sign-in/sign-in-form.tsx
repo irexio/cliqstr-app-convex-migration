@@ -272,6 +272,8 @@ export default function SignInForm() {
             router.push('/choose-plan');
           } else {
             console.log('[SIGNIN] Adult ready, redirecting to dashboard');
+            // Add a small delay to ensure session is fully established
+            await new Promise((resolve) => setTimeout(resolve, 500));
             router.push('/my-cliqs-dashboard');
           }
         } else {

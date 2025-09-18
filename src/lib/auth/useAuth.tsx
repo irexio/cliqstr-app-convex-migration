@@ -53,17 +53,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function getSession(retryCount = 0) {
       try {
+        console.log(`[useAuth] Session check attempt ${retryCount + 1}`);
         const response = await fetch('/api/auth/status', {
           cache: 'no-store',
           credentials: 'include'
         });
+        
+        console.log(`[useAuth] Response status: ${response.status}`);
+        
         if (response.ok) {
           const data = await response.json();
           console.log('[useAuth] Session response:', { 
             user: data.user ? 'found' : 'null', 
             userId: data.user?.id,
             userEmail: data.user?.email,
-            retryCount 
+            retryCount,
+            hasAccount: !!data.user?.account,
+            hasProfile: !!data.user?.myProfile
           });
           if (data.user?.id) {
             setSessionUserId(data.user.id);
@@ -71,13 +77,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
         } else {
-          console.log('[useAuth] Session check failed:', response.status);
+          console.log('[useAuth] Session check failed:', response.status, response.statusText);
         }
         
         // If no user found and we haven't retried too many times, retry after a short delay
-        if (retryCount < 5) {
-          const delay = retryCount < 2 ? 500 : 1000; // Longer delays for later retries
-          console.log(`[useAuth] Retrying session check in ${delay}ms... (attempt ${retryCount + 1}/5)`);
+        if (retryCount < 8) { // Increased retry count
+          const delay = retryCount < 3 ? 300 : (retryCount < 6 ? 500 : 1000); // Shorter initial delays
+          console.log(`[useAuth] Retrying session check in ${delay}ms... (attempt ${retryCount + 1}/8)`);
           setTimeout(() => getSession(retryCount + 1), delay);
           return;
         }
@@ -85,10 +91,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('[useAuth] Failed to get session:', error);
       }
       
+      console.log('[useAuth] Session check exhausted, setting loading to false');
       setIsLoading(false);
     }
 
-    getSession();
+    // Add initial delay for first attempt to allow session to establish
+    setTimeout(() => getSession(), 100);
   }, []);
 
   // Get user data from Convex

@@ -55,27 +55,8 @@ export default function MyCliqsDashboardPage() {
   });
 
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="p-6 max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-gray-200 rounded-lg h-48"></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-
-  if (!user?.id) {
-    // Show loading state briefly before showing unauthorized
-    // This handles the race condition where the page loads before session is established
+  // Show loading state while auth is being established
+  if (isLoading || !user?.id) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
