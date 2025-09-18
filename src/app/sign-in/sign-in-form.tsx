@@ -34,6 +34,15 @@ export default function SignInForm() {
     }
   }, [searchParams]);
 
+  const hardNavigate = (url: string) => {
+    // Force a full page load so the server sees the session cookie on first paint
+    if (typeof window !== 'undefined') {
+      window.location.assign(url);
+    } else {
+      router.push(url);
+    }
+  };
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -62,13 +71,11 @@ export default function SignInForm() {
           message = 'Your account requires parent approval before signing in.';
         } else if (signInData?.error === 'Email not verified') {
           message = 'Please verify your email before signing in.';
-          // Store email in localStorage for the verification pending page
           if (signInData.email) {
             localStorage.setItem('pendingVerificationEmail', signInData.email);
           }
-          // Redirect to verification pending page
-          router.push('/verification-pending');
-          return; // Exit early to prevent further processing
+          hardNavigate('/verification-pending');
+          return;
         } else if (signInData?.error) {
           message = signInData.error;
         }
@@ -133,158 +140,55 @@ export default function SignInForm() {
         throw new Error('Your session could not be established. Please try signing in again.');
       }
 
-      console.log('✅ Authenticated user:', user.id);
-      console.log('Cookies present:', document.cookie.length > 0 ? 'Yes' : 'No');
-
       const account = userData?.user?.account || user.account;
       const profile = userData?.user?.myProfile || user.myProfile;
 
-      console.log('🔍 User state:', {
-        hasProfile: !!profile,
-        hasAccount: !!account,
-        role: account?.role,
-        plan: account?.stripeStatus,
-      });
-
       // 🚫 Block unapproved children
       if (account?.role === 'Child' && !account.isApproved) {
-        console.log('Redirecting unapproved child to approval-pending page');
-        router.push('/approval-pending');
+        hardNavigate('/approval-pending');
         return;
       }
 
-      // 🧾 Plan check - simplified to just check for existence of a plan
-      console.log('[Post-login] plan:', account?.plan, 'stripeStatus:', account?.stripeStatus);
+      // 🧾 Plan check
       if (!account?.plan) {
-        console.log('No plan selected — redirecting to /choose-plan');
-        router.push('/choose-plan');
+        hardNavigate('/choose-plan');
         return;
       }
 
-      // 👤 Profile check - be more lenient, let session-ping handle final routing
-      if (!profile) {
-        console.log('No profile detected in sign-in form, but proceeding to session-ping for final routing');
-        // Don't redirect here - let session-ping handle it
-      }
-
-      console.log(`✅ User signed in: ${account?.role}, account.isApproved: ${account?.isApproved}, plan: ${account?.plan || 'none'}`);
-
-      // Check if this is a parent coming from approval email
+      // Parent invite/approval contexts
       const parentApprovalContext = sessionStorage.getItem('parentApprovalContext');
       if (parentApprovalContext) {
         try {
           const { inviteCode, childId } = JSON.parse(parentApprovalContext);
           sessionStorage.removeItem('parentApprovalContext');
-          console.log('[APA] Parent approval context found, redirecting back to approval page');
-          router.push(`/parent-approval?inviteCode=${inviteCode}&childId=${childId}`);
+          hardNavigate(`/parent-approval?inviteCode=${inviteCode}&childId=${childId}`);
           return;
-        } catch (e) {
-          console.error('Failed to parse parent approval context:', e);
-        }
+        } catch {}
       }
 
-      // Note: Parent invite redirect now handled server-side via cookie in /api/sign-in (Sol's solution)
-
-      // Check if this is a parent coming from invite flow
       const parentInviteContext = sessionStorage.getItem('parentInviteContext');
       if (parentInviteContext) {
         try {
           const { inviteCode } = JSON.parse(parentInviteContext);
           sessionStorage.removeItem('parentInviteContext');
-          console.log('[APA] Parent invite context found, redirecting back to invite page');
-          router.push(`/invite/parent?code=${inviteCode}`);
+          hardNavigate(`/invite/parent?code=${inviteCode}`);
           return;
-        } catch (e) {
-          console.error('Failed to parse parent invite context:', e);
-        }
+        } catch {}
       }
 
-      // Check if this is an adult coming from invite flow
-      const adultInviteContext = sessionStorage.getItem('adultInviteContext');
-      if (adultInviteContext) {
-        try {
-          const { inviteCode } = JSON.parse(adultInviteContext);
-          sessionStorage.removeItem('adultInviteContext');
-          console.log('[APA] Adult invite context found, redirecting back to invite page');
-          router.push(`/invite/adult?code=${inviteCode}`);
-          return;
-        } catch (e) {
-          console.error('Failed to parse adult invite context:', e);
-        }
-      }
-
-      // 🎉 Final redirect: Track the redirect with console logs
-      console.log('[APA] Authentication successful - proceeding with direct navigation');
-      console.log('[APA] Session cookie length:', document.cookie.length);
-      
-      // ✅ APA COMPLIANCE: Check for parent approval context
+      // Final redirect
       const returnTo = searchParams.get('returnTo');
-      const storedParentContext = sessionStorage.getItem('parentApprovalContext');
-      
-      if (returnTo && (returnTo.includes('parent-approval') || returnTo.includes('parents/hq'))) {
-        console.log('[APA] Parent context detected, redirecting to:', returnTo);
-        // Force Next.js to rehydrate with updated state
-        router.refresh();
-        // Add a short delay to ensure session cookie is processed
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        // Redirect to the specified return URL
-        window.location.replace(decodeURIComponent(returnTo));
+      if (returnTo) {
+        hardNavigate(decodeURIComponent(returnTo));
         return;
-      }
-      
-      if (storedParentContext) {
-        console.log('[APA] Parent approval context found in sessionStorage, redirecting to /parents/hq');
-        // Force Next.js to rehydrate with updated state
-        router.refresh();
-        // Add a short delay to ensure session cookie is processed
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        // Redirect to parents HQ for child approval
-        window.location.replace('/parents/hq');
-        return;
-      }
-      
-      // Add a small delay to ensure session cookie is processed
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      
-      // Quick security check and redirect
-      const statusResponse = await fetch('/api/auth/status', {
-        method: 'GET',
-        cache: 'no-store',
-        credentials: 'include'
-      });
-      
-      if (statusResponse.ok) {
-        const statusData = await statusResponse.json();
-        const user = statusData.user;
-        
-        console.log('[SIGNIN] Quick auth check:', { user: user ? 'found' : 'null', role: user?.account?.role });
-        
-        if (user?.account) {
-          // Security checks for different user types
-          if (user.account.role === 'Child' && !user.account.isApproved) {
-            console.log('[SIGNIN] Child not approved, redirecting to awaiting-approval');
-            router.push('/awaiting-approval');
-          } else if (user.account.role === 'Parent') {
-            console.log('[SIGNIN] Parent detected, redirecting to Parents HQ');
-            router.push('/parents/hq/dashboard');
-          } else if (!user.account.plan) {
-            console.log('[SIGNIN] No plan selected, redirecting to choose-plan');
-            router.push('/choose-plan');
-          } else {
-            console.log('[SIGNIN] Adult ready, redirecting to dashboard');
-            // Add a small delay to ensure session is fully established
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            router.push('/my-cliqs-dashboard');
-          }
-        } else {
-          console.log('[SIGNIN] No account found, redirecting to choose-plan');
-          router.push('/choose-plan');
-        }
-      } else {
-        console.log('[SIGNIN] Auth check failed, redirecting to dashboard as fallback');
-        router.push('/my-cliqs-dashboard');
       }
 
+      if (account?.role === 'Parent') {
+        hardNavigate('/parents/hq/dashboard');
+        return;
+      }
+
+      hardNavigate('/my-cliqs-dashboard');
     } catch (err: any) {
       console.error('❌ Sign-in error:', err);
       setError(err.message || 'Something went wrong while signing in. Please try again.');
@@ -306,57 +210,20 @@ export default function SignInForm() {
           </div>
         </div>
       )}
-      
-      {/* APA-compliant password reset success message */}
-      {searchParams.get('reset') === 'success' && (
-        <div className="p-3 rounded bg-green-50 border border-green-200 mb-4">
-          <div className="flex">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <div>
-              <p className="text-sm text-green-800 font-medium">Password reset successful!</p>
-              <p className="text-xs text-green-700">Please sign in with your new password.</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div>
         <label className="block text-sm font-medium">Email or Username</label>
-        <input
-          type="text"
-          autoComplete="username email"
-          required
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          className="w-full border px-3 py-2 rounded text-sm"
-        />
+        <input type="text" autoComplete="username email" required value={identifier} onChange={(e) => setIdentifier(e.target.value)} className="w-full border px-3 py-2 rounded text-sm" />
       </div>
-
       <div>
         <label className="block text-sm font-medium">Password</label>
-        <PasswordInput
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter your password"
-          className="text-sm"
-          autoComplete="current-password"
-          required
-        />
+        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" className="text-sm" autoComplete="current-password" required />
       </div>
-
       {error && (
         <div className="p-3 rounded bg-red-50 border border-red-100">
           <p className="text-sm text-red-600 whitespace-pre-wrap">{error}</p>
         </div>
       )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 text-sm w-full hover:text-[#c032d1]"
-      >
+      <button type="submit" disabled={loading} className="bg-black text-white py-2 px-4 rounded hover:bg-gray-800 text-sm w-full hover:text-[#c032d1]">
         {loading ? 'Signing in…' : 'Sign In'}
       </button>
     </form>
