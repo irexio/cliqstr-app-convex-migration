@@ -214,27 +214,8 @@ export default function SignInForm() {
       }
 
       // 🎉 Final redirect: Track the redirect with console logs
-      console.log('[APA] Authentication successful - redirecting to session-ping');
+      console.log('[APA] Authentication successful - proceeding with direct navigation');
       console.log('[APA] Session cookie length:', document.cookie.length);
-      
-      // APA-compliant session refresh to ensure up-to-date plan information
-      console.log('[APA] Explicitly refreshing session before navigation');
-      try {
-        const refreshResponse = await fetch('/api/auth/refresh-session', { 
-          method: 'GET',
-          cache: 'no-store',
-          credentials: 'include'
-        });
-        
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          console.log('[APA] Session refreshed successfully:', refreshData.user?.account?.plan);
-        } else {
-          console.warn('[APA] Session refresh failed, proceeding with navigation anyway');
-        }
-      } catch (refreshErr) {
-        console.error('[APA] Error during session refresh:', refreshErr);
-      }
       
       // ✅ APA COMPLIANCE: Check for parent approval context
       const returnTo = searchParams.get('returnTo');
