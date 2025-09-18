@@ -32,3 +32,12 @@ Rules:
 - Uploadthing routes (`api/uploadthing/`, `api/debug-uploadthing/`, `api/test-uploadthing/`) were kept in production as they are working on Vercel
 - All moved routes are debug/test utilities that should not be in production
 - These routes can be restored if needed for development/debugging
+
+## Phase 3 Cleanup - Moved on 2025-09-18
+
+### Legacy Page
+- `pages/legacy/session-ping/page.tsx` → moved because legacy auth bounce page; replaced by server-first auth + hard navigation
+
+### Test API Routes
+- `api/test/test-email/route.ts` → moved because temporary Resend verification endpoint
+- `api/test/test-uploadthing/route.ts` → moved because temporary UploadThing environment check
