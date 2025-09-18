@@ -111,26 +111,20 @@ export default function ChoosePlanForm() {
       if (!result.success) throw new Error('Failed to save plan selection');
       console.log('Plan saved successfully:', result);
 
-      // Attempt to refresh the session
+      // Check session status after plan selection
       try {
-        const refreshResponse = await fetch('/api/auth/refresh-session', {
+        const statusResponse = await fetch('/api/auth/status', {
           method: 'GET',
           cache: 'no-store',
           credentials: 'include',
         });
 
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          console.log('[APA] Session refreshed:', refreshData?.user?.account?.plan);
-        } else {
-          await fetch('/api/auth/status', {
-            method: 'GET',
-            cache: 'no-store',
-            credentials: 'include',
-          });
+        if (statusResponse.ok) {
+          const statusData = await statusResponse.json();
+          console.log('[APA] Session status after plan selection:', statusData?.user?.account?.plan);
         }
-      } catch (refreshErr) {
-        console.error('Session refresh error:', refreshErr);
+      } catch (statusErr) {
+        console.error('Session status check error:', statusErr);
       }
 
       // 🛠️ SOL'S FIX: Clear invite role data after successful plan selection
