@@ -80,11 +80,12 @@ export async function POST(req: NextRequest) {
       username,
       firstName,
       lastName,
-      birthdate: birthdate.getTime(),
       about: about || '',
       image: image || '',
       bannerImage: bannerImage || '',
       showYear,
+      showMonthDay: true, // Default: show birthday to cliq members
+      ageGroup: group,
       aiModerationLevel: group === 'child' ? 'strict' : 'moderate',
     });
 
