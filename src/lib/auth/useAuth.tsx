@@ -52,10 +52,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Get session from server-side with retry logic
   useEffect(() => {
     async function getSession(retryCount = 0) {
-      // Add initial delay for first attempt to allow session to establish
-      if (retryCount === 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
       try {
         const response = await fetch('/api/auth/status', {
           cache: 'no-store',

@@ -74,19 +74,14 @@ export default function MyCliqsDashboardPage() {
 
 
   if (!user?.id) {
-    // Add a small delay to handle timing issues with session establishment
+    // Show loading state briefly before showing unauthorized
+    // This handles the race condition where the page loads before session is established
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Unauthorized</h1>
-          <p className="text-gray-600 mb-4">Please sign in to access your dashboard.</p>
-          <p className="text-sm text-gray-500">If you just signed in, please wait a moment for your session to load.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Refresh Page
-          </button>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <h1 className="text-xl font-semibold text-gray-700 mb-2">Loading your dashboard...</h1>
+          <p className="text-gray-500">Please wait while we verify your session.</p>
         </div>
       </div>
     );
