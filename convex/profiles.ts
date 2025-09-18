@@ -67,6 +67,10 @@ export const createProfile = mutation({
       birthdayMonthDay = `${month}-${day}`;
     }
     
+    // Enforce child policy: children can never show year
+    const isMinor = account ? (new Date().getFullYear() - new Date(account.birthdate).getFullYear()) < 18 : false;
+    const enforcedShowYear = isMinor ? false : (args.showYear ?? false);
+    
     const profileId = await ctx.db.insert("myProfiles", {
       username: args.username,
       createdAt: now,
@@ -77,7 +81,7 @@ export const createProfile = mutation({
       about: args.about,
       image: args.image,
       bannerImage: args.bannerImage,
-      showYear: args.showYear ?? false,
+      showYear: enforcedShowYear, // Children: always false, Adults: can control
       ageGroup: args.ageGroup,
       aiModerationLevel: args.aiModerationLevel ?? "strict",
       showMonthDay: args.showMonthDay ?? true, // Default: show birthday to cliq members
@@ -106,6 +110,37 @@ export const updateProfile = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.profileId, {
       ...args.updates,
+      updatedAt: Date.now(),
+    });
+  },
+});
+
+// Update birthday visibility settings (enforces child policy)
+export const updateBirthdayVisibility = mutation({
+  args: {
+    profileId: v.id("myProfiles"),
+    showMonthDay: v.boolean(),
+    showYear: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const profile = await ctx.db.get(args.profileId);
+    if (!profile) throw new Error("Profile not found");
+    
+    // Get account to check if user is minor
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", profile.userId))
+      .first();
+    
+    if (!account) throw new Error("Account not found");
+    
+    // Enforce child policy: children can never show year
+    const isMinor = (new Date().getFullYear() - new Date(account.birthdate).getFullYear()) < 18;
+    const enforcedShowYear = isMinor ? false : args.showYear;
+    
+    await ctx.db.patch(args.profileId, {
+      showMonthDay: args.showMonthDay,
+      showYear: enforcedShowYear,
       updatedAt: Date.now(),
     });
   },

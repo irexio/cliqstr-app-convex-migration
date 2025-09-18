@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
       username: username,
       firstName: firstName,
       lastName: lastName,
-      showYear: false, // Default to hiding birth year
+      showYear: false, // Children: always false (enforced by policy)
       showMonthDay: true, // Default: show birthday to cliq members
     });
 
