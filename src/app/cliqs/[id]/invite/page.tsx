@@ -23,6 +23,7 @@ export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
 import InviteClient from '@/components/InviteClient';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 import InvitePageContentConvex from '@/components/cliqs/InvitePageContentConvex';
 
 export default async function InvitePage({
@@ -32,10 +33,8 @@ export default async function InvitePage({
 }) {
   const { id } = await params;
   const user = await getCurrentUser();
-
-  if (!id || !user?.id) {
-    notFound();
-  }
+  enforceAPA(user);
+  if (!id) notFound();
 
   return (
     <InvitePageContentConvex cliqId={id} currentUserId={user.id} />

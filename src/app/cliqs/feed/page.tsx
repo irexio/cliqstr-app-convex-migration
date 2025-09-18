@@ -18,14 +18,12 @@ export const dynamic = 'force-dynamic';
  */
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { notFound } from 'next/navigation';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 import CliqFeedConvex from '@/components/cliqs/CliqFeedConvex';
 
 export default async function FeedPage() {
   const user = await getCurrentUser();
-  if (!user?.id) {
-    notFound();
-  }
+  enforceAPA(user);
 
   // Use the user's ID as the default cliqId
   // In a production app, you might want to fetch the user's preferred cliq

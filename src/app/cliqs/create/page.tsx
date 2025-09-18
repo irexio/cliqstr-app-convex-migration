@@ -2,15 +2,12 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
-import { isValidPlan } from '@/lib/utils/planUtils';
-import { notFound } from 'next/navigation';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 import CreateCliqForm from '@/components/cliqs/CreateCliqForm';
 
 export default async function CreateCliqPage() {
   const user = await getCurrentUser();
-  if (!user?.id || !user.plan) {
-    notFound();
-  }
+  enforceAPA(user);
 
   return (
     <main className="min-h-screen bg-white p-6">

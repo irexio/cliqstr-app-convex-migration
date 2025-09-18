@@ -1,85 +1,55 @@
-// lib/auth/getCurrentUser.ts
+// Server-only current user with iron-session, cache-first
 import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from '../../../convex/_generated/api';
-import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { getCachedUser, setCachedUser } from '@/lib/cache/userCache';
 
-/**
- * 🔐 APA-HARDENED: Retrieves the current user from a secure encrypted session cookie.
- * Uses iron-session for encrypted session management.
- * Requires Next.js 13+ App Router.
- * 
- * Note: This is a server-side only function that must be called from Server Components
- * or Route Handlers. For API routes, use getIronSession directly.
- */
+const IDLE_MIN = 30;
+
 export async function getCurrentUser() {
   try {
-    // Import dynamically to avoid issues with server/client boundary
-    const { getIronSession } = await import('iron-session');
-    const { NextRequest, NextResponse } = await import('next/server');
-    
-    // Get cookieStore and create request/response objects to match parent-signup pattern
     const cookieStore = await cookies();
-    
-    // Create mock request with cookies for iron-session compatibility
-    const request = new NextRequest('http://localhost', {
-      headers: { cookie: cookieStore.toString() }
-    });
-    const response = NextResponse.next();
-    
-    // Get the encrypted session using same pattern as parent-signup route
-    const session = await getIronSession<SessionData>(
-      request,
-      response,
-      sessionOptions
-    );
+    const req = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
+    const res = new Response();
 
-    if (!session.userId) {
-      console.log('[APA] No session found');
-      return null;
-    }
+    const session = await getIronSession<SessionData>(req as any, res as any, sessionOptions);
+    if (!session.userId) return null;
 
-    // Check session expiration using the new session format
     const now = Date.now();
-    
-    // Check if session has expired based on expiresAt field
-    if (session.expiresAt && session.expiresAt < now) {
-      console.log(`[APA] Session expired at ${new Date(session.expiresAt).toISOString()}`);
+    const idleLimit = (session.idleCutoffMinutes ?? IDLE_MIN) * 60_000;
+    if (session.lastActivityAt && now - session.lastActivityAt > idleLimit) {
+      await session.destroy();
       return null;
     }
-    
-    // Check idle timeout
-    const idleTimeMs = session.idleCutoffMinutes ? session.idleCutoffMinutes * 60 * 1000 : 60 * 60 * 1000; // Default 1 hour
-    if (session.lastActivityAt && (now - session.lastActivityAt) > idleTimeMs) {
-      console.log(`[APA] Session idle timeout exceeded`);
+    if (session.expiresAt && now > session.expiresAt) {
+      await session.destroy();
       return null;
     }
 
-    // Use Convex to get user data
-    const user = await convexHttp.query(api.users.getCurrentUser, {
-      userId: session.userId as any, // Convert string to Convex ID
-    });
-
-    if (!user) {
-      console.warn('[APA] User not found for session userId:', session.userId);
-      return null;
+    // Cache first
+    const cached = await getCachedUser(session.userId);
+    if (cached) {
+      try {
+        const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached;
+        return parsed;
+      } catch {
+        // Fallback to raw cached object if JSON.parse fails
+        return cached as any;
+      }
     }
 
-    if (user.account?.suspended) {
-      console.warn('[APA] Suspended user attempted access:', session.userId);
-      return null;
-    }
+    const user = await convexHttp.query(api.users.getCurrentUser, { userId: session.userId as any });
+    if (!user || user.account?.suspended) return null;
 
-    console.log('[APA] Authenticated user loaded:', {
-      email: user.email,
-      plan: user.account?.plan,
-      role: user.account?.role,
-      approved: user.account?.isApproved,
-    });
+    session.lastActivityAt = now;
+    await session.save();
 
+    await setCachedUser(session.userId, user, 60);
     return user;
   } catch (error) {
-    console.error('[APA] Error in getCurrentUser:', error);
+    console.error('[getCurrentUser] error', error);
     return null;
   }
 }

@@ -1,13 +1,11 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 import EditProfilePageClient from './EditProfilePageClient';
 
 export default async function EditProfilePage() {
   const user = await getCurrentUser();
-  
-  if (!user) {
-    redirect('/login');
-  }
+  enforceAPA(user);
 
   if (!user.myProfile) {
     redirect('/profile/create');

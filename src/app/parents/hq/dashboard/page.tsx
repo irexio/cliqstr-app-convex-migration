@@ -10,7 +10,11 @@ export const dynamic = 'force-dynamic';
  */
 
 import ParentsHQContent from '@/components/parents/ParentsHQContent';
+import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 
 export default async function ParentsHQDashboard() {
+  const user = await getCurrentUser();
+  enforceAPA(user);
   return <ParentsHQContent />;
 }

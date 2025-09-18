@@ -190,3 +190,7 @@ Remember: If you're working on Cliqstr, you're not just writing code — you're 
 
 Let's Change The Way We Socialize Online (and maybe offline too?) - For Good!
 
+## 📚 Documentation
+- [APA — Aiden’s Power Auth](./docs/APA.md)
+- [APA Quick Checklist](./docs/APA-CHECKLIST.md)
+

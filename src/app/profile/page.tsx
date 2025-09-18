@@ -2,14 +2,12 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 import { redirect } from 'next/navigation';
 
 export default async function ProfileRedirectPage() {
   const user = await getCurrentUser();
-
-  if (!user?.id) {
-    redirect('/sign-in');
-  }
+  enforceAPA(user);
 
   // Redirect to the user's own profile if they have one
   if (user.myProfile && !user.myProfile.username?.startsWith('user-')) {

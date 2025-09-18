@@ -2,15 +2,13 @@
 export const dynamic = 'force-dynamic';
 
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
+import { enforceAPA } from '@/lib/auth/enforceAPA';
 import CreateProfileForm from '@/components/CreateProfileForm';
 import { redirect } from 'next/navigation';
 
 export default async function CreateProfilePage() {
   const user = await getCurrentUser();
-
-  if (!user?.id) {
-    redirect('/sign-in');
-  }
+  enforceAPA(user);
   
   // If user already has a MyProfile, redirect to dashboard
   if (user.myProfile) {

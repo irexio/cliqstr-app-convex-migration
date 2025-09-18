@@ -14,8 +14,8 @@ export const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND
 // Standard from address
 export const FROM_EMAIL = 'Cliqstr <noreply@email.cliqstr.com>';
 
-// Base URL for links
-export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nextjs-boilerplate-nine-self-80.vercel.app';
+// Base URL for links (production domain fallback)
+export const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://cliqstr.com';
 
 type SendEmailOptions = {
   to: string | string[];
