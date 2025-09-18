@@ -21,7 +21,7 @@ export default async function EditProfilePage() {
     about: user.myProfile.about || null,
     image: user.myProfile.image || null,
     bannerImage: user.myProfile.bannerImage || null,
-    birthdate: new Date(user.myProfile.birthdate),
+    birthdate: user.account?.birthdate ? new Date(user.account.birthdate) : null,
     showYear: user.myProfile.showYear,
   }} />;
 }
