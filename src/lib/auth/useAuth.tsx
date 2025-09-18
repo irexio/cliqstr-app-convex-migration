@@ -75,9 +75,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         
         // If no user found and we haven't retried too many times, retry after a short delay
-        if (retryCount < 2) {
-          console.log('[useAuth] Retrying session check in 500ms...');
-          setTimeout(() => getSession(retryCount + 1), 500);
+        if (retryCount < 5) {
+          const delay = retryCount < 2 ? 500 : 1000; // Longer delays for later retries
+          console.log(`[useAuth] Retrying session check in ${delay}ms... (attempt ${retryCount + 1}/5)`);
+          setTimeout(() => getSession(retryCount + 1), delay);
           return;
         }
       } catch (error) {

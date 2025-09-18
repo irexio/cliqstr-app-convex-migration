@@ -15,7 +15,14 @@ export async function requireAdmin(req: NextRequest) {
     }
 
     // Check auth status using the existing auth status endpoint
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+    // Fix for Vercel preview deployments: use preview domain for cookies
+    const host = req.headers.get("host") || "";
+    const isVercelPreview = host.endsWith(".vercel.app");
+
+    const baseUrl =
+      !isVercelPreview && process.env.NEXT_PUBLIC_SITE_URL
+        ? process.env.NEXT_PUBLIC_SITE_URL
+        : req.nextUrl.origin;
     const statusRes = await fetch(`${baseUrl}/api/auth/status`, {
       headers: { cookie: cookieHeader },
       cache: 'no-store',

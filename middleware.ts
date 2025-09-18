@@ -68,7 +68,14 @@ export async function middleware(req: NextRequest) {
   // Check auth quickly via existing status route
   try {
     // Use absolute URL from environment variable for production reliability
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.nextUrl.origin;
+    // Fix for Vercel preview deployments: use preview domain for cookies
+    const host = req.headers.get("host") || "";
+    const isVercelPreview = host.endsWith(".vercel.app");
+
+    const baseUrl =
+      !isVercelPreview && process.env.NEXT_PUBLIC_SITE_URL
+        ? process.env.NEXT_PUBLIC_SITE_URL
+        : req.nextUrl.origin;
     const statusRes = await fetch(`${baseUrl}/api/auth/status`, {
       headers: { cookie: req.headers.get('cookie') || '' },
       cache: 'no-store',
