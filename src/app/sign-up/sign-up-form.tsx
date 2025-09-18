@@ -227,8 +227,8 @@ export default function SignUpForm() {
         setTimeout(() => {
           router.push('/verification-pending');
         }, 1500);
-      } else {
-        // Legacy flow - attempt auto sign-in
+      } else if (res.isVerified) {
+        // Pre-verified user (like parent invites) - can proceed directly
         try {
           const signInRes = await fetchJson('/api/sign-in', {
             method: 'POST',
@@ -256,6 +256,12 @@ export default function SignUpForm() {
           // and redirect to sign-in page
           router.push('/sign-in');
         }
+      } else {
+        // Default to verification pending for safety
+        setCurrentStep('adult-processing');
+        setTimeout(() => {
+          router.push('/verification-pending');
+        }, 1500);
       }
     } catch (err: any) {
       console.error('❌ Sign-up error:', err);
