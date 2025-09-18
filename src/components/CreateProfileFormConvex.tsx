@@ -52,13 +52,13 @@ export default function CreateProfileFormConvex() {
       const profileId = await createProfile({
         userId: user.id as Id<"users">,
         username: username.toLowerCase(),
-        birthdate: new Date(birthdate).getTime(),
         firstName,
         lastName,
         about: about || undefined,
         image: avatarUrl || undefined,
         bannerImage: bannerUrl || undefined,
         showYear,
+        showMonthDay: true, // Default: show birthday to cliq members
       });
 
       // Redirect to the user's completed profile
