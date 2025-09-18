@@ -240,9 +240,15 @@ export default function SignUpForm() {
           
           // Redirect to the appropriate page
           if (signInRes.redirectUrl) {
-            router.push(signInRes.redirectUrl);
+            // Add a small delay to ensure session is established
+            setTimeout(() => {
+              window.location.href = signInRes.redirectUrl;
+            }, 100);
           } else {
-            router.push('/dashboard');
+            // Add a small delay to ensure session is established
+            setTimeout(() => {
+              window.location.href = '/my-cliqs-dashboard';
+            }, 100);
           }
         } catch (signInErr: any) {
           console.error('Auto sign-in failed:', signInErr);
