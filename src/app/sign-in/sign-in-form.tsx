@@ -88,7 +88,7 @@ export default function SignInForm() {
       while (attemptCount < maxAttempts) {
         attemptCount++;
         try {
-          const userRes = await fetch('/auth/status', {
+          const userRes = await fetch('/api/auth/status', {
             method: 'GET',
             headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
             credentials: 'include',
