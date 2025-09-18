@@ -84,7 +84,7 @@ export default function ProfilePageServerConvex({ username }: ProfilePageServerC
     id: profile._id,
     name: `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || profile.username,
     username: profile.username,
-    birthdate: new Date(profile.birthdate).toISOString(),
+    birthdate: profile.account?.birthdate ? new Date(profile.account.birthdate).toISOString() : undefined,
     bio: profile.about || '',
     avatarUrl: profile.image || undefined,
     bannerUrl: profile.bannerImage || undefined,
@@ -93,8 +93,8 @@ export default function ProfilePageServerConvex({ username }: ProfilePageServerC
     showYear: profile.showYear || false,
     galleryLayoutStyle: 'inline' as const,
     // Include Account data for age verification (optional for backward compatibility)
-    accountBirthdate: undefined, // Will be populated when Account.birthdate is set during signup
-    accountRole: undefined,
+    accountBirthdate: profile.account?.birthdate,
+    accountRole: profile.account?.role,
   };
 
   // Transform scrapbook items to match expected format

@@ -36,7 +36,7 @@ export default function SetUpProfileClientConvex({
   useEffect(() => {
     if (isEdit && getProfile) {
       setUsername(getProfile.username || '');
-      setBirthdate(new Date(getProfile.birthdate).toISOString().split('T')[0]);
+      setBirthdate(getProfile.account?.birthdate ? new Date(getProfile.account.birthdate).toISOString().split('T')[0] : '');
       setAvatarUrl(getProfile.image || '');
       setBannerUrl(getProfile.bannerImage || '');
     }
@@ -96,9 +96,9 @@ export default function SetUpProfileClientConvex({
         await createProfile({
           userId: user.id as Id<"users">,
           username: username.toLowerCase(),
-          birthdate: new Date(birthdate).getTime(),
           image: avatarUrl || undefined,
           bannerImage: bannerUrl || undefined,
+          showMonthDay: true, // Default: show birthday to cliq members
         });
       }
 

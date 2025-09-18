@@ -13,11 +13,24 @@ export const getProfileByUsername = query({
     if (!profile) return null;
 
     const user = await ctx.db.get(profile.userId);
+    
+    // Get account data for birthdate (single source of truth)
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", profile.userId))
+      .first();
+    
     return {
       ...profile,
       user: user ? {
         id: user._id,
         email: user.email,
+      } : null,
+      // Include account data for birthdate access
+      account: account ? {
+        birthdate: account.birthdate,
+        role: account.role,
+        isApproved: account.isApproved,
       } : null,
     };
   },
@@ -27,10 +40,28 @@ export const getProfileByUsername = query({
 export const getProfileByUserId = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
-    return await ctx.db
+    const profile = await ctx.db
       .query("myProfiles")
       .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
       .first();
+    
+    if (!profile) return null;
+    
+    // Get account data for birthdate (single source of truth)
+    const account = await ctx.db
+      .query("accounts")
+      .withIndex("by_user_id", (q) => q.eq("userId", args.userId))
+      .first();
+    
+    return {
+      ...profile,
+      // Include account data for birthdate access
+      account: account ? {
+        birthdate: account.birthdate,
+        role: account.role,
+        isApproved: account.isApproved,
+      } : null,
+    };
   },
 });
 
