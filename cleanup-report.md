@@ -239,5 +239,7 @@ These should be moved to `/deprecated/` before production:
 - **Deprecated Folder**: 1 file (README only)
 
 ---
-*Report generated on: $(date)*
+Refreshed scan: Confirmed `session-ping/page.tsx` remains legacy and unused by current flows; keep as prune candidate. No new duplicate routes detected. API `auth/status` is server-first and in use; middleware simplified as intended.
+
+*Report generated on: 2025-09-18*
 *Phase 2 Complete - Ready for Phase 3 Safe Prune*
