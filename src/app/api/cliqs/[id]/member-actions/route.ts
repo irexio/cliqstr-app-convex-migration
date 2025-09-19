@@ -39,7 +39,7 @@ export async function POST(
       await convexHttp.mutation(api.memberships.removeMember, {
         userId: targetUserId as any,
         cliqId: cliqId as any,
-        updatedBy: user.id as any,
+        removedBy: user.id as any,
       });
     } else {
       const newRole = action === 'promote' ? 'Moderator' : 'Member';
