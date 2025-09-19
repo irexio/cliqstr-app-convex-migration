@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 
 /**
  * 🔄 OPTIMIZED CONVEX ROUTE: POST /api/replies
@@ -18,10 +19,7 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 // Note: Membership verification is now handled by Convex functions automatically
-import { cookies } from 'next/headers';
-import { getIronSession } from 'iron-session';
-import { sessionOptions, SessionData } from '@/lib/auth/session-config';
-import { invalidateUser } from '@/lib/cache/userCache';
+import { bumpActivityAndInvalidate } from '@/lib/session-activity';
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,17 +53,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Bump session activity and invalidate cache
-    try {
-      const cookieStore = await cookies();
-      const req2 = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
-      const res2 = new Response();
-      const session = await getIronSession<SessionData>(req2 as any, res2 as any, sessionOptions);
-      if (session && session.userId) {
-        session.lastActivityAt = Date.now();
-        await session.save();
-        await invalidateUser(String(session.userId));
-      }
-    } catch {}
+    await bumpActivityAndInvalidate();
 
     return NextResponse.json({ 
       reply: { 

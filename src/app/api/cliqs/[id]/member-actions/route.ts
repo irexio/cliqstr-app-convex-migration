@@ -1,14 +1,12 @@
 export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
-import { cookies } from 'next/headers';
-import { getIronSession } from 'iron-session';
-import { sessionOptions, SessionData } from '@/lib/auth/session-config';
-import { invalidateUser } from '@/lib/cache/userCache';
+import { bumpActivityAndInvalidate } from '@/lib/session-activity';
 
 const BodySchema = z.object({
   targetUserId: z.string().min(1),
@@ -52,17 +50,7 @@ export async function POST(
     }
 
     // Bump activity and invalidate cache
-    try {
-      const cookieStore = await cookies();
-      const req2 = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
-      const res2 = new Response();
-      const session = await getIronSession<SessionData>(req2 as any, res2 as any, sessionOptions);
-      if (session && session.userId) {
-        session.lastActivityAt = Date.now();
-        await session.save();
-        await invalidateUser(String(session.userId));
-      }
-    } catch {}
+    await bumpActivityAndInvalidate();
 
     return NextResponse.json({ success: true });
   } catch (err) {
