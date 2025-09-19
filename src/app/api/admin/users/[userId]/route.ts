@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { Id } from 'convex/_generated/dataModel';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,7 +45,9 @@ export async function PATCH(
       default:
         return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
-    
+    // Invalidate cache after admin user mutation
+    await invalidateUser(userId);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[ADMIN_USER_ACTION] Error:', error);

@@ -4,6 +4,7 @@ import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -194,6 +195,9 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(`[PARENT-CHILDREN] Successfully created child account: ${username}`);
+
+    // Invalidate parent cache to reflect child linkage/permissions
+    await invalidateUser(String(session.userId));
 
     return NextResponse.json({
       success: true,

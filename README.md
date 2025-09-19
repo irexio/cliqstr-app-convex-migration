@@ -194,3 +194,12 @@ Let's Change The Way We Socialize Online (and maybe offline too?) - For Good!
 - [APA — Aiden’s Power Auth](./docs/APA.md)
 - [APA Quick Checklist](./docs/APA-CHECKLIST.md)
 
+### Environment toggles
+
+Add the following to your `.env.local` (documented here for local setup):
+
+```
+NEXT_PUBLIC_HEARTBEAT_SECONDS=60
+SESSION_IDLE_MINUTES=15
+```
+

@@ -3,6 +3,7 @@ import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
 import crypto from 'crypto';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -89,6 +90,8 @@ export async function POST(req: NextRequest) {
         plan: plan,
       },
     });
+
+    await invalidateUser(String(parentUser._id));
 
     // Don't mark approval as completed yet - that happens after child account creation in Parents HQ
     // The approval remains 'pending' until the parent creates the child account
