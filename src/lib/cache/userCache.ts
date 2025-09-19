@@ -29,11 +29,23 @@ async function kvSet(key: string, val: any, ttlSeconds: number) {
 }
 
 export async function getCachedUser(userId: string): Promise<U | null> {
-  return await kvGet(`user:${userId}`);
+  const raw = await kvGet(`user:${userId}`);
+  if (!raw) return null;
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (!parsed || typeof parsed !== 'object' || !('id' in parsed)) return null;
+    return parsed as U;
+  } catch {
+    return null;
+  }
 }
 
 export async function setCachedUser(userId: string, user: U, ttl = 60) {
-  await kvSet(`user:${userId}`, user, ttl);
+  try {
+    await kvSet(`user:${userId}`, JSON.stringify(user), ttl);
+  } catch {
+    await kvSet(`user:${userId}`, user, ttl);
+  }
 }
 
 export async function invalidateUser(userId: string) {

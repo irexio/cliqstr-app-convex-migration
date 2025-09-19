@@ -14,6 +14,7 @@ import SessionProvider from '@/components/SessionProvider';
 import AppFrame from '@/components/AppFrame';
 import { ConvexClientProvider } from '@/components/providers/ConvexProvider';
 import { AuthProvider } from '@/lib/auth/useAuth';
+import ClientSessionHeartbeat from '@/components/auth/ClientSessionHeartbeat';
 
 
 const poppins = Poppins({
@@ -39,6 +40,7 @@ export default function RootLayout({
         <ConvexClientProvider>
           <SessionProvider>
             <AuthProvider>
+              <ClientSessionHeartbeat />
               <AppFrame>{children}</AppFrame>
             </AuthProvider>
           </SessionProvider>

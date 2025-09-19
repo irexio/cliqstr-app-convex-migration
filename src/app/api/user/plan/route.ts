@@ -4,6 +4,7 @@ import { sessionOptions, SessionData } from '@/lib/auth/session-config';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { z } from 'zod';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,9 @@ export async function POST(req: NextRequest) {
         isApproved: true,
       },
     });
+
+    // Invalidate user cache after plan/approval change
+    await invalidateUser(String(session.userId));
 
     console.log(`[PLAN-UPDATE] Successfully updated plan to: ${plan}`);
 

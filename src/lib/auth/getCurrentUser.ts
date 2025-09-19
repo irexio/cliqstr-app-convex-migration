@@ -6,6 +6,12 @@ import { convexHttp } from '@/lib/convex-server';
 import { api } from '../../../convex/_generated/api';
 import { getCachedUser, setCachedUser } from '@/lib/cache/userCache';
 
+const IDLE_MS = (Number(process.env.SESSION_IDLE_MINUTES ?? 15)) * 60_000;
+
+export class UnauthorizedExpired extends Error {
+  constructor() { super('Session expired due to inactivity'); }
+}
+
 const IDLE_MIN = 30;
 
 export async function getCurrentUser() {
@@ -15,17 +21,14 @@ export async function getCurrentUser() {
     const res = new Response();
 
     const session = await getIronSession<SessionData>(req as any, res as any, sessionOptions);
-    if (!session.userId) return null;
+    if (!session.userId) throw new Error('Unauthenticated');
 
     const now = Date.now();
-    const idleLimit = (session.idleCutoffMinutes ?? IDLE_MIN) * 60_000;
-    if (session.lastActivityAt && now - session.lastActivityAt > idleLimit) {
+    const lastActive = Number(session.lastActivityAt ?? 0);
+    const idleLimit = IDLE_MS;
+    if (lastActive && now - lastActive > idleLimit) {
       await session.destroy();
-      return null;
-    }
-    if (session.expiresAt && now > session.expiresAt) {
-      await session.destroy();
-      return null;
+      throw new UnauthorizedExpired();
     }
 
     // Cache first
