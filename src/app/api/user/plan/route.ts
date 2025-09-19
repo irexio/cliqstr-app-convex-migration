@@ -21,7 +21,7 @@ const planSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    // Get the encrypted session using iron-session
+    // Access session for auth check (no cookie write yet)
     const session = await getIronSession<SessionData>(
       req,
       NextResponse.next(),
@@ -54,16 +54,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Update the user's plan
+    // Update the user's plan (users table)
     await convexHttp.mutation(api.users.updateUserPlan, {
       userId: session.userId as any,
       plan: plan,
     });
 
-    // Also approve the user when they select a plan
+    // Mirror plan into Account and approve
     await convexHttp.mutation(api.accounts.updateAccount, {
       userId: session.userId as any,
       updates: {
+        plan: plan,
         isApproved: true,
       },
     });
@@ -73,11 +74,23 @@ export async function POST(req: NextRequest) {
 
     console.log(`[PLAN-UPDATE] Successfully updated plan to: ${plan}`);
 
-    return NextResponse.json({
+    // Build response first so cookie save attaches to same response
+    const response = NextResponse.json({
       success: true,
       message: 'Plan updated successfully',
       plan: plan,
     });
+
+    // Bump session activity and persist cookie on same response
+    try {
+      const sess = await getIronSession<SessionData>(req, response, sessionOptions);
+      if (sess) {
+        sess.lastActivityAt = Date.now();
+        await sess.save();
+      }
+    } catch {}
+
+    return response;
 
   } catch (error) {
     console.error('[PLAN-UPDATE] Error updating plan:', error);

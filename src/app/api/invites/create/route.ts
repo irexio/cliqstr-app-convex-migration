@@ -10,11 +10,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+export const runtime = "nodejs";
 import crypto from 'crypto';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { generateJoinCode } from '@/lib/auth/generateJoinCode';
+import { bumpActivityAndInvalidate } from '@/lib/session-activity';
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,6 +101,9 @@ export async function POST(request: NextRequest) {
       cliqId: cliqId ? cliqId as any : undefined, // Use cliqId if provided
       isApproved: false,
     });
+
+    // Bump session activity and invalidate user cache
+    await bumpActivityAndInvalidate();
 
     // TODO: Send email with link: ${BASE_URL}/invite/${invite.token}
     

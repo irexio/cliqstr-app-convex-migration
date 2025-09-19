@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import Link from 'next/link';
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface Member {
@@ -33,7 +34,7 @@ export default function MembersModal({ cliqId, open, onClose, isOwner = false }:
         if (!res.ok) throw new Error("Failed to fetch members");
         return res.json();
       })
-      .then(data => setMembers(data.members || []))
+      .then(data => setMembers(Array.isArray(data.members) ? data.members : []))
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [cliqId, open]);
@@ -92,12 +93,46 @@ export default function MembersModal({ cliqId, open, onClose, isOwner = false }:
         <DialogTitle className="text-xl font-bold mb-2">Members</DialogTitle>
         {loading && <div className="py-4 text-center text-gray-500">Loading members...</div>}
         {error && <div className="py-4 text-center text-red-500">{error}</div>}
+        {!loading && !error && (
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-500">Cliq ID: {cliqId}</div>
+            <div className="flex items-center gap-2">
+              {isOwner && (
+                <button
+                  onClick={async () => {
+                    try {
+                      const url = `${window.location.origin}/cliqs/${cliqId}`;
+                      await navigator.clipboard.writeText(url);
+                      setFeedback({ type: 'success', message: 'Cliq link copied' });
+                      setTimeout(() => setFeedback(null), 1500);
+                    } catch {
+                      setFeedback({ type: 'error', message: 'Failed to copy link' });
+                      setTimeout(() => setFeedback(null), 2000);
+                    }
+                  }}
+                  className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm"
+                >
+                  Copy Cliq Link
+                </button>
+              )}
+              <Link
+                href={`/cliqs/${cliqId}/members`}
+                className="px-3 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm"
+              >
+                Open Full Members Page
+              </Link>
+            </div>
+          </div>
+        )}
+        {!loading && !error && members.length === 0 && (
+          <div className="py-6 text-center text-gray-500">Currently no members.</div>
+        )}
         {feedback && (
           <div className={`mb-4 p-3 rounded ${feedback.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
             {feedback.message}
           </div>
         )}
-        {!loading && !error && (
+        {!loading && !error && members.length > 0 && (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>

@@ -23,12 +23,14 @@
  *   - 500 on error
  */
 export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { validateAgeRequirements } from '@/lib/utils/ageUtils';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
+import { bumpActivityAndInvalidate } from '@/lib/session-activity';
 
 export async function POST(
   req: NextRequest,
@@ -120,7 +122,9 @@ export async function POST(
     });
 
     console.log(`[JOIN_CLIQ_SUCCESS] User ${user.id} joined cliq ${cliqId} (age: ${ageValidation.userAge})`);
-    
+    // Bump session activity and invalidate cache
+    await bumpActivityAndInvalidate();
+
     return NextResponse.json({ 
       success: true,
       message: `Successfully joined ${cliq.name}`,

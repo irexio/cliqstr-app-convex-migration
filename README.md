@@ -125,6 +125,25 @@ npm run dev
 - `npx convex deploy` → Deploy schema + functions to production. 
   (This is the command Vercel also runs during builds.)
 
+## IMPORTANT
+## Convex Dev Database Sync
+
+chmod +x sync-dev.sh
+
+Convex does not automatically sync the **Dev** database with **Prod** unles you bash / chmod +x sync-dev.sh   
+To test locally with realistic data, you need to refresh Dev from Prod.
+
+### One-time export/import
+Run these commands in the project root:
+
+```bash
+# Export all data from Prod into a zip file
+npx convex export --deployment-name prod:upbeat-hedgehog-998 --path prod.zip
+
+# Import that data into Dev (this will overwrite Dev DB!)
+npx convex import --deployment-name dev:adorable-chicken-923 --replace prod.zip
+
+
 ---
 
 ## Environment Variables
@@ -201,5 +220,10 @@ Add the following to your `.env.local` (documented here for local setup):
 ```
 NEXT_PUBLIC_HEARTBEAT_SECONDS=60
 SESSION_IDLE_MINUTES=15
+SESSION_ABSOLUTE_MINUTES=480
 ```
+
+Notes:
+- SESSION_IDLE_MINUTES controls inactivity timeout (minutes).
+- SESSION_ABSOLUTE_MINUTES enforces a hard max session lifetime (minutes). Set to 0 to disable.
 

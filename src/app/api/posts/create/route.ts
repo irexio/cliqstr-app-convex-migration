@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 
 /**
  * 🔐 APA-HARDENED ROUTE: POST /api/posts/create
@@ -31,6 +32,7 @@ import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 // Note: Membership verification is now handled by Convex functions automatically
 import { z } from 'zod';
+import { bumpActivityAndInvalidate } from '@/lib/session-activity';
 
 const schema = z.object({
   content: z.string().optional(),
@@ -81,6 +83,8 @@ export async function POST(req: Request) {
       authorId: user.id as any,
       expiresAt: expiresAt.getTime(),
     });
+    // Bump session activity and invalidate cache
+    await bumpActivityAndInvalidate();
 
     return NextResponse.json(post);
   } catch (err) {

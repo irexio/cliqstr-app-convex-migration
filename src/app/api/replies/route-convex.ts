@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 
 /**
  * 🔄 OPTIMIZED CONVEX ROUTE: POST /api/replies
@@ -18,6 +19,7 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 // Note: Membership verification is now handled by Convex functions automatically
+import { bumpActivityAndInvalidate } from '@/lib/session-activity';
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +51,9 @@ export async function POST(req: NextRequest) {
       postId: postId as any,
       authorId: user.id as any,
     });
+
+    // Bump session activity and invalidate cache
+    await bumpActivityAndInvalidate();
 
     return NextResponse.json({ 
       reply: { 
