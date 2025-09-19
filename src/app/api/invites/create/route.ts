@@ -15,6 +15,10 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
 import { generateJoinCode } from '@/lib/auth/generateJoinCode';
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,6 +103,19 @@ export async function POST(request: NextRequest) {
       cliqId: cliqId ? cliqId as any : undefined, // Use cliqId if provided
       isApproved: false,
     });
+
+    // Bump session activity and invalidate user cache
+    try {
+      const cookieStore = await cookies();
+      const req2 = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
+      const res2 = new Response();
+      const session = await getIronSession<SessionData>(req2 as any, res2 as any, sessionOptions);
+      if (session && session.userId) {
+        session.lastActivityAt = Date.now();
+        await session.save();
+        await invalidateUser(String(session.userId));
+      }
+    } catch {}
 
     // TODO: Send email with link: ${BASE_URL}/invite/${invite.token}
     

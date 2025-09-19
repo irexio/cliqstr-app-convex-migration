@@ -31,6 +31,10 @@ import { api } from 'convex/_generated/api';
 import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 // Note: Membership verification is now handled by Convex functions automatically
 import { z } from 'zod';
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 const schema = z.object({
   content: z.string().optional(),
@@ -81,6 +85,18 @@ export async function POST(req: Request) {
       authorId: user.id as any,
       expiresAt: expiresAt.getTime(),
     });
+    // Bump session activity and invalidate cache
+    try {
+      const cookieStore = await cookies();
+      const req2 = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
+      const res2 = new Response();
+      const session = await getIronSession<SessionData>(req2 as any, res2 as any, sessionOptions);
+      if (session && session.userId) {
+        session.lastActivityAt = Date.now();
+        await session.save();
+        await invalidateUser(String(session.userId));
+      }
+    } catch {}
 
     return NextResponse.json(post);
   } catch (err) {

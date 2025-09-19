@@ -7,10 +7,7 @@ import { api } from '../../../convex/_generated/api';
 import { getCachedUser, setCachedUser } from '@/lib/cache/userCache';
 
 const IDLE_MS = (Number(process.env.SESSION_IDLE_MINUTES ?? 15)) * 60_000;
-
-export class UnauthorizedExpired extends Error {
-  constructor() { super('Session expired due to inactivity'); }
-}
+const ABSOLUTE_MINUTES = Number(process.env.SESSION_ABSOLUTE_MINUTES ?? 0); // 0 disables
 
 const IDLE_MIN = 30;
 
@@ -21,14 +18,31 @@ export async function getCurrentUser() {
     const res = new Response();
 
     const session = await getIronSession<SessionData>(req as any, res as any, sessionOptions);
-    if (!session.userId) throw new Error('Unauthenticated');
+    if (!session.userId) return null;
 
     const now = Date.now();
     const lastActive = Number(session.lastActivityAt ?? 0);
     const idleLimit = IDLE_MS;
+    if (!lastActive) {
+      session.lastActivityAt = now;
+      await session.save();
+    }
     if (lastActive && now - lastActive > idleLimit) {
       await session.destroy();
-      throw new UnauthorizedExpired();
+      return null;
+    }
+
+    // Absolute expiration: prefer explicit expiresAt, else env-based TTL from issuedAt/createdAt
+    if (session.expiresAt && now > session.expiresAt) {
+      await session.destroy();
+      return null;
+    }
+    if (!session.expiresAt && ABSOLUTE_MINUTES > 0) {
+      const base = Number(session.issuedAt ?? session.createdAt ?? 0);
+      if (base && now - base > ABSOLUTE_MINUTES * 60_000) {
+        await session.destroy();
+        return null;
+      }
     }
 
     // Cache first
@@ -36,9 +50,14 @@ export async function getCurrentUser() {
     if (cached) {
       try {
         const parsed = typeof cached === 'string' ? JSON.parse(cached) : cached;
+        // bump activity on cache hit as well
+        session.lastActivityAt = now;
+        await session.save();
         return parsed;
       } catch {
         // Fallback to raw cached object if JSON.parse fails
+        session.lastActivityAt = now;
+        await session.save();
         return cached as any;
       }
     }

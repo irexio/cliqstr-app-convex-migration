@@ -29,6 +29,10 @@ import { getCurrentUser } from '@/lib/auth/getCurrentUser';
 import { validateAgeRequirements } from '@/lib/utils/ageUtils';
 import { convexHttp } from '@/lib/convex-server';
 import { api } from 'convex/_generated/api';
+import { cookies } from 'next/headers';
+import { getIronSession } from 'iron-session';
+import { sessionOptions, SessionData } from '@/lib/auth/session-config';
+import { invalidateUser } from '@/lib/cache/userCache';
 
 export async function POST(
   req: NextRequest,
@@ -120,7 +124,19 @@ export async function POST(
     });
 
     console.log(`[JOIN_CLIQ_SUCCESS] User ${user.id} joined cliq ${cliqId} (age: ${ageValidation.userAge})`);
-    
+    // Bump session activity and invalidate cache
+    try {
+      const cookieStore = await cookies();
+      const req2 = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
+      const res2 = new Response();
+      const session = await getIronSession<SessionData>(req2 as any, res2 as any, sessionOptions);
+      if (session && session.userId) {
+        session.lastActivityAt = Date.now();
+        await session.save();
+        await invalidateUser(String(session.userId));
+      }
+    } catch {}
+
     return NextResponse.json({ 
       success: true,
       message: `Successfully joined ${cliq.name}`,
