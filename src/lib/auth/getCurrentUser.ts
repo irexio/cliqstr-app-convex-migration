@@ -9,15 +9,9 @@ import { getCachedUser, setCachedUser } from '@/lib/cache/userCache';
 const IDLE_MS = (Number(process.env.SESSION_IDLE_MINUTES ?? 15)) * 60_000;
 const ABSOLUTE_MINUTES = Number(process.env.SESSION_ABSOLUTE_MINUTES ?? 0); // 0 disables
 
-const IDLE_MIN = 30;
-
 export async function getCurrentUser() {
   try {
-    const cookieStore = await cookies();
-    const req = new Request('http://local', { headers: { cookie: cookieStore.toString() } });
-    const res = new Response();
-
-    const session = await getIronSession<SessionData>(req as any, res as any, sessionOptions);
+    const session = await getIronSession<SessionData>(cookies(), sessionOptions);
     if (!session.userId) return null;
 
     const now = Date.now();
